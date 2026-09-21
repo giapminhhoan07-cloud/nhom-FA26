@@ -60,10 +60,10 @@ export const exams = [
     featured: false
   },
   {
-    id: "hoa-hoc-2024-thu",
-    title: "Đề thi thử Hóa học tổng hợp 2024",
-    subjectId: "hoa-hoc",
-    subjectName: "Hóa học",
+    id: "dia-li-2024-thu",
+    title: "Đề thi thử Địa lí tổng hợp 2024",
+    subjectId: "dia-li",
+    subjectName: "Địa lí",
     year: 2024,
     type: "thi-thu",
     typeName: "Đề thi thử",
@@ -75,10 +75,10 @@ export const exams = [
     featured: false
   },
   {
-    id: "sinh-hoc-2025-on-tap",
-    title: "Bộ câu hỏi ôn tập Sinh học 2025",
-    subjectId: "sinh-hoc",
-    subjectName: "Sinh học",
+    id: "lich-su-2025-on-tap",
+    title: "Bộ câu hỏi ôn tập Lịch sử 2025",
+    subjectId: "lich-su",
+    subjectName: "Lịch sử",
     year: 2025,
     type: "on-tap",
     typeName: "Đề ôn tập",

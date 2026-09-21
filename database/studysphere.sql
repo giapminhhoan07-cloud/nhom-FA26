@@ -125,9 +125,9 @@ CREATE TABLE `subjects` (
 --
 
 INSERT INTO `subjects` (`id`, `name`) VALUES
-('hoa-hoc', 'Hóa học'),
+('dia-li', 'Địa lí'),
 ('ngu-van', 'Ngữ văn'),
-('sinh-hoc', 'Sinh học'),
+('lich-su', 'Lịch sử'),
 ('tieng-anh', 'Tiếng Anh'),
 ('toan', 'Toán'),
 ('vat-ly', 'Vật lý');
