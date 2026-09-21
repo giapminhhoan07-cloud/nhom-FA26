@@ -1,3 +1,0 @@
-const history = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-const list = document.querySelector("#history-list");
-if (!history.length) { list.innerHTML = '<div class="empty-state"><strong>Chưa có lịch sử làm bài</strong><p>Hoàn thành một đề để thấy kết quả ở đây.</p><a class="button button-primary" href="exams.html">Chọn đề đầu tiên</a></div>'; } else { list.innerHTML = history.map((item) => `<article class="history-item"><div><span class="exam-subject">${item.score}/10 điểm</span><h3>${item.examTitle}</h3><small>${new Date(item.submittedAt).toLocaleString("vi-VN")} · ${item.correctCount}/${item.totalQuestions} câu đúng</small></div><a class="button button-quiet" href="result.html?attempt=${item.attemptId}">Xem kết quả</a></article>`).join(""); }
