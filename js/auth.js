@@ -46,8 +46,7 @@ registerForm.addEventListener("submit", (event) => {
   users.push({ name, email, password });
   localStorage.setItem("studysphere_users", JSON.stringify(users));
   localStorage.setItem("studysphere_current_user", JSON.stringify({ name, email }));
-  setMessage("register-message", "Tạo tài khoản thành công. Bạn đã được đăng nhập.", true);
-  registerForm.reset();
+  window.location.href = "../index.html";
 });
 
 const loginForm = document.querySelector("#login-form");
@@ -63,6 +62,5 @@ loginForm.addEventListener("submit", (event) => {
     return;
   }
   localStorage.setItem("studysphere_current_user", JSON.stringify({ name: user.name, email: user.email }));
-  setMessage("login-message", "Chào mừng trở lại!", true);
-  loginForm.reset();
+  window.location.href = "../index.html";
 });
