@@ -1,0 +1,61 @@
+# StudySphere
+
+StudySphere là một ứng dụng web luyện thi trực tuyến giúp người dùng:
+- làm bài trắc nghiệm theo từng đề
+- lưu lịch sử làm bài
+- xem lại bài làm sau khi nộp
+- ôn tập các câu sai và câu chưa làm
+- quản lý đề yêu thích
+
+## Tính năng chính
+
+- Kho đề thi theo từng môn/đề
+- Bài làm với thời gian đếm ngược
+- Tự động lưu lịch sử làm bài vào localStorage
+- Xem lại bài làm chi tiết: đúng/sai/bỏ qua
+- Đánh dấu câu sai để ôn tập hiệu quả
+- Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
+
+## Công nghệ sử dụng
+
+- HTML
+- CSS
+- JavaScript
+- LocalStorage để lưu dữ liệu người dùng
+
+## Cấu trúc thư mục
+
+```bash
+nhom-FA26/
+├── api/
+│   ├── auth.php
+│   └── database.php
+├── css/
+├── data/
+├── database/
+├── js/
+├── pages/
+├── index.html
+├── README.md
+└── ...
+```
+
+## Cài đặt và chạy
+
+1. Clone repository:
+
+```bash
+git clone https://github.com/giapminhhoan07-cloud/nhom-FA26.git
+```
+
+2. Chạy trên máy local bằng XAMPP, Laragon hoặc trình duyệt trực tiếp.
+
+3. Nếu cần chạy PHP local backend, khởi động Apache/PHP trong môi trường của bạn.
+
+## Lưu ý
+
+Dự án này đang sử dụng localStorage để lưu trạng thái người dùng, lịch sử làm bài và kết quả bài làm. Vì vậy dữ liệu sẽ được lưu trong trình duyệt của người dùng.
+
+## Tác giả
+
+Dự án StudySphere được phát triển trong nhóm FA26.
