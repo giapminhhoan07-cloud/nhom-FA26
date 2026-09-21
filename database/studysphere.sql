@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 21, 2026 at 06:05 AM
+-- Generation Time: Sep 21, 2026 at 02:03 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.3.30
 
@@ -152,7 +152,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `created_at`) VALUES
-(1, 'Admin', 'admin@gmail.com', '123', 'admin', '2026-09-21 06:03:01');
+(1, 'Admin', 'admin@gmail.com', '$2y$10$PTiWijvdwd1wrN85/m2Xg.w0363ldqIDYnm.jOrC5yBxx.NBtMnQi', 'admin', '2026-09-21 06:03:01'),
+(3, 'test', 'test@gmail.com', '$2y$10$4SHAX/3RLnLzs5AIdmBmsuHLh9qiqPPyYIuE6ZeZIQZBhuQizk.sO', 'user', '2026-09-21 07:03:54');
 
 --
 -- Indexes for dumped tables
@@ -227,7 +228,7 @@ ALTER TABLE `attempts`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
