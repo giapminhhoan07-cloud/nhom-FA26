@@ -11,7 +11,7 @@
   --shadow: 0 20px 55px rgba(23, 59, 87, 0.09);
   --radius: 14px;
   --font-body: "Trebuchet MS", "Segoe UI", sans-serif;
-  --font-display: Georgia, "Times New Roman", serif;
+  --font-display: Cambria, "Times New Roman", serif;
 }
 
 * { box-sizing: border-box; }
