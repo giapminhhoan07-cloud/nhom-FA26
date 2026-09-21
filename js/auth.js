@@ -21,46 +21,50 @@ document.addEventListener("click", (event) => {
   if (switchButton) switchTab(switchButton.dataset.switchTab);
 });
 
-const getUsers = () => {
-  try { return JSON.parse(localStorage.getItem("studysphere_users") || "[]"); } catch { return []; }
-};
 const setMessage = (id, text, success = false) => {
   const message = document.querySelector(`#${id}`);
   message.textContent = text;
   message.classList.toggle("success", success);
 };
 
+const submitAuth = async (payload) => {
+  const response = await fetch("../api/auth.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.message || "Không thể xử lý yêu cầu.");
+  return result;
+};
+
 const registerForm = document.querySelector("#register-form");
-registerForm.addEventListener("submit", (event) => {
+registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(registerForm);
   const name = data.get("name").trim();
   const email = data.get("email").trim().toLowerCase();
   const password = data.get("password");
-  const users = getUsers();
-
-  if (users.some((user) => user.email === email)) {
-    setMessage("register-message", "Email này đã được đăng ký.");
-    return;
+  try {
+    const result = await submitAuth({ action: "register", name, email, password });
+    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    window.location.href = "../index.html";
+  } catch (error) {
+    setMessage("register-message", error.message);
   }
-  users.push({ name, email, password });
-  localStorage.setItem("studysphere_users", JSON.stringify(users));
-  localStorage.setItem("studysphere_current_user", JSON.stringify({ name, email }));
-  window.location.href = "../index.html";
 });
 
 const loginForm = document.querySelector("#login-form");
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(loginForm);
   const email = data.get("email").trim().toLowerCase();
   const password = data.get("password");
-  const user = getUsers().find((item) => item.email === email && item.password === password);
-
-  if (!user) {
-    setMessage("login-message", "Email hoặc mật khẩu chưa chính xác.");
-    return;
+  try {
+    const result = await submitAuth({ action: "login", email, password });
+    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    window.location.href = "../index.html";
+  } catch (error) {
+    setMessage("login-message", error.message);
   }
-  localStorage.setItem("studysphere_current_user", JSON.stringify({ name: user.name, email: user.email }));
-  window.location.href = "../index.html";
 });
