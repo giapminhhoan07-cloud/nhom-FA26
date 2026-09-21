@@ -63,7 +63,7 @@ Dự án StudySphere được phát triển trong nhóm FA26.
 ## 
 
 git add .
-git commit -m "Update ........." (update thêm phần nào thì ghi tên vào dấu ... cho dễ quản lý)
+git commit -m "Update ..." (update thêm phần nào thì ghi tên vào dấu ... cho dễ quản lý)
 git push origin main
 
 VD: git add .
