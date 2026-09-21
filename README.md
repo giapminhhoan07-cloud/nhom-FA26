@@ -60,7 +60,7 @@ Dự án này đang sử dụng localStorage để lưu trạng thái người d
 
 Dự án StudySphere được phát triển trong nhóm FA26.
 
-## 
+## Update code
 
 git add .
 git commit -m "Update ..." (update thêm phần nào thì ghi tên vào dấu ... cho dễ quản lý)
