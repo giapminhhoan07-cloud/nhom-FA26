@@ -1,14 +1,60 @@
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
-const stored = JSON.parse(localStorage.getItem(`studysphere_result_${attemptId}`) || "null");
+const fallbackKey = `studysphere_result_${attemptId}`;
+const fallbackStored = JSON.parse(localStorage.getItem(fallbackKey) || "null");
 const card = document.querySelector("#result-card");
 
 function getOptionLabel(index) {
   return String.fromCharCode(65 + index);
 }
 
+function normalizeAttemptData(stored) {
+  if (!stored) return null;
+  if (stored.result && Array.isArray(stored.questions)) {
+    return stored;
+  }
+  if (stored.attempt && Array.isArray(stored.questions)) {
+    const result = {
+      attemptId: String(stored.attempt.id),
+      examId: stored.attempt.exam_id,
+      examTitle: stored.attempt.exam_title,
+      submittedAt: stored.attempt.submitted_at,
+      score: Number(stored.attempt.score || 0),
+      totalQuestions: Number(stored.attempt.total_questions || 0),
+      correctCount: Number(stored.attempt.correct_count || 0),
+      wrongCount: Number(stored.attempt.wrong_count || 0),
+      unansweredCount: Number(stored.attempt.unanswered_count || 0),
+      answers: stored.answers || []
+    };
+    return { result, questions: stored.questions };
+  }
+  return null;
+}
+
+const currentUser = (() => {
+  try {
+    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
+  } catch {
+    return null;
+  }
+})();
+
+let stored = normalizeAttemptData(fallbackStored);
+
+if (!stored && attemptId && currentUser?.id) {
+  const response = await fetch("../api/attempts.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
+  });
+  const data = await response.json();
+  if (response.ok && data.success) {
+    stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+  }
+}
+
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt.</p><a class="button button-primary" href="exams.html">Về kho đề</a>';
-  return;
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="exams.html">Về kho đề</a>';
+  throw new Error('No result');
 }
 
 const { result, questions } = stored;
@@ -73,7 +119,10 @@ const reviewFilterOptions = [
 card.innerHTML = `
   <div class="detail-top">
     <p class="eyebrow"><span class="eyebrow-dot"></span> Bài làm đã hoàn tất</p>
-    <a class="text-link" href="history.html"><span aria-hidden="true">←</span> Quay lại lịch sử</a>
+    <div class="detail-header-actions">
+      <button class="button button-secondary review-trigger" type="button">Xem lại bài đã làm</button>
+      <a class="text-link" href="history.html"><span aria-hidden="true">←</span> Quay lại lịch sử</a>
+    </div>
   </div>
   <h1>${result.score}<small>/10 điểm</small></h1>
   <p class="detail-description">${result.examTitle}</p>
@@ -100,10 +149,128 @@ card.innerHTML = `
     </div>
     <div class="review-list" id="review-list">${buildReviewMarkup()}</div>
   </section>
+
+  <div class="review-modal-overlay" id="review-modal-overlay" hidden>
+    <div class="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+      <div class="review-modal-header">
+        <div>
+          <p class="review-modal-kicker">Chi tiết bài làm</p>
+          <h3 id="review-modal-title">${result.examTitle}</h3>
+        </div>
+        <button class="review-modal-close" type="button" aria-label="Đóng">×</button>
+      </div>
+
+      <div class="review-modal-summary">
+        <div class="review-modal-summary-main">
+          <span class="review-modal-label">Bài kiểm tra</span>
+          <strong>${result.examTitle}</strong>
+        </div>
+        <div class="review-modal-summary-score">
+          <span>${result.score} / 10</span>
+        </div>
+      </div>
+
+      <div class="review-modal-status-row">
+        ${questions.map((_, i) => {
+          const selected = result.answers?.[i];
+          const isCorrect = selected === questions[i].correctAnswer;
+          const state = selected === null ? "skip" : isCorrect ? "correct" : "wrong";
+          return `<button class="review-chip ${state}" type="button" data-question-index="${i}">${i + 1}</button>`;
+        }).join("")}
+      </div>
+
+      <div id="review-modal-question"></div>
+    </div>
+  </div>
 `;
 
 const reviewList = document.querySelector("#review-list");
 const filterButtons = document.querySelectorAll(".review-filter-button");
+const reviewModalOverlay = document.querySelector("#review-modal-overlay");
+const reviewModalQuestion = document.querySelector("#review-modal-question");
+const reviewTrigger = document.querySelector(".review-trigger");
+const reviewModalClose = document.querySelector(".review-modal-close");
+
+function renderQuestionDetail(index) {
+  const question = questions[index];
+  const selectedAnswer = result.answers?.[index];
+  const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
+  const isCorrect = selectedIndex === question.correctAnswer;
+  const isWrong = selectedIndex !== null && selectedIndex !== question.correctAnswer;
+  const statusClass = isCorrect ? "is-correct" : isWrong ? "is-wrong" : "is-unanswered";
+  const statusText = isCorrect ? "Đúng" : isWrong ? "Sai" : "Bỏ qua";
+
+  reviewModalQuestion.innerHTML = `
+    <div class="review-question-card ${statusClass}">
+      <div class="review-question-head">
+        <span class="review-question-label">Câu ${index + 1}</span>
+        <span class="review-question-status ${statusClass}">${statusText}</span>
+      </div>
+      <h4>${question.content}</h4>
+      <ul class="review-question-options">
+        ${question.options.map((option, optionIndex) => {
+          const isSelected = selectedIndex === optionIndex;
+          const isCorrectAnswer = optionIndex === question.correctAnswer;
+          const classes = [
+            "review-answer-row",
+            isSelected ? "selected" : "",
+            isCorrectAnswer ? "correct" : "",
+            isWrong && isSelected ? "wrong" : "",
+          ].filter(Boolean).join(" ");
+
+          return `
+            <li class="${classes}">
+              <span class="review-answer-letter">${getOptionLabel(optionIndex)}</span>
+              <span class="review-answer-text">${option}</span>
+              ${isCorrectAnswer ? '<span class="review-answer-tag">Đáp án đúng</span>' : ""}
+            </li>
+          `;
+        }).join("")}
+      </ul>
+      <div class="review-question-footer">
+        <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa chọn" : getOptionLabel(selectedIndex)}</p>
+        <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+      </div>
+      <div class="review-question-explain">
+        <strong>Giải thích:</strong>
+        <p>${question.explanation}</p>
+      </div>
+    </div>
+  `;
+}
+
+function openReviewModal() {
+  reviewModalOverlay.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeReviewModal() {
+  reviewModalOverlay.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
+if (reviewTrigger) {
+  reviewTrigger.addEventListener("click", openReviewModal);
+}
+if (reviewModalClose) {
+  reviewModalClose.addEventListener("click", closeReviewModal);
+}
+if (reviewModalOverlay) {
+  reviewModalOverlay.addEventListener("click", (event) => {
+    if (event.target === reviewModalOverlay) closeReviewModal();
+  });
+}
+
+document.querySelectorAll(".review-chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    renderQuestionDetail(Number(chip.dataset.questionIndex));
+    document.querySelectorAll(".review-chip").forEach((item) => item.classList.toggle("active", item === chip));
+  });
+});
+
+const defaultModalIndex = questions.findIndex((_, index) => result.answers?.[index] !== questions[index].correctAnswer || result.answers?.[index] === null);
+renderQuestionDetail(defaultModalIndex >= 0 ? defaultModalIndex : 0);
+document.querySelectorAll(".review-chip").forEach((chip) => chip.classList.toggle("active", Number(chip.dataset.questionIndex) === (defaultModalIndex >= 0 ? defaultModalIndex : 0)));
 
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
