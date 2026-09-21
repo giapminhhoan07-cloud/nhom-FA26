@@ -69,3 +69,9 @@ git push origin main
 VD: git add .
 git commit -m "Update README.md"
 git push origin main
+
+## Tránh xung đột code
+
+Mỗi lần vào code thì ấn :
+git push origin main
+để up lại code trên github, tránh trường hợp code bị mất do xung đột với các thành viên khác.
