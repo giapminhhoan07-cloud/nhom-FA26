@@ -59,3 +59,13 @@ Dự án này đang sử dụng localStorage để lưu trạng thái người d
 ## Tác giả
 
 Dự án StudySphere được phát triển trong nhóm FA26.
+
+## 
+
+git add .
+git commit -m "Update ........." (update thêm phần nào thì ghi tên vào dấu ... cho dễ quản lý)
+git push origin main
+
+VD: git add .
+git commit -m "Update css"
+git push origin main
