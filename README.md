@@ -67,5 +67,5 @@ git commit -m "Update ........." (update thêm phần nào thì ghi tên vào d�
 git push origin main
 
 VD: git add .
-git commit -m "Update css"
+git commit -m "Update README.md"
 git push origin main
