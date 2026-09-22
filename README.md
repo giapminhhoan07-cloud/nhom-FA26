@@ -76,3 +76,7 @@ git push origin main
 Mỗi lần vào code thì ấn :
 git push origin main
 để up lại code trên github, tránh trường hợp code bị mất do xung đột với các thành viên khác.
+
+## Đồng bộ code trên Github
+Mỗi lần vào code thì ấn :
+git pull origin main --rebase
