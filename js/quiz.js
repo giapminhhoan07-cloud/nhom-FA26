@@ -1,8 +1,10 @@
 import { exams } from "../data/exams.js";
-import { questions } from "../data/questions.js";
+import { questions as bundledQuestions } from "../data/questions.js";
 
 const examId = new URLSearchParams(window.location.search).get("id");
-const exam = exams.find((item) => item.id === examId) || exams[0];
+let exam = exams.find((item) => item.id === examId) || exams[0];
+let questions = bundledQuestions;
+try { const response = await fetch(`../api/exams.php?id=${encodeURIComponent(examId || exam.id)}`); const result = await response.json(); if (response.ok && result.success) { exam = result.exam; questions = result.exam.questions; } } catch { /* Use bundled fallback when PHP is unavailable. */ }
 let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = 45 * 60;
@@ -20,7 +22,7 @@ function renderQuestion() {
   const question = questions[currentIndex];
   progressLabel.textContent = `Câu ${currentIndex + 1} / ${questions.length}`;
   progressValue.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
-  card.innerHTML = `<p class="question-number">Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}</p><h1>${question.content}</h1><div class="answer-list">${question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("")}</div>`;
+  card.innerHTML = `<p class="question-number">Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}</p>${question.image_url ? `<img class="question-image" style="display:block;max-width:100%;max-height:360px;margin:0 0 24px;border-radius:8px;object-fit:contain" src="${question.image_url}" alt="Hình minh họa cho câu hỏi ${currentIndex + 1}">` : ""}<h1>${question.content}</h1><div class="answer-list">${question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("")}</div>`;
   card.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => { answers[currentIndex] = Number(input.value); renderQuestion(); renderDots(); }));
   document.querySelector("#previous-button").disabled = currentIndex === 0;
   document.querySelector("#next-button").textContent = currentIndex === questions.length - 1 ? "Xem lại bài →" : "Câu tiếp theo →";

@@ -1,4 +1,5 @@
 const tabs = document.querySelectorAll("[data-auth-tab]");
+const returnTarget = new URLSearchParams(window.location.search).get("return");
 const panels = {
   login: document.querySelector("#login-panel"),
   register: document.querySelector("#register-panel"),
@@ -63,7 +64,7 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-    window.location.href = "../index.html";
+    window.location.href = returnTarget === "admin" ? "admin.html" : "../index.html";
   } catch (error) {
     setMessage("login-message", error.message);
   }

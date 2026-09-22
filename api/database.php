@@ -15,6 +15,10 @@ $options = [
 
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
+    $imageColumn = $pdo->query("SHOW COLUMNS FROM questions LIKE 'image_url'")->fetch();
+    if (!$imageColumn) {
+        $pdo->exec('ALTER TABLE questions ADD COLUMN image_url LONGTEXT NULL AFTER explanation');
+    }
 } catch (PDOException $error) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');

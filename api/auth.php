@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+session_start();
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -20,6 +22,14 @@ require __DIR__ . '/database.php';
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $input['action'] ?? '';
+
+if ($action === 'logout') {
+    $_SESSION = [];
+    session_destroy();
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 $email = strtolower(trim((string) ($input['email'] ?? '')));
 $password = (string) ($input['password'] ?? '');
 
@@ -48,6 +58,7 @@ if ($action === 'register') {
     $insert = $pdo->prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)');
     $insert->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT), 'user']);
     $user = ['id' => (int) $pdo->lastInsertId(), 'name' => $name, 'email' => $email, 'role' => 'user'];
+    $_SESSION['user'] = $user;
     echo json_encode(['success' => true, 'message' => 'Tạo tài khoản thành công.', 'user' => $user]);
     exit;
 }
@@ -64,6 +75,12 @@ if ($action === 'login') {
     }
 
     unset($user['password_hash']);
+    $_SESSION['user'] = [
+        'id' => (int) $user['id'],
+        'name' => $user['name'],
+        'email' => $user['email'],
+        'role' => $user['role'],
+    ];
     echo json_encode(['success' => true, 'message' => 'Chào mừng trở lại!', 'user' => $user]);
     exit;
 }

@@ -106,7 +106,8 @@ CREATE TABLE `questions` (
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `options` json NOT NULL,
   `correct_answer` tinyint UNSIGNED NOT NULL,
-  `explanation` text COLLATE utf8mb4_unicode_ci
+  `explanation` text COLLATE utf8mb4_unicode_ci,
+  `image_url` longtext COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

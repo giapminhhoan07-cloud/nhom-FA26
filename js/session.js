@@ -23,6 +23,17 @@ function renderAccount() {
     return;
   }
 
+  if (currentUser.role === "admin") {
+    const mainNav = header.querySelector(".main-nav");
+    if (mainNav && !mainNav.querySelector('a[href$="admin.html"]')) {
+      const adminLink = document.createElement("a");
+      adminLink.href = getPagePath("admin.html");
+      adminLink.textContent = "Quản trị đề thi";
+      adminLink.dataset.adminNav = "true";
+      mainNav.append(adminLink);
+    }
+  }
+
   const account = document.createElement("div");
   account.className = "account-menu";
   account.innerHTML = `
@@ -36,6 +47,8 @@ function renderAccount() {
       <span class="account-email"></span>
       <span class="account-role"></span>
       <div class="account-links">
+        <a href="${getPagePath("profile.html")}">Trang cá nhân</a>
+        ${currentUser.role === "admin" ? `<a href="${getPagePath("admin.html")}">Quản trị đề thi</a>` : ""}
         <a href="${getPagePath("history.html")}">Lịch sử làm bài</a>
         <a href="${getPagePath("favorites.html")}">Đề đã lưu</a>
       </div>
@@ -56,8 +69,13 @@ function renderAccount() {
     panel.hidden = !open;
     trigger.setAttribute("aria-expanded", String(open));
   });
-  account.querySelector(".account-logout").addEventListener("click", () => {
+  account.querySelector(".account-logout").addEventListener("click", async () => {
     localStorage.removeItem("studysphere_current_user");
+    try {
+      await fetch(getPagePath("../api/auth.php"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
+    } catch {
+      // Redirect even when the PHP server is unavailable.
+    }
     window.location.href = getAuthPath();
   });
   document.addEventListener("click", (event) => {

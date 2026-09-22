@@ -1,5 +1,7 @@
 import { exams } from "../data/exams.js";
 
+let availableExams = exams;
+
 const menuToggle = document.querySelector(".menu-toggle");
 const mainNav = document.querySelector(".main-nav");
 menuToggle?.addEventListener("click", () => {
@@ -29,7 +31,7 @@ const setFavorites = (favorites) => localStorage.setItem("studysphere_favorites"
 function getFilteredExams() {
   const query = searchInput.value.trim().toLowerCase();
   const values = Object.fromEntries(filterIds.map((id) => [id, document.querySelector(`#${id}`).value]));
-  return exams.filter((exam) => {
+  return availableExams.filter((exam) => {
     const matchesQuery = !query || `${exam.title} ${exam.subjectName} ${exam.typeName}`.toLowerCase().includes(query);
     return matchesQuery && (values["subject-filter"] === "all" || exam.subjectId === values["subject-filter"])
       && (values["year-filter"] === "all" || String(exam.year) === values["year-filter"])
@@ -76,4 +78,15 @@ filterToggle.addEventListener("click", () => { const isOpen = filterPanel.classL
 activeFilters.addEventListener("click", (event) => { const button = event.target.closest("[data-clear-filter]"); if (!button) return; document.querySelector(`#${button.dataset.clearFilter}`).value = "all"; render(); });
 examList.addEventListener("click", (event) => { const button = event.target.closest("[data-favorite]"); if (!button) return; const favorites = getFavorites(); const index = favorites.indexOf(button.dataset.favorite); index >= 0 ? favorites.splice(index, 1) : favorites.push(button.dataset.favorite); setFavorites(favorites); render(); });
 
-render();
+async function loadExams() {
+  try {
+    const response = await fetch("../api/exams.php");
+    const result = await response.json();
+    if (response.ok && result.success && result.exams.length) availableExams = result.exams;
+  } catch {
+    availableExams = exams;
+  }
+  render();
+}
+
+loadExams();
