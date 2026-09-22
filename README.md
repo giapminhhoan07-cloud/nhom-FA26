@@ -80,3 +80,4 @@ git push origin main
 ## Đồng bộ code trên Github
 Mỗi lần vào code thì ấn :
 git pull origin main --rebase
+
