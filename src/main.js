@@ -1,60 +1,98 @@
-import './style.css'
-import heroImg from './assets/hero.png'
-import javascriptLogo from './assets/javascript.svg'
-import viteLogo from './assets/vite.svg'
-import { setupCounter } from './counter.js'
+import "../backup/css/base.css";
+import "../backup/css/layout.css";
+import "../backup/css/components.css";
+import { exams } from "../backup/data/exams.js";
 
-document.querySelector('#app').innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started!</h1>
-    <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
-
-<div class="ticks"></div>
-
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
+document.querySelector("#app").innerHTML = `
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="StudySphere - Trang chủ">
+          <span class="brand-mark">S</span>
+          <span>Study<span>Sphere</span></span>
         </a>
-      </li>
-      <li>
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-          <img class="button-icon" src="${javascriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+          <a class="active" href="/">Trang chủ</a>
+          <a href="/backup/pages/exams.html">Kho đề thi</a>
+          <a href="/backup/pages/history.html">Lịch sử</a>
+          <a href="/backup/pages/favorites.html">Đề đã lưu</a>
+        </nav>
+        <a class="header-action" href="/backup/pages/auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+    <main>
+      <section class="hero-section">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <p class="eyebrow"><span class="eyebrow-dot"></span> Không gian ôn thi của bạn</p>
+            <h1>Học có chiến lược.<br><em>Thi thật tự tin.</em></h1>
+            <p class="hero-description">Tìm đúng đề, luyện tập tập trung và nhìn thấy tiến bộ của bạn qua từng lần làm bài.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="/backup/pages/exams.html">Khám phá kho đề <span aria-hidden="true">→</span></a>
+              <a class="text-link" href="#subjects">Chọn theo môn <span aria-hidden="true">↓</span></a>
+            </div>
+            <div class="hero-proof">
+              <div class="avatar-stack" aria-hidden="true"><span>AN</span><span>MK</span><span>TH</span><span>+</span></div>
+              <p><strong>Hơn 1.200</strong> lượt luyện tập<br>được mô phỏng trong StudySphere</p>
+            </div>
+          </div>
+          <div class="hero-visual reveal reveal-delay" aria-label="Tóm tắt tiến độ học tập">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="progress-card">
+              <div class="card-topline"><span>Tiến độ tuần này</span><span class="status-badge">+18%</span></div>
+              <div class="progress-score">7.8 <small>/ 10</small></div>
+              <div class="progress-bars" aria-label="Biểu đồ điểm các ngày trong tuần">
+                <span style="--height: 42%"><i>T2</i></span><span style="--height: 58%"><i>T3</i></span><span style="--height: 48%"><i>T4</i></span><span style="--height: 72%"><i>T5</i></span><span class="today" style="--height: 86%"><i>T6</i></span><span style="--height: 66%"><i>T7</i></span><span style="--height: 78%"><i>CN</i></span>
+              </div>
+            </div>
+            <div class="floating-note note-top"><span class="note-icon">✓</span><span><strong>Đã hoàn thành</strong><small>12 đề trong tháng</small></span></div>
+            <div class="floating-note note-bottom"><span class="note-icon warm">✦</span><span><strong>Tiếp tục tiến bộ</strong><small>Điểm cao nhất: 9.2</small></span></div>
+          </div>
+        </div>
+      </section>
 
-setupCounter(document.querySelector('#counter'))
+      <section class="stats-strip"><div class="container stats-grid"><div><strong>120+</strong><span>Đề thi chọn lọc</span></div><div><strong>09</strong><span>Môn học phổ biến</span></div><div><strong>04</strong><span>Cấp độ luyện tập</span></div><div><strong>100%</strong><span>Miễn phí sử dụng</span></div></div></section>
+
+      <section class="section subjects-section" id="subjects">
+        <div class="container">
+          <div class="section-heading"><div><p class="eyebrow">Bắt đầu từ điều bạn cần</p><h2>Chọn môn học</h2></div><a class="text-link" href="/backup/pages/exams.html">Xem tất cả <span aria-hidden="true">→</span></a></div>
+          <div class="subject-grid">
+            <a class="subject-card subject-math" href="/backup/pages/exams.html?subject=toan"><span class="subject-icon">∑</span><span><strong>Toán</strong><small>24 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-literature" href="/backup/pages/exams.html?subject=ngu-van"><span class="subject-icon">Aa</span><span><strong>Ngữ văn</strong><small>18 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-english" href="/backup/pages/exams.html?subject=tieng-anh"><span class="subject-icon">文</span><span><strong>Tiếng Anh</strong><small>31 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-science" href="/backup/pages/exams.html?subject=vat-ly"><span class="subject-icon">◌</span><span><strong>Vật lý</strong><small>16 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/pages/exams.html">Đến kho đề <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="/"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="/backup/pages/about.html">Về StudySphere</a><a href="/backup/pages/contact.html">Liên hệ nhóm</a><span>© 2026 StudySphere</span></div></div></footer>
+  `;
+
+  await import("../backup/js/session.js");
+
+  const menuToggle = document.querySelector(".menu-toggle");
+  const mainNav = document.querySelector(".main-nav");
+  menuToggle?.addEventListener("click", () => {
+    const isOpen = mainNav.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  document.querySelector("#featured-exams").innerHTML = exams
+    .filter((exam) => exam.featured)
+    .map((exam) => `
+      <article class="exam-card">
+        <div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div>
+        <h3>${exam.title}</h3>
+        <p>${exam.description}</p>
+        <div class="exam-meta"><span>◷ ${exam.durationMinutes} phút</span><span>▤ ${exam.questionCount} câu</span></div>
+        <a class="exam-card-link" href="/backup/pages/exam-detail.html?id=${exam.id}" aria-label="Xem ${exam.title}">↗</a>
+      </article>
+    `)
+    .join("");
