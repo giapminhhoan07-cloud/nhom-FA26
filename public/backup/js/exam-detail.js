@@ -4,7 +4,8 @@ const nav = document.querySelector(".main-nav");
 document.querySelector(".menu-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; const open = nav.classList.toggle("open"); button.setAttribute("aria-expanded", String(open)); });
 const id = new URLSearchParams(window.location.search).get("id");
 const detail = document.querySelector("#exam-detail");
-let exam = exams.find((item) => item.id === id) || exams[0];
+const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
+let exam = [...exams, ...localExams].find((item) => item.id === id) || exams[0];
 try { const response = await fetch(`../api/exams.php?id=${encodeURIComponent(id || exam.id)}`); const result = await response.json(); if (response.ok && result.success) exam = result.exam; } catch { /* Use bundled fallback when PHP is unavailable. */ }
 const isPreviewOnly = true;
 const documentPreview = isPreviewOnly ? (exam.documentUrl ? `<details class="exam-document"><summary><span class="exam-document-summary"><strong>${exam.title}</strong><small>Đề PDF · Nhấn để xem đề</small></span><span class="exam-document-toggle">Xem đề <span aria-hidden="true">↗</span></span></summary><iframe src="${exam.documentUrl}" title="${exam.title}"></iframe><div class="exam-document-actions"><a class="button button-primary" href="${exam.documentUrl}" target="_blank" rel="noreferrer">Mở tab mới</a><a class="button button-quiet" href="${exam.documentUrl}" download>⇩ Tải đề xuống</a></div></details>` : `<div class="exam-document exam-document-empty"><strong>Nội dung đề sẽ được cập nhật</strong><p>File đề sẽ hiển thị tại đây sau khi được tải lên.</p></div>`) : "";

@@ -29,7 +29,11 @@ const setMessage = (id, text, success = false) => {
 };
 
 const getLocalUsers = () => {
-  try { return JSON.parse(localStorage.getItem("studysphere_users") || "[]"); } catch { return []; }
+  try {
+    const users = JSON.parse(localStorage.getItem("studysphere_users") || "[]");
+    const hasAdmin = users.some((user) => user.role === "admin");
+    return hasAdmin ? users : [{ id: "local-admin", name: "Quản trị viên", email: "admin@studysphere.local", password: "admin123", role: "admin" }, ...users];
+  } catch { return [{ id: "local-admin", name: "Quản trị viên", email: "admin@studysphere.local", password: "admin123", role: "admin" }]; }
 };
 
 const setLocalUsers = (users) => localStorage.setItem("studysphere_users", JSON.stringify(users));

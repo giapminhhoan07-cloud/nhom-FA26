@@ -18,6 +18,7 @@ document.querySelector("#app").innerHTML = `
           <a href="/backup/pages/exams.html">Kho đề thi</a>
           <a href="/backup/pages/history.html">Lịch sử</a>
           <a href="/backup/pages/favorites.html">Đề đã lưu</a>
+          <a href="/backup/pages/exams.html">Bài test</a>
         </nav>
         <a class="header-action" href="/backup/pages/auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
       </div>
