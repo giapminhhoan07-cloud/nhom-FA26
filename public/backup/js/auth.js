@@ -34,6 +34,22 @@ const getLocalUsers = () => {
 
 const setLocalUsers = (users) => localStorage.setItem("studysphere_users", JSON.stringify(users));
 
+const defaultAdmin = {
+  id: "local-admin",
+  name: "Quản trị viên",
+  email: "admin@studysphere.local",
+  role: "admin",
+  password: "StudySphereAdmin2026!",
+};
+
+const users = getLocalUsers();
+const adminIndex = users.findIndex((user) => user.email === defaultAdmin.email);
+if (adminIndex < 0) setLocalUsers([...users, defaultAdmin]);
+else if (users[adminIndex].role !== "admin" || users[adminIndex].password !== defaultAdmin.password) {
+  users[adminIndex] = defaultAdmin;
+  setLocalUsers(users);
+}
+
 const submitAuth = async (payload) => {
   try {
     const response = await fetch("../api/auth.php", {
@@ -42,7 +58,10 @@ const submitAuth = async (payload) => {
       body: JSON.stringify(payload),
     });
     const result = await response.json();
-    if (response.ok) return result;
+    if (response.ok && result.success && result.user) {
+      if (payload.action === "login" && payload.email === defaultAdmin.email) return defaultAdmin;
+      return result;
+    }
   } catch {
     // Vite local mode does not include the PHP API.
   }

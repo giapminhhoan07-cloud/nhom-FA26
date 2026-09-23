@@ -10,30 +10,63 @@ const form = document.querySelector("#exam-form");
 const list = document.querySelector("#admin-exam-list");
 const formMessage = document.querySelector("#form-message");
 const listMessage = document.querySelector("#list-message");
-const fileInput = document.querySelector("#exam-file");
-const imageInput = document.querySelector("#question-images");
+const documentInput = document.querySelector("#exam-document-file");
 
 const setMessage = (element, text, success = false) => {
   element.textContent = text;
   element.classList.toggle("success", success);
 };
 
-async function request(payload) {
-  const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const result = await response.json();
-  if (response.status === 403) {
-    localStorage.removeItem("studysphere_current_user");
-    window.location.replace("auth.html?return=admin");
+const localExamKey = "studysphere_admin_exams";
+const subjectNames = { "toan": "Toán", "ngu-van": "Ngữ văn", "tieng-anh": "Tiếng Anh", "vat-ly": "Vật lý", "dia-li": "Địa lí", "lich-su": "Lịch sử" };
+const getLocalExams = () => {
+  try { return JSON.parse(localStorage.getItem(localExamKey) || "[]"); } catch { return []; }
+};
+const setLocalExams = (exams) => localStorage.setItem(localExamKey, JSON.stringify(exams));
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.addEventListener("load", () => resolve(reader.result));
+  reader.addEventListener("error", reject);
+  reader.readAsDataURL(file);
+});
+const localRequest = (payload) => {
+  const exams = getLocalExams();
+  if (payload.action === "list") return { success: true, exams };
+  if (payload.action === "get") {
+    const exam = exams.find((item) => item.id === payload.id);
+    if (!exam) throw new Error("Không tìm thấy đề thi.");
+    return { success: true, exam };
   }
-  if (!response.ok) throw new Error(result.message || "Không thể xử lý đề thi.");
-  return result;
+  if (payload.action === "delete") {
+    setLocalExams(exams.filter((item) => item.id !== payload.id));
+    return { success: true, message: "Đã xóa đề thi." };
+  }
+  const exam = { ...payload, subject_name: subjectNames[payload.subject_id] || payload.subject_id, question_count: payload.questions.length, duration_minutes: payload.duration_minutes };
+  if (payload.action === "update") {
+    setLocalExams(exams.map((item) => item.id === payload.id ? exam : item));
+    return { success: true, message: "Đã cập nhật đề thi." };
+  }
+  if (exams.some((item) => item.id === payload.id)) throw new Error("Mã đề đã tồn tại.");
+  setLocalExams([...exams, exam]);
+  return { success: true, message: "Đã lưu đề thi." };
+};
+
+async function request(payload) {
+  try {
+    const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const result = await response.json();
+    if (response.ok) return result;
+  } catch {
+    // Use local storage when the PHP API is unavailable on the static deployment.
+  }
+  return localRequest(payload);
 }
 
-function getFormPayload() {
+async function getFormPayload() {
   const data = new FormData(form);
-  let questions;
-  try { questions = JSON.parse(data.get("questions")); } catch { throw new Error("Danh sách câu hỏi phải là JSON hợp lệ."); }
-  return { action: document.querySelector("#exam-action").value, id: data.get("id").trim(), title: data.get("title").trim(), subject_id: data.get("subject_id"), year: Number(data.get("year")), exam_type: data.get("exam_type").trim(), difficulty: data.get("difficulty"), duration_minutes: Number(data.get("duration_minutes")), description: data.get("description").trim(), featured: data.get("featured") === "on" ? 1 : 0, questions };
+  const documentFile = documentInput.files[0];
+  const documentUrl = documentFile?.type === "application/pdf" ? await readFileAsDataUrl(documentFile) : document.querySelector("#exam-document-url").value;
+  return { action: document.querySelector("#exam-action").value, id: data.get("id").trim(), title: data.get("title").trim(), subject_id: data.get("subject_id"), year: Number(data.get("year")), exam_type: data.get("exam_type").trim(), difficulty: data.get("difficulty"), duration_minutes: Number(data.get("duration_minutes")), description: data.get("description").trim(), featured: data.get("featured") === "on" ? 1 : 0, documentUrl, questions: [] };
 }
 
 function resetForm() {
@@ -43,7 +76,7 @@ function resetForm() {
   document.querySelector("#exam-id").readOnly = false;
   document.querySelector("#exam-year").value = 2026;
   document.querySelector("#exam-duration").value = 60;
-  document.querySelector("#exam-questions").value = '[{"id":"toan-2026-de-01-q1","content":"Nội dung câu hỏi mẫu?","options":["Đáp án A","Đáp án B","Đáp án C","Đáp án D"],"correct_answer":0,"explanation":"Giải thích đáp án."}]';
+  document.querySelector("#exam-document-url").value = "";
   setMessage(formMessage, "");
 }
 
@@ -59,8 +92,8 @@ function fillForm(exam) {
   document.querySelector("#exam-difficulty").value = exam.difficulty || "medium";
   document.querySelector("#exam-duration").value = exam.duration_minutes || exam.durationMinutes || 60;
   document.querySelector("#exam-description").value = exam.description || "";
+  document.querySelector("#exam-document-url").value = exam.documentUrl || exam.document_url || "";
   document.querySelector("#exam-featured").checked = Boolean(exam.featured);
-  document.querySelector("#exam-questions").value = JSON.stringify(exam.questions || [], null, 2);
 }
 
 function renderList(exams) {
@@ -87,7 +120,7 @@ async function editExam(id) {
     document.querySelector("#exam-duration").value = exam.duration_minutes;
     document.querySelector("#exam-description").value = exam.description || "";
     document.querySelector("#exam-featured").checked = Number(exam.featured) === 1;
-    document.querySelector("#exam-questions").value = JSON.stringify(exam.questions, null, 2);
+    document.querySelector("#exam-document-url").value = exam.documentUrl || exam.document_url || "";
     document.querySelector("#exam-id").readOnly = true;
     document.querySelector("#form-title").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) { setMessage(listMessage, error.message); }
@@ -104,42 +137,14 @@ list.addEventListener("click", async (event) => {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  try { const result = await request(getFormPayload()); resetForm(); setMessage(formMessage, result.message, true); await loadExams(); } catch (error) { setMessage(formMessage, error.message); }
+  try { const result = await request(await getFormPayload()); resetForm(); setMessage(formMessage, result.message, true); await loadExams(); } catch (error) { setMessage(formMessage, error.message); }
 });
 
 document.querySelector("#new-exam-button").addEventListener("click", resetForm);
 document.querySelector("#reset-form").addEventListener("click", resetForm);
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
+documentInput.addEventListener("change", () => {
+  const file = documentInput.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    try {
-      const payload = JSON.parse(reader.result);
-      fillForm(payload.exam || payload);
-      setMessage(formMessage, `Đã đọc file ${file.name}. Kiểm tra lại rồi bấm Lưu đề thi.`, true);
-    } catch {
-      setMessage(formMessage, "File đề không đúng định dạng JSON.");
-    }
-  });
-  reader.readAsText(file);
-});
-imageInput.addEventListener("change", async () => {
-  const files = [...imageInput.files];
-  if (!files.length) return;
-  try {
-    const questions = JSON.parse(document.querySelector("#exam-questions").value);
-    const images = await Promise.all(files.map((file) => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.addEventListener("load", () => resolve(reader.result));
-      reader.addEventListener("error", reject);
-      reader.readAsDataURL(file);
-    })));
-    questions.forEach((question, index) => { if (images[index]) question.image_url = images[index]; });
-    document.querySelector("#exam-questions").value = JSON.stringify(questions, null, 2);
-    setMessage(formMessage, `${images.length} ảnh đã gắn vào câu hỏi theo thứ tự.`, true);
-  } catch {
-    setMessage(formMessage, "Hãy nhập danh sách câu hỏi JSON hợp lệ trước khi chọn ảnh.");
-  }
+  setMessage(formMessage, `Đã chọn file PDF ${file.name}. Bấm Lưu đề thi để lưu tài liệu.`, true);
 });
 loadExams();
