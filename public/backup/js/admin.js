@@ -12,6 +12,23 @@ const formMessage = document.querySelector("#form-message");
 const listMessage = document.querySelector("#list-message");
 const fileInput = document.querySelector("#exam-file");
 const imageInput = document.querySelector("#question-images");
+const localExamKey = "studysphere_custom_exams";
+const getLocalExams = () => { try { return JSON.parse(localStorage.getItem(localExamKey) || "[]"); } catch { return []; } };
+const setLocalExams = (items) => localStorage.setItem(localExamKey, JSON.stringify(items));
+
+function createQuestionTemplate() {
+  return Array.from({ length: 25 }, (_, index) => index < 20
+    ? { id: `q-${index + 1}`, type: "multiple_choice", content: `Câu trắc nghiệm ${index + 1}?`, options: ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"], correct_answer: 0, explanation: "Giải thích đáp án." }
+    : { id: `q-${index + 1}`, type: "short_answer", content: `Câu trả lời ngắn ${index - 19}?`, answer: "Đáp án mẫu", explanation: "Giải thích đáp án." });
+}
+
+function validateQuestions(questions) {
+  const multipleChoice = questions.filter((question) => question.type !== "short_answer");
+  const shortAnswer = questions.filter((question) => question.type === "short_answer");
+  if (multipleChoice.length !== 20 || shortAnswer.length !== 5) throw new Error("Đề phải có đúng 20 câu trắc nghiệm và 5 câu trả lời ngắn.");
+  if (multipleChoice.some((question) => !Array.isArray(question.options) || question.options.length < 2 || question.correct_answer === undefined)) throw new Error("Mỗi câu trắc nghiệm cần có options và correct_answer.");
+  if (shortAnswer.some((question) => !String(question.answer || "").trim())) throw new Error("Mỗi câu trả lời ngắn cần có answer.");
+}
 
 const setMessage = (element, text, success = false) => {
   element.textContent = text;
@@ -19,20 +36,38 @@ const setMessage = (element, text, success = false) => {
 };
 
 async function request(payload) {
-  const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const result = await response.json();
-  if (response.status === 403) {
-    localStorage.removeItem("studysphere_current_user");
-    window.location.replace("auth.html?return=admin");
+  try {
+    const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const result = await response.json();
+    if (response.status === 403) {
+      localStorage.removeItem("studysphere_current_user");
+      window.location.replace("auth.html?return=admin");
+    }
+    if (response.ok) return result;
+  } catch {
+    // Browser-only fallback when the PHP API is unavailable.
   }
-  if (!response.ok) throw new Error(result.message || "Không thể xử lý đề thi.");
-  return result;
+
+  const localExams = getLocalExams();
+  if (payload.action === "list") return { exams: localExams };
+  if (payload.action === "get") return { exam: localExams.find((item) => item.id === payload.id) };
+  if (payload.action === "delete") {
+    setLocalExams(localExams.filter((item) => item.id !== payload.id));
+    return { message: "Đã xóa đề thi." };
+  }
+  const subjectNames = { toan: "Toán", "ngu-van": "Ngữ văn", "tieng-anh": "Tiếng Anh", "vat-ly": "Vật lý", "dia-li": "Địa lí", "lich-su": "Lịch sử" };
+  const difficultyNames = { easy: "Cơ bản", medium: "Trung bình", hard: "Khá khó" };
+  const exam = { ...payload, subject_name: subjectNames[payload.subject_id] || payload.subject_id, subjectName: subjectNames[payload.subject_id] || payload.subject_id, exam_type: payload.exam_type, type: payload.exam_type, typeName: payload.exam_type, difficultyName: difficultyNames[payload.difficulty] || payload.difficulty, question_count: payload.questions.length, questionCount: payload.questions.length, duration_minutes: payload.duration_minutes, durationMinutes: payload.duration_minutes };
+  if (payload.action === "update") setLocalExams(localExams.map((item) => item.id === exam.id ? exam : item));
+  else setLocalExams([...localExams.filter((item) => item.id !== exam.id), exam]);
+  return { message: "Đã lưu đề thi." };
 }
 
 function getFormPayload() {
   const data = new FormData(form);
   let questions;
   try { questions = JSON.parse(data.get("questions")); } catch { throw new Error("Danh sách câu hỏi phải là JSON hợp lệ."); }
+  validateQuestions(questions);
   return { action: document.querySelector("#exam-action").value, id: data.get("id").trim(), title: data.get("title").trim(), subject_id: data.get("subject_id"), year: Number(data.get("year")), exam_type: data.get("exam_type").trim(), difficulty: data.get("difficulty"), duration_minutes: Number(data.get("duration_minutes")), description: data.get("description").trim(), featured: data.get("featured") === "on" ? 1 : 0, questions };
 }
 
@@ -43,7 +78,7 @@ function resetForm() {
   document.querySelector("#exam-id").readOnly = false;
   document.querySelector("#exam-year").value = 2026;
   document.querySelector("#exam-duration").value = 60;
-  document.querySelector("#exam-questions").value = '[{"id":"toan-2026-de-01-q1","content":"Nội dung câu hỏi mẫu?","options":["Đáp án A","Đáp án B","Đáp án C","Đáp án D"],"correct_answer":0,"explanation":"Giải thích đáp án."}]';
+  document.querySelector("#exam-questions").value = JSON.stringify(createQuestionTemplate(), null, 2);
   setMessage(formMessage, "");
 }
 
@@ -142,4 +177,5 @@ imageInput.addEventListener("change", async () => {
     setMessage(formMessage, "Hãy nhập danh sách câu hỏi JSON hợp lệ trước khi chọn ảnh.");
   }
 });
+resetForm();
 loadExams();

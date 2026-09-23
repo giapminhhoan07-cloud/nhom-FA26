@@ -27,7 +27,7 @@
         <div class="admin-form-grid"><label class="admin-field">Thời gian (phút)<input id="exam-duration" name="duration_minutes" type="number" min="1" value="60" required></label><label class="admin-field admin-check"><input id="exam-featured" name="featured" type="checkbox"><span>Hiển thị trong đề nổi bật</span></label></div>
         <label class="admin-field">Mô tả<textarea id="exam-description" name="description" rows="3" placeholder="Mô tả ngắn về đề thi"></textarea></label>
         <label class="admin-upload-field">Ảnh câu hỏi<input id="question-images" type="file" accept="image/*" multiple><small>Chọn ảnh theo thứ tự câu hỏi.</small></label>
-        <label class="admin-field">Danh sách câu hỏi (JSON)<textarea id="exam-questions" name="questions" rows="12" required>[{"id":"toan-2026-de-01-q1","content":"Nội dung câu hỏi mẫu?","options":["Đáp án A","Đáp án B","Đáp án C","Đáp án D"],"correct_answer":0,"explanation":"Giải thích đáp án."}]</textarea><small>Mỗi câu cần có `id`, `content`, `options`, `correct_answer` và `explanation`. Ảnh sẽ được gắn theo thứ tự file đã chọn.</small></label>
+        <label class="admin-field">Danh sách câu hỏi (JSON)<textarea id="exam-questions" name="questions" rows="12" required></textarea><small>Đề mới cần đúng 20 câu trắc nghiệm và 5 câu trả lời ngắn. Câu trắc nghiệm dùng `options` và `correct_answer`; câu ngắn dùng `answer`.</small></label>
         <button class="button button-primary admin-submit" type="submit">Lưu đề thi <span aria-hidden="true">→</span></button>
       </form></section>
     </div></section>

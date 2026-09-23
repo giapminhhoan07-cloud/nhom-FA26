@@ -1,6 +1,7 @@
 import { exams } from "../data/exams.js";
 
-let availableExams = exams;
+const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
+let availableExams = [...exams, ...localExams];
 
 const menuToggle = document.querySelector(".menu-toggle");
 const mainNav = document.querySelector(".main-nav");
@@ -82,7 +83,7 @@ async function loadExams() {
   try {
     const response = await fetch("../api/exams.php");
     const result = await response.json();
-    if (response.ok && result.success && result.exams.length) availableExams = result.exams;
+    if (response.ok && result.success && result.exams.length) availableExams = [...result.exams, ...localExams];
   } catch {
     availableExams = exams;
   }
