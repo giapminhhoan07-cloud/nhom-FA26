@@ -1,6 +1,8 @@
+import { exams } from "../data/exams.js";
+
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
 const fallbackKey = `studysphere_result_${attemptId}`;
-const fallbackStored = JSON.parse(localStorage.getItem(fallbackKey) || "null");
+const fallbackStored = (() => { try { return JSON.parse(localStorage.getItem(fallbackKey) || "null"); } catch { return null; } })();
 const card = document.querySelector("#result-card");
 
 function getOptionLabel(index) {
@@ -41,14 +43,18 @@ const currentUser = (() => {
 let stored = normalizeAttemptData(fallbackStored);
 
 if (!stored && attemptId && currentUser?.id) {
-  const response = await fetch("../api/attempts.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
-  });
-  const data = await response.json();
-  if (response.ok && data.success) {
-    stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+  try {
+    const response = await fetch("../api/attempts.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
+    });
+    const data = await response.json();
+    if (response.ok && data.success) {
+      stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+    }
+  } catch {
+    // Continue with the local result when the PHP API is unavailable.
   }
 }
 
@@ -58,22 +64,26 @@ if (!stored) {
 }
 
 const { result, questions } = stored;
+questions.forEach((question) => { question.type = question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"); question.correctAnswer = question.correctAnswer ?? question.correct_answer; });
 const passed = Number(result.score) >= 5;
+const isCorrectAnswer = (answer, question) => question.type === "short_answer"
+  ? String(answer ?? "").trim().toLowerCase() === String(question.answer ?? "").trim().toLowerCase()
+  : answer === question.correctAnswer;
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {
     const selectedAnswer = result.answers?.[index];
-    const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
-    const isCorrect = selectedIndex === question.correctAnswer;
-    const isWrong = selectedIndex !== null && selectedIndex !== question.correctAnswer;
-    const isUnanswered = selectedIndex === null;
+    const selectedIndex = question.type === "short_answer" ? selectedAnswer : (Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null);
+    const isUnanswered = selectedAnswer === null || selectedAnswer === undefined || selectedAnswer === "";
+    const isCorrect = !isUnanswered && isCorrectAnswer(selectedAnswer, question);
+    const isWrong = !isUnanswered && !isCorrect;
     const statusClass = isCorrect ? "is-correct" : isWrong ? "is-wrong" : "is-unanswered";
     const statusText = isCorrect ? "Đúng" : isWrong ? "Sai" : "Bỏ qua";
 
     const shouldRender = filter === "all" || (filter === "wrong" && isWrong) || (filter === "unanswered" && isUnanswered);
     if (!shouldRender) return "";
 
-    const optionsMarkup = question.options.map((option, optionIndex) => {
+    const optionsMarkup = (question.options || []).map((option, optionIndex) => {
       const isSelected = selectedIndex === optionIndex;
       const isCorrectAnswer = optionIndex === question.correctAnswer;
       const optionClasses = [
@@ -101,8 +111,8 @@ function buildReviewMarkup(filter = "all") {
         <h3>${question.content}</h3>
         <ul class="review-options">${optionsMarkup}</ul>
         <div class="review-footer">
-          <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa trả lời" : `${getOptionLabel(selectedIndex)}`}</p>
-          <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+          <p><strong>Đáp án của bạn:</strong> ${isUnanswered ? "Chưa trả lời" : question.type === "short_answer" ? selectedAnswer : getOptionLabel(selectedIndex)}</p>
+          <p><strong>Đáp án đúng:</strong> ${question.type === "short_answer" ? question.answer : getOptionLabel(question.correctAnswer)}</p>
         </div>
         <p class="review-explanation">${question.explanation}</p>
       </article>
@@ -173,8 +183,8 @@ card.innerHTML = `
       <div class="review-modal-status-row">
         ${questions.map((_, i) => {
           const selected = result.answers?.[i];
-          const isCorrect = selected === questions[i].correctAnswer;
-          const state = selected === null ? "skip" : isCorrect ? "correct" : "wrong";
+          const isCorrect = isCorrectAnswer(selected, questions[i]);
+          const state = selected === null || selected === undefined || selected === "" ? "skip" : isCorrect ? "correct" : "wrong";
           return `<button class="review-chip ${state}" type="button" data-question-index="${i}">${i + 1}</button>`;
         }).join("")}
       </div>
@@ -194,9 +204,10 @@ const reviewModalClose = document.querySelector(".review-modal-close");
 function renderQuestionDetail(index) {
   const question = questions[index];
   const selectedAnswer = result.answers?.[index];
-  const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
-  const isCorrect = selectedIndex === question.correctAnswer;
-  const isWrong = selectedIndex !== null && selectedIndex !== question.correctAnswer;
+  const selectedIndex = question.type === "short_answer" ? selectedAnswer : (Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null);
+  const isUnanswered = selectedAnswer === null || selectedAnswer === undefined || selectedAnswer === "";
+  const isCorrect = !isUnanswered && isCorrectAnswer(selectedAnswer, question);
+  const isWrong = !isUnanswered && !isCorrect;
   const statusClass = isCorrect ? "is-correct" : isWrong ? "is-wrong" : "is-unanswered";
   const statusText = isCorrect ? "Đúng" : isWrong ? "Sai" : "Bỏ qua";
 
@@ -208,7 +219,7 @@ function renderQuestionDetail(index) {
       </div>
       <h4>${question.content}</h4>
       <ul class="review-question-options">
-        ${question.options.map((option, optionIndex) => {
+        ${(question.options || []).map((option, optionIndex) => {
           const isSelected = selectedIndex === optionIndex;
           const isCorrectAnswer = optionIndex === question.correctAnswer;
           const classes = [
@@ -228,8 +239,8 @@ function renderQuestionDetail(index) {
         }).join("")}
       </ul>
       <div class="review-question-footer">
-        <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa chọn" : getOptionLabel(selectedIndex)}</p>
-        <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+        <p><strong>Đáp án của bạn:</strong> ${isUnanswered ? "Chưa chọn" : question.type === "short_answer" ? selectedAnswer : getOptionLabel(selectedIndex)}</p>
+        <p><strong>Đáp án đúng:</strong> ${question.type === "short_answer" ? question.answer : getOptionLabel(question.correctAnswer)}</p>
       </div>
       <div class="review-question-explain">
         <strong>Giải thích:</strong>
@@ -268,7 +279,7 @@ document.querySelectorAll(".review-chip").forEach((chip) => {
   });
 });
 
-const defaultModalIndex = questions.findIndex((_, index) => result.answers?.[index] !== questions[index].correctAnswer || result.answers?.[index] === null);
+const defaultModalIndex = questions.findIndex((question, index) => !isCorrectAnswer(result.answers?.[index], question));
 renderQuestionDetail(defaultModalIndex >= 0 ? defaultModalIndex : 0);
 document.querySelectorAll(".review-chip").forEach((chip) => chip.classList.toggle("active", Number(chip.dataset.questionIndex) === (defaultModalIndex >= 0 ? defaultModalIndex : 0)));
 
