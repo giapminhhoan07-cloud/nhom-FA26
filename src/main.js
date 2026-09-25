@@ -1,6 +1,3 @@
-import "../backup/css/base.css";
-import "../backup/css/layout.css";
-import "../backup/css/components.css";
 import { exams } from "../backup/data/exams.js";
 
 document.querySelector("#app").innerHTML = `

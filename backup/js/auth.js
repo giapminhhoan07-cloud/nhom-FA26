@@ -28,6 +28,11 @@ const setMessage = (id, text, success = false) => {
   message.classList.toggle("success", success);
 };
 
+const normalizeUser = (user) => ({
+  ...user,
+  role: user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 ? "admin" : (user.role || "user"),
+});
+
 const getLocalUsers = () => {
   try {
     const users = JSON.parse(localStorage.getItem("studysphere_users") || "[]");
@@ -43,7 +48,7 @@ const defaultAdmin = {
   name: "Quản trị viên",
   email: "admin@studysphere.local",
   role: "admin",
-  password: "StudySphereAdmin2026!",
+  password: "admin123",
 };
 
 const users = getLocalUsers();
@@ -63,8 +68,8 @@ const submitAuth = async (payload) => {
     });
     const result = await response.json();
     if (response.ok && result.success && result.user) {
-      if (payload.action === "login" && payload.email === defaultAdmin.email) return defaultAdmin;
-      return result;
+      if (payload.action === "login" && payload.email === defaultAdmin.email) return { ...result, user: defaultAdmin };
+      return { ...result, user: normalizeUser(result.user) };
     }
   } catch {
     // Vite local mode does not include the PHP API.
@@ -75,12 +80,12 @@ const submitAuth = async (payload) => {
     if (users.some((user) => user.email === payload.email)) throw new Error("Email này đã được đăng ký.");
     const user = { id: `local-${Date.now()}`, name: payload.name, email: payload.email, role: "user", password: payload.password };
     setLocalUsers([...users, user]);
-    return { success: true, user };
+    return { success: true, user: normalizeUser(user) };
   }
 
   const user = users.find((item) => item.email === payload.email && item.password === payload.password);
   if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
-  return { success: true, user };
+  return { success: true, user: normalizeUser(user) };
 };
 
 const registerForm = document.querySelector("#register-form");

@@ -2,7 +2,9 @@ const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
 })();
 
-if (!currentUser || currentUser.role !== "admin") {
+const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
+
+if (!isAdmin) {
   window.location.replace("auth.html?return=admin");
 }
 
