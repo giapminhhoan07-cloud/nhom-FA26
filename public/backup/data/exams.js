@@ -12,6 +12,7 @@ export const exams = [
     durationMinutes: 90,
     questionCount: 40,
     description: "Cấu trúc bám sát định hướng ôn thi tốt nghiệp THPT.",
+    documentUrl: "../documents/de-kiem-tra-toan-12-lan-1-hk1-nam-2026-2027-truong-thpt-nguyen-trung-truc-tp-hcm.pdf",
     featured: true
   },
   {
