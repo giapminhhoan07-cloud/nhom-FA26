@@ -41,10 +41,6 @@ async function request(payload) {
   try {
     const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const result = await response.json();
-    if (response.status === 403) {
-      localStorage.removeItem("studysphere_current_user");
-      window.location.replace("auth.html?return=admin");
-    }
     if (response.ok) return result;
   } catch {
     // Browser-only fallback when the PHP API is unavailable.
