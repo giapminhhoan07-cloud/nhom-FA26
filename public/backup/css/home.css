@@ -1,0 +1,70 @@
+:root {
+  --ink: #173d2d;
+  --ink-soft: #587466;
+  --teal: #16834f;
+  --teal-dark: #0c633d;
+  --cream: #f4f7ef;
+  --paper: #ffffff;
+  --line: #dce8dc;
+  --yellow: #f2c84b;
+  --coral: #df7961;
+  --shadow: 0 20px 55px rgba(23, 61, 45, 0.11);
+}
+
+.home-page .site-header {
+  background: rgba(248, 251, 245, 0.96);
+  border-bottom-color: #dce8dc;
+}
+
+.home-page .hero-section {
+  color: #f6fff8;
+  background: linear-gradient(118deg, #123d2c 0%, #17623f 58%, #268052 100%);
+}
+
+.home-page .hero-section::after {
+  inset: 0 0 0 auto;
+  width: 42%;
+  border-radius: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 26px, rgba(255, 255, 255, 0.035) 26px 27px);
+  pointer-events: none;
+}
+
+.home-page .hero-copy h1 { color: #f6fff8; }
+.home-page .hero-copy h1 em { color: #c8ef77; }
+.home-page .hero-copy .eyebrow { color: #c8efb9; }
+.home-page .hero-copy .eyebrow-dot { background: #f2c84b; }
+.home-page .hero-description { color: #d8eadc; }
+.home-page .hero-proof { color: #c5dbcb; }
+.home-page .hero-proof strong { color: white; }
+.home-page .hero-actions .text-link { color: #f6fff8; }
+.home-page .hero-actions .text-link:hover { color: #c8ef77; }
+.home-page .hero-actions .button-primary { color: #173d2d; background: #c8ef77; box-shadow: 0 10px 24px rgba(8, 30, 18, 0.22); }
+.home-page .hero-actions .button-primary:hover { background: #f2c84b; }
+
+.home-page .avatar-stack span { border-color: #17623f; }
+.home-page .avatar-stack span:nth-child(3) { background: #285b45; }
+.home-page .progress-card { border-color: rgba(255, 255, 255, 0.72); }
+.home-page .status-badge { color: #0c633d; background: #e3f5d7; }
+.home-page .progress-bars span { background: #d7ead0; }
+.home-page .progress-bars span.today { background: #16834f; }
+.home-page .orbit { border-color: rgba(207, 240, 196, 0.24); }
+.home-page .orbit-two { border-color: rgba(242, 200, 75, 0.36); }
+
+.home-page .stats-strip {
+  border-color: #dce8dc;
+  background: #eaf3e6;
+}
+
+.home-page .stats-grid > div { border-color: #d5e3d2; }
+.home-page .stats-grid strong { color: #17623f; }
+.home-page .subject-card { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.home-page .subject-card:hover { border-color: #9bc9a5; box-shadow: 0 12px 25px rgba(23, 61, 45, 0.1); }
+.home-page .subject-math .subject-icon { color: #0c633d; background: #dff1d8; }
+
+@media (max-width: 680px) {
+  .home-page .hero-section::after { width: 100%; opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .reveal { animation: none; }
+}
