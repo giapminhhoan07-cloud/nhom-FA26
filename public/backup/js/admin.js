@@ -1,8 +1,28 @@
+const isAdminUser = (user) => Boolean(
+  user && (
+    user.role === "admin" ||
+    user.is_admin === true ||
+    user.isAdmin === true ||
+    Number(user.is_admin) === 1 ||
+    (typeof user.email === "string" && user.email.toLowerCase() === "admin@studysphere.local")
+  )
+);
+
 const currentUser = (() => {
-  try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
+  try {
+    const user = JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
+    if (!user) return null;
+    const normalized = { ...user, role: isAdminUser(user) ? "admin" : (user.role || "user") };
+    normalized.is_admin = isAdminUser(user);
+    normalized.isAdmin = normalized.is_admin;
+    localStorage.setItem("studysphere_current_user", JSON.stringify(normalized));
+    return normalized;
+  } catch {
+    return null;
+  }
 })();
 
-const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
+const isAdmin = isAdminUser(currentUser);
 
 if (!isAdmin) {
   window.location.replace("auth.html?return=admin");

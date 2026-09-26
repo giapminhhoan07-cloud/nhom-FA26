@@ -1,6 +1,22 @@
+const isAdminUser = (user) => Boolean(
+  user && (
+    user.role === "admin" ||
+    user.is_admin === true ||
+    user.isAdmin === true ||
+    Number(user.is_admin) === 1 ||
+    (typeof user.email === "string" && user.email.toLowerCase() === "admin@studysphere.local")
+  )
+);
+
 const currentUser = (() => {
   try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
+    const user = JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
+    if (!user) return null;
+    const normalized = { ...user, role: isAdminUser(user) ? "admin" : (user.role || "user") };
+    normalized.is_admin = isAdminUser(user);
+    normalized.isAdmin = normalized.is_admin;
+    localStorage.setItem("studysphere_current_user", JSON.stringify(normalized));
+    return normalized;
   } catch {
     return null;
   }
@@ -24,7 +40,7 @@ function renderAccount() {
     return;
   }
 
-  if (currentUser.role === "admin") {
+  if (isAdminUser(currentUser)) {
     const mainNav = header.querySelector(".main-nav");
     if (mainNav && !mainNav.querySelector('a[href$="admin.html"]')) {
       const adminLink = document.createElement("a");
@@ -49,7 +65,7 @@ function renderAccount() {
       <span class="account-role"></span>
       <div class="account-links">
         <a href="${getPagePath("profile.html")}">Trang cá nhân</a>
-        ${currentUser.role === "admin" ? `<a href="${getPagePath("admin.html")}">Quản trị đề thi</a>` : ""}
+        ${isAdminUser(currentUser) ? `<a href="${getPagePath("admin.html")}">Quản trị đề thi</a>` : ""}
         <a href="${getPagePath("history.html")}">Lịch sử làm bài</a>
         <a href="${getPagePath("favorites.html")}">Đề đã lưu</a>
       </div>
@@ -60,7 +76,7 @@ function renderAccount() {
   account.querySelector(".account-name").textContent = currentUser.name || "Tài khoản";
   account.querySelector(".account-full-name").textContent = currentUser.name || "Tài khoản";
   account.querySelector(".account-email").textContent = currentUser.email || "";
-  account.querySelector(".account-role").textContent = currentUser.role === "admin" ? "Quản trị viên" : "Người dùng";
+  account.querySelector(".account-role").textContent = isAdminUser(currentUser) ? "Quản trị viên" : "Người dùng";
   header.append(account);
 
   const trigger = account.querySelector(".account-trigger");

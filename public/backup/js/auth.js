@@ -28,15 +28,29 @@ const setMessage = (id, text, success = false) => {
   message.classList.toggle("success", success);
 };
 
-const normalizeUser = (user) => ({
-  ...user,
-  role: user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 ? "admin" : (user.role || "user"),
-});
+const isAdminUser = (user) => Boolean(
+  user && (
+    user.role === "admin" ||
+    user.is_admin === true ||
+    user.isAdmin === true ||
+    Number(user.is_admin) === 1 ||
+    (typeof user.email === "string" && user.email.toLowerCase() === defaultAdmin.email)
+  )
+);
+
+const normalizeUser = (user = {}) => {
+  const normalized = { ...user };
+  const adminFlag = isAdminUser(normalized);
+  normalized.role = adminFlag ? "admin" : (normalized.role || "user");
+  normalized.is_admin = adminFlag || Boolean(normalized.is_admin);
+  normalized.isAdmin = normalized.is_admin;
+  return normalized;
+};
 
 const getLocalUsers = () => {
   try {
     const users = JSON.parse(localStorage.getItem("studysphere_users") || "[]");
-    const hasAdmin = users.some((user) => user.role === "admin");
+    const hasAdmin = users.some((user) => user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 || (typeof user.email === "string" && user.email.toLowerCase() === "admin@studysphere.local"));
     return hasAdmin ? users : [{ id: "local-admin", name: "Quản trị viên", email: "admin@studysphere.local", password: "admin123", role: "admin" }, ...users];
   } catch { return [{ id: "local-admin", name: "Quản trị viên", email: "admin@studysphere.local", password: "admin123", role: "admin" }]; }
 };
@@ -68,7 +82,10 @@ const submitAuth = async (payload) => {
     });
     const result = await response.json();
     if (response.ok && result.success && result.user) {
-      if (payload.action === "login" && payload.email === defaultAdmin.email) return { ...result, user: defaultAdmin };
+      if (payload.action === "login" && payload.email === defaultAdmin.email) {
+        const adminUser = normalizeUser(defaultAdmin);
+        return { ...result, user: adminUser };
+      }
       return { ...result, user: normalizeUser(result.user) };
     }
   } catch {
@@ -97,7 +114,8 @@ registerForm.addEventListener("submit", async (event) => {
   const password = data.get("password");
   try {
     const result = await submitAuth({ action: "register", name, email, password });
-    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    const normalizedUser = normalizeUser(result.user);
+    localStorage.setItem("studysphere_current_user", JSON.stringify({ ...normalizedUser, is_admin: normalizedUser.role === "admin", isAdmin: normalizedUser.role === "admin" }));
     window.location.href = "/";
   } catch (error) {
     setMessage("register-message", error.message);
@@ -112,7 +130,8 @@ loginForm.addEventListener("submit", async (event) => {
   const password = data.get("password");
   try {
     const result = await submitAuth({ action: "login", email, password });
-    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    const normalizedUser = normalizeUser(result.user);
+    localStorage.setItem("studysphere_current_user", JSON.stringify({ ...normalizedUser, is_admin: normalizedUser.role === "admin", isAdmin: normalizedUser.role === "admin" }));
     window.location.href = returnTarget === "admin" ? "admin.html" : "/";
   } catch (error) {
     setMessage("login-message", error.message);

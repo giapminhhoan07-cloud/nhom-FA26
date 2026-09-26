@@ -1,4 +1,22 @@
+import { toan12Questions } from "./questions.js";
+
 export const exams = [
+  {
+    id: "toan-12-trac-nghiem-20-cau",
+    title: "Bài test Toán lớp 12 - 20 câu từ dễ đến khó",
+    subjectId: "toan",
+    subjectName: "Toán",
+    year: 2025,
+    type: "on-tap",
+    typeName: "Đề ôn tập",
+    difficulty: "medium",
+    difficultyName: "Tăng dần",
+    durationMinutes: 30,
+    questionCount: 20,
+    description: "20 câu trắc nghiệm Toán 12, sắp xếp từ nhận biết đến vận dụng cao.",
+    questions: toan12Questions,
+    featured: true
+  },
   {
     id: "toan-2025-minh-hoa",
     title: "Đề minh họa tốt nghiệp THPT môn Toán 2025",
