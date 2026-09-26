@@ -1,0 +1,96 @@
+:root {
+  --ink: #173b5a !important;
+  --ink-soft: #58728c !important;
+  --teal: #4c8fc7 !important;
+  --teal-dark: #286fa9 !important;
+  --cream: #f2f7fc !important;
+  --paper: #ffffff !important;
+  --line: #dbe7f2 !important;
+  --yellow: #f2c84b !important;
+  --coral: #df7961 !important;
+  --shadow: 0 20px 55px rgba(23, 59, 90, 0.09) !important;
+}
+
+body {
+  color: var(--ink) !important;
+  background: #f2f7fc !important;
+}
+
+.site-header {
+  background: rgba(245, 249, 254, 0.96) !important;
+  border-bottom-color: #dbe7f2 !important;
+}
+
+body.home-page .hero-section {
+  color: #173b5a !important;
+  background: linear-gradient(118deg, #e6f2fc 0%, #edf6fe 58%, #f5f9fd 100%) !important;
+}
+
+body.home-page .hero-section::after {
+  inset: 0 0 0 auto !important;
+  width: 42% !important;
+  border-radius: 0 !important;
+  background: repeating-linear-gradient(135deg, transparent 0 26px, rgba(57, 119, 174, 0.045) 26px 27px) !important;
+}
+
+body.home-page .hero-copy h1 { color: #173b5a !important; }
+body.home-page .hero-copy h1 em { color: #4385bd !important; }
+body.home-page .hero-copy .eyebrow { color: #286fa9 !important; }
+body.home-page .hero-description { color: #58728c !important; }
+body.home-page .hero-proof { color: #58728c !important; }
+body.home-page .hero-proof strong { color: #173b5a !important; }
+body.home-page .hero-actions .text-link { color: #173b5a !important; }
+body.home-page .hero-actions .text-link:hover { color: #286fa9 !important; }
+body.home-page .hero-actions .button-primary { color: white !important; background: #4c8fc7 !important; }
+body.home-page .hero-actions .button-primary:hover { background: #286fa9 !important; }
+body.home-page .avatar-stack span { border-color: #e6f2fc !important; }
+body.home-page .avatar-stack span:nth-child(3) { background: #397bb2 !important; }
+body.home-page .status-badge { color: #286fa9 !important; background: #e3effa !important; }
+body.home-page .progress-bars span { background: #cfe1f2 !important; }
+body.home-page .progress-bars span.today { background: #4c8fc7 !important; }
+body.home-page .orbit { border-color: rgba(57, 119, 174, 0.18) !important; }
+body.home-page .orbit-two { border-color: rgba(242, 200, 75, 0.34) !important; }
+body.home-page .stats-strip { border-color: #dbe7f2 !important; background: #eaf3fc !important; }
+body.home-page .stats-grid > div { border-color: #dbe7f2 !important; }
+body.home-page .stats-grid strong { color: #286fa9 !important; }
+body.home-page .subject-card:hover { border-color: #a8c8e4 !important; }
+body.home-page .subject-math .subject-icon { color: #286fa9 !important; background: #e1effb !important; }
+
+body.auth-page .auth-main,
+body.admin-page .admin-hero,
+body.profile-page .profile-hero,
+body .page-intro,
+body .history-hero {
+  background: #eaf3fc !important;
+}
+
+body.auth-page .auth-tabs,
+body.quiz-body,
+body.quiz-body .quiz-progress > div {
+  background: #edf5fc !important;
+}
+
+body.auth-page .auth-note { border-color: rgba(76, 143, 199, 0.24) !important; }
+body.auth-page .form-field input:focus { box-shadow: 0 0 0 3px rgba(76, 143, 199, 0.14) !important; }
+body .history-hero::after { border-color: rgba(76, 143, 199, 0.2) !important; }
+body .history-count,
+body .history-item-marker { background: #e3effa !important; }
+body.profile-page .profile-avatar-large { outline-color: rgba(76, 143, 199, 0.24) !important; }
+body.profile-page .profile-field input:focus,
+body.profile-page .profile-field select:focus,
+body.profile-page .profile-field textarea:focus { box-shadow: 0 0 0 3px rgba(76, 143, 199, 0.14) !important; }
+body.profile-page .profile-field input[readonly] { background: #f2f7fc !important; }
+body.quiz-body .timer { color: #286fa9 !important; background: #e3effa !important; }
+body.quiz-body .quiz-progress > div span { background: #4c8fc7 !important; }
+body .button-secondary { background: #edf4fb !important; border-color: rgba(76, 143, 199, 0.22) !important; }
+body .button.saved,
+body .review-header span,
+body .review-filter-button.is-active,
+body .review-modal-summary-score { background: #e3effa !important; }
+body .exam-document,
+body .review-item,
+body .review-modal { background: #f4f8fd !important; }
+
+@media (max-width: 680px) {
+  body.home-page .hero-section::after { width: 100% !important; opacity: 0.55 !important; }
+}
