@@ -1,6 +1,6 @@
 import { exams } from "../data/exams.js";
 import { questions as bundledQuestions } from "../data/questions.js";
-import { practiceTests } from "../data/practice-tests.js";
+import { practiceTests } from "../tests/data/practice-tests.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
@@ -90,7 +90,8 @@ async function submitQuiz() {
     history.unshift(result);
     localStorage.setItem("studysphere_history", JSON.stringify(history));
     localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
-    window.location.href = `result.html?attempt=${encodeURIComponent(result.attemptId)}`;
+    const resultPage = standaloneTest ? "../pages/result.html" : "result.html";
+    window.location.href = `${resultPage}?attempt=${encodeURIComponent(result.attemptId)}`;
   };
 
   if (standaloneTest) {

@@ -9,6 +9,11 @@ const currentUser = (() => {
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
 
+if (!currentUser) {
+  const returnTarget = window.location.pathname.endsWith("/admin.html") ? "admin" : "home";
+  window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
+}
+
 function renderAccount() {
   const header = document.querySelector(".header-inner");
   if (!header) return;
@@ -91,4 +96,4 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
-renderAccount();
+if (currentUser) renderAccount();

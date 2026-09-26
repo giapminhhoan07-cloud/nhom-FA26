@@ -98,7 +98,7 @@ registerForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "register", name, email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-    window.location.href = "/";
+    window.location.href = "/backup/index.html";
   } catch (error) {
     setMessage("register-message", error.message);
   }
@@ -113,7 +113,7 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-    window.location.href = returnTarget === "admin" ? "admin.html" : "/";
+    window.location.href = returnTarget === "admin" ? "admin.html" : "/backup/index.html";
   } catch (error) {
     setMessage("login-message", error.message);
   }
