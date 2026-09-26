@@ -1,0 +1,15 @@
+.practice-tests-section { padding-top: 58px; }
+.practice-test-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.practice-test-card { position: relative; display: flex; min-height: 270px; flex-direction: column; padding: 25px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: white; box-shadow: 0 8px 26px rgba(23, 59, 90, 0.045); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.practice-test-card::after { position: absolute; top: -50px; right: -45px; width: 130px; height: 130px; border: 1px solid rgba(76, 143, 199, 0.13); border-radius: 50%; content: ""; }
+.practice-test-card:hover { transform: translateY(-4px); border-color: #a9cce9; box-shadow: 0 18px 38px rgba(36, 98, 152, 0.12); }
+.practice-test-subject { display: inline-flex; align-items: center; gap: 9px; color: var(--teal-dark); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.practice-test-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 10px; color: #286fa9; background: #e3effa; font-family: var(--font-display); font-size: 1.25rem; }
+.practice-test-card h2 { margin: 24px 0 10px; font-family: var(--font-body); font-size: 1.25rem; font-weight: 800; letter-spacing: 0; }
+.practice-test-card p { margin: 0; color: var(--ink-soft); font-size: 0.8rem; }
+.practice-test-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: auto; padding-top: 22px; color: var(--ink-soft); font-size: 0.72rem; }
+.practice-test-start { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--teal-dark); font-size: 0.78rem; font-weight: 800; }
+.practice-test-start span:last-child { font-size: 1.1rem; transition: transform 0.2s ease; }
+.practice-test-card:hover .practice-test-start span:last-child { transform: translateX(4px); }
+@media (max-width: 850px) { .practice-test-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 580px) { .practice-tests-section { padding-top: 36px; }.practice-test-grid { grid-template-columns: 1fr; }.practice-test-card { min-height: 245px; } }

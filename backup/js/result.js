@@ -59,6 +59,10 @@ if (!stored) {
 
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
+const retryHref = result.quizKind === "practice-test"
+  ? `quiz.html?test=${encodeURIComponent(result.examId)}`
+  : `quiz.html?id=${encodeURIComponent(result.examId)}`;
+const libraryHref = result.quizKind === "practice-test" ? "tests.html" : "exams.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {
@@ -132,8 +136,8 @@ card.innerHTML = `
     <div><strong>${result.unansweredCount}</strong><span>Bỏ qua</span></div>
   </div>
   <div class="detail-actions">
-    <a class="button button-primary" href="quiz.html?id=${result.examId}">Làm lại bài</a>
-    <a class="button button-quiet" href="exams.html">Về kho đề</a>
+    <a class="button button-primary" href="${retryHref}">Làm lại bài</a>
+    <a class="button button-quiet" href="${libraryHref}">${result.quizKind === "practice-test" ? "Về bài kiểm tra" : "Về kho đề"}</a>
   </div>
   <div class="detail-note">
     <strong>${passed ? "Bạn đã đạt yêu cầu" : "Cần ôn tập thêm"}</strong>

@@ -1,11 +1,17 @@
 import { exams } from "../data/exams.js";
 import { questions as bundledQuestions } from "../data/questions.js";
+import { practiceTests } from "../data/practice-tests.js";
 
-const examId = new URLSearchParams(window.location.search).get("id");
+const params = new URLSearchParams(window.location.search);
+const examId = params.get("id");
+const testId = params.get("test");
+const standaloneTest = practiceTests.find((test) => test.id === testId);
 const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
-let exam = [...exams, ...localExams].find((item) => item.id === examId) || exams[0];
+let exam = standaloneTest || [...exams, ...localExams].find((item) => item.id === examId) || exams[0];
 let questions = exam.questions || bundledQuestions;
-try { const response = await fetch(`../api/exams.php?id=${encodeURIComponent(examId || exam.id)}`); const result = await response.json(); if (response.ok && result.success) { exam = result.exam; questions = result.exam.questions; } } catch { /* Use bundled fallback when PHP is unavailable. */ }
+if (!standaloneTest) {
+  try { const response = await fetch(`../api/exams.php?id=${encodeURIComponent(examId || exam.id)}`); const result = await response.json(); if (response.ok && result.success) { exam = result.exam; questions = result.exam.questions; } } catch { /* Use bundled fallback when PHP is unavailable. */ }
+}
 questions = questions.map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
 let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
@@ -53,6 +59,7 @@ async function submitQuiz() {
     attemptId: `attempt-${Date.now()}`,
     examId: exam.id,
     examTitle: exam.title,
+    quizKind: standaloneTest ? "practice-test" : "exam",
     submittedAt: new Date().toISOString(),
     score: Number(((correctCount / questions.length) * 10).toFixed(2)),
     totalQuestions: questions.length,
@@ -78,6 +85,19 @@ async function submitQuiz() {
     })),
   };
 
+  const saveLocalResult = () => {
+    const history = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
+    history.unshift(result);
+    localStorage.setItem("studysphere_history", JSON.stringify(history));
+    localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
+    window.location.href = `result.html?attempt=${encodeURIComponent(result.attemptId)}`;
+  };
+
+  if (standaloneTest) {
+    saveLocalResult();
+    return;
+  }
+
   try {
     const response = await fetch("../api/attempts.php", {
       method: "POST",
@@ -97,11 +117,7 @@ async function submitQuiz() {
     window.location.href = `result.html?attempt=${encodeURIComponent(data.attempt_id || result.attemptId)}`;
   } catch (error) {
     console.error(error);
-    const history = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-    history.unshift(result);
-    localStorage.setItem("studysphere_history", JSON.stringify(history));
-    localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
-    window.location.href = `result.html?attempt=${result.attemptId}`;
+    saveLocalResult();
   }
 }
 function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) submitQuiz(); remainingSeconds -= 1; }
