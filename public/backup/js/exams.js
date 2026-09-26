@@ -44,7 +44,11 @@ function getFilteredExams() {
 function renderCard(exam) {
   const favorites = getFavorites();
   const isFavorite = favorites.includes(exam.id);
-  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>◷ ${exam.durationMinutes} phút</span><span>▤ ${exam.questionCount} câu</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="exam-detail.html?id=${exam.id}" aria-label="Xem ${exam.title}">↗</a></article>`;
+  const destination = exam.questions?.length
+    ? `quiz.html?id=${encodeURIComponent(exam.id)}`
+    : `exam-detail.html?id=${encodeURIComponent(exam.id)}`;
+  const linkLabel = exam.questions?.length ? `Bắt đầu làm bài: ${exam.title}` : `Xem ${exam.title}`;
+  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>◷ ${exam.durationMinutes} phút</span><span>▤ ${exam.questionCount} câu</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
 }
 
 function renderFilters() {
