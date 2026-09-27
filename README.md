@@ -23,22 +23,6 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 - JavaScript
 - LocalStorage để lưu dữ liệu người dùng
 
-## Cấu trúc thư mục
-
-```bash
-nhom-FA26/
-├── api/
-│   ├── auth.php
-│   └── database.php
-├── css/
-├── data/
-├── database/
-├── js/
-├── pages/
-├── index.html
-├── README.md
-└── ...
-
 --------------------------------------------------------------------------------------------
 
 ## Cài đặt và chạy
@@ -60,24 +44,4 @@ Dự án này đang sử dụng localStorage để lưu trạng thái người d
 ## Tác giả
 
 Dự án StudySphere được phát triển trong nhóm FA26.
-
-## Update code
-
-git add .
-git commit -m "Update ..." (update thêm phần nào thì ghi tên vào dấu ... cho dễ quản lý)
-git push origin main
-
-VD: git add .
-git commit -m "Update README.md"
-git push origin main
-
-## Tránh xung đột code
-
-Mỗi lần vào code thì ấn :
-git push origin main
-để up lại code trên github, tránh trường hợp code bị mất do xung đột với các thành viên khác.
-
-## Đồng bộ code trên Github
-Mỗi lần vào code thì ấn :
-git pull origin main --rebase
 
