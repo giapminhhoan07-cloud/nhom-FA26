@@ -1,3 +1,4 @@
+(() => {
 const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
 })();
@@ -144,3 +145,4 @@ fileInput.addEventListener("change", () => {
 });
 resetForm();
 loadExams();
+})();

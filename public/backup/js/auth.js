@@ -18,8 +18,17 @@ function switchTab(name) {
 document.addEventListener("click", (event) => {
   const tab = event.target.closest("[data-auth-tab]");
   const switchButton = event.target.closest("[data-switch-tab]");
+  const passwordToggle = event.target.closest("[data-password-toggle]");
   if (tab) switchTab(tab.dataset.authTab);
   if (switchButton) switchTab(switchButton.dataset.switchTab);
+  if (passwordToggle) {
+    const input = document.getElementById(passwordToggle.dataset.passwordToggle);
+    if (!input) return;
+    const showPassword = input.type === "password";
+    input.type = showPassword ? "text" : "password";
+    passwordToggle.setAttribute("aria-label", showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+    passwordToggle.setAttribute("aria-pressed", String(showPassword));
+  }
 });
 
 const setMessage = (id, text, success = false) => {
@@ -42,6 +51,11 @@ const getLocalUsers = () => {
 };
 
 const setLocalUsers = (users) => localStorage.setItem("studysphere_users", JSON.stringify(users));
+const readLocalMap = (key) => {
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
+};
+const userStatusKey = "studysphere_user_status";
+const userMetadataKey = "studysphere_user_metadata";
 
 const defaultAdmin = {
   id: "local-admin",
@@ -60,6 +74,14 @@ else if (users[adminIndex].role !== "admin" || users[adminIndex].password !== de
 }
 
 const submitAuth = async (payload) => {
+  if (payload.action === "login" && payload.email !== defaultAdmin.email) {
+    const localUser = getLocalUsers().find((user) => user.email === payload.email);
+    const userStatuses = readLocalMap(userStatusKey);
+    if (localUser && userStatuses[localUser.id || localUser.email] === "locked") {
+      throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
+    }
+  }
+
   try {
     const response = await fetch("../api/auth.php", {
       method: "POST",
@@ -80,6 +102,9 @@ const submitAuth = async (payload) => {
     if (users.some((user) => user.email === payload.email)) throw new Error("Email này đã được đăng ký.");
     const user = { id: `local-${Date.now()}`, name: payload.name, email: payload.email, role: "user", password: payload.password };
     setLocalUsers([...users, user]);
+    const userMetadata = readLocalMap(userMetadataKey);
+    userMetadata[user.id] = { createdAt: new Date().toISOString() };
+    localStorage.setItem(userMetadataKey, JSON.stringify(userMetadata));
     return { success: true, user: normalizeUser(user) };
   }
 
@@ -95,6 +120,27 @@ registerForm.addEventListener("submit", async (event) => {
   const name = data.get("name").trim();
   const email = data.get("email").trim().toLowerCase();
   const password = data.get("password");
+  const confirmPassword = data.get("confirmPassword");
+  const nameInput = registerForm.elements.namedItem("name");
+  const emailInput = registerForm.elements.namedItem("email");
+  const passwordInput = registerForm.elements.namedItem("password");
+  const confirmInput = registerForm.elements.namedItem("confirmPassword");
+  const validation = [
+    { input: nameInput, errorId: "register-name-error", message: name ? "" : "Vui lòng nhập họ tên." },
+    { input: emailInput, errorId: "register-email-error", message: !email ? "Vui lòng nhập email." : emailInput.validity.typeMismatch ? "Vui lòng nhập email hợp lệ." : "" },
+    { input: passwordInput, errorId: "register-password-error", message: !password ? "Vui lòng nhập mật khẩu." : password.length < 6 ? "Mật khẩu cần ít nhất 6 ký tự." : "" },
+    { input: confirmInput, errorId: "register-confirm-password-error", message: !confirmPassword ? "Vui lòng xác nhận mật khẩu." : confirmPassword !== password ? "Mật khẩu xác nhận không khớp." : "" },
+  ];
+  let hasError = false;
+  validation.forEach(({ input, errorId, message }) => {
+    const error = document.querySelector(`#${errorId}`);
+    error.textContent = message;
+    error.hidden = !message;
+    input.setAttribute("aria-invalid", String(Boolean(message)));
+    hasError ||= Boolean(message);
+  });
+  if (hasError) return;
+
   try {
     const result = await submitAuth({ action: "register", name, email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
@@ -110,10 +156,18 @@ loginForm.addEventListener("submit", async (event) => {
   const data = new FormData(loginForm);
   const email = data.get("email").trim().toLowerCase();
   const password = data.get("password");
+  const passwordInput = loginForm.elements.namedItem("password");
+  const passwordError = document.querySelector("#login-password-error");
+  const passwordMessage = password ? "" : "Vui lòng nhập mật khẩu.";
+  passwordError.textContent = passwordMessage;
+  passwordError.hidden = !passwordMessage;
+  passwordInput.setAttribute("aria-invalid", String(Boolean(passwordMessage)));
+  if (passwordMessage) return;
   try {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-    window.location.href = returnTarget === "admin" ? "admin.html" : "/";
+    const adminReturnPaths = { admin: "admin.html", "admin-users": "admin-users.html" };
+    window.location.href = adminReturnPaths[returnTarget] || "/";
   } catch (error) {
     setMessage("login-message", error.message);
   }
