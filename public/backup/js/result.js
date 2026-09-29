@@ -53,7 +53,7 @@ if (!stored && attemptId && currentUser?.id) {
 }
 
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="exams.html">Về kho đề</a>';
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="tests.html">Về bài kiểm tra</a>';
   throw new Error('No result');
 }
 

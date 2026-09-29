@@ -12,10 +12,9 @@ document.querySelector("#app").innerHTML = `
         </button>
         <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
           <a class="active" href="/">Trang chủ</a>
-          <a href="/backup/pages/exams.html">Kho đề thi</a>
+          <a href="/backup/tests/">Bài kiểm tra</a>
           <a href="/backup/pages/history.html">Lịch sử</a>
           <a href="/backup/pages/favorites.html">Đề đã lưu</a>
-          <a href="/backup/tests/">Bài test</a>
         </nav>
         <a class="header-action" href="/backup/pages/auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
       </div>
@@ -29,7 +28,7 @@ document.querySelector("#app").innerHTML = `
             <h1>Học có chiến lược.<br><em>Thi thật tự tin.</em></h1>
             <p class="hero-description">Tìm đúng đề, luyện tập tập trung và nhìn thấy tiến bộ của bạn qua từng lần làm bài.</p>
             <div class="hero-actions">
-              <a class="button button-primary" href="/backup/pages/exams.html">Khám phá kho đề <span aria-hidden="true">→</span></a>
+              <a class="button button-primary" href="/backup/tests/">Khám phá kho đề kiểm tra <span aria-hidden="true">→</span></a>
               <a class="text-link" href="#subjects">Chọn theo môn <span aria-hidden="true">↓</span></a>
             </div>
             <div class="hero-proof">
@@ -57,17 +56,17 @@ document.querySelector("#app").innerHTML = `
 
       <section class="section subjects-section" id="subjects">
         <div class="container">
-          <div class="section-heading"><div><p class="eyebrow">Bắt đầu từ điều bạn cần</p><h2>Chọn môn học</h2></div><a class="text-link" href="/backup/pages/exams.html">Xem tất cả <span aria-hidden="true">→</span></a></div>
+          <div class="section-heading"><div><p class="eyebrow">Bắt đầu từ điều bạn cần</p><h2>Chọn môn học</h2></div><a class="text-link" href="/backup/tests/">Xem tất cả <span aria-hidden="true">→</span></a></div>
           <div class="subject-grid">
-            <a class="subject-card subject-math" href="/backup/pages/exams.html?subject=toan"><span class="subject-icon">∑</span><span><strong>Toán</strong><small>24 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
-            <a class="subject-card subject-literature" href="/backup/pages/exams.html?subject=ngu-van"><span class="subject-icon">Aa</span><span><strong>Ngữ văn</strong><small>18 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
-            <a class="subject-card subject-english" href="/backup/pages/exams.html?subject=tieng-anh"><span class="subject-icon">文</span><span><strong>Tiếng Anh</strong><small>31 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
-            <a class="subject-card subject-science" href="/backup/pages/exams.html?subject=vat-ly"><span class="subject-icon">◌</span><span><strong>Vật lý</strong><small>16 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-math" href="/backup/tests/?subject=toan"><span class="subject-icon">∑</span><span><strong>Toán</strong><small>24 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-literature" href="/backup/tests/?subject=ngu-van"><span class="subject-icon">Aa</span><span><strong>Ngữ văn</strong><small>18 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-english" href="/backup/tests/?subject=tieng-anh"><span class="subject-icon">文</span><span><strong>Tiếng Anh</strong><small>31 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
+            <a class="subject-card subject-science" href="/backup/tests/?subject=vat-ly"><span class="subject-icon">◌</span><span><strong>Vật lý</strong><small>16 đề luyện tập</small></span><span class="card-arrow">↗</span></a>
           </div>
         </div>
       </section>
 
-      <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/pages/exams.html">Đến kho đề <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
+      <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/tests/">Đến kho đề kiểm tra <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
     </main>
 
     <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="/"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="/backup/pages/about.html">Về StudySphere</a><a href="/backup/pages/contact.html">Liên hệ nhóm</a><span>© 2026 StudySphere</span></div></div></footer>

@@ -115,5 +115,27 @@
 .review-question-footer strong { color: var(--ink); }
 .review-question-explain { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: 0.76rem; }
 .review-question-explain strong { color: var(--ink); }
-.body.modal-open { overflow: hidden; }
+body.modal-open { overflow: hidden; }
 @media (max-width: 600px) { .detail-stats { flex-wrap: wrap; }.detail-stats div { min-width: 50%; }.detail-stats div:nth-child(3) { padding-left: 0; border-left: 0; }.detail-actions { align-items: stretch; flex-direction: column; }.detail-top { align-items: flex-start; flex-direction: column; }.detail-header-actions { width: 100%; justify-content: space-between; }.review-header { align-items: flex-start; flex-direction: column; }.review-item-head { align-items: flex-start; flex-direction: column; }.review-modal { padding: 0 14px 14px; }.exam-document summary { align-items: flex-start; padding: 15px 16px; }.exam-document iframe { height: 360px; }.exam-document-empty { min-height: 120px; }.exam-document-actions { flex-direction: column; }.exam-document-actions .button { width: 100%; } }
+
+@media (max-width: 520px) {
+  .detail-section { min-height: 0; padding-top: 28px; }
+  .detail-card { padding: 22px 17px; border-radius: 14px; }
+  .detail-stats { margin: 26px 0; }
+  .detail-stats div { min-width: 50%; padding: 14px 10px 14px 0; }
+  .detail-stats div + div { padding-left: 12px; }
+  .detail-stats div:nth-child(3) { padding-left: 0; }
+  .detail-actions .button { width: 100%; min-height: 46px; }
+  .exam-document-summary { min-width: 0; }
+  .exam-document-summary strong { overflow-wrap: anywhere; }
+  .exam-document-toggle { white-space: nowrap; }
+  .review-filter-bar { gap: 6px; }
+  .review-filter-button { min-height: 38px; padding: 7px 10px; }
+  .review-option { align-items: flex-start; }
+  .review-option-text,
+  .review-answer-text { min-width: 0; overflow-wrap: anywhere; }
+  .review-option-badge { flex: 0 0 auto; }
+  .review-modal-overlay { padding: 12px; }
+  .review-modal { max-height: calc(100dvh - 24px); }
+  .review-modal-close { width: 40px; height: 40px; flex: 0 0 40px; }
+}

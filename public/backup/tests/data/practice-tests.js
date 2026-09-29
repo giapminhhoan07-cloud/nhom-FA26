@@ -1,21 +1,77 @@
 import { toan12Questions } from "../../data/questions.js";
+import { economicsLawUpcomingTests } from "../../data/practice-tests-economics-law.js";
+import { englishUpcomingTests } from "../../data/practice-tests-english.js";
+import { biologyUpcomingTests } from "../../data/practice-tests-biology.js";
+import { chemistryUpcomingTests } from "../../data/practice-tests-chemistry.js";
+import { geographyUpcomingTests } from "../../data/practice-tests-geography.js";
+import { historyUpcomingTests } from "../../data/practice-tests-history.js";
+import { informaticsUpcomingTests } from "../../data/practice-tests-informatics.js";
+import { literatureUpcomingTests } from "../../data/practice-tests-literature.js";
+import { mathUpcomingTests } from "../../data/practice-tests-math.js";
+import { physicsUpcomingTests } from "../../data/practice-tests-physics.js";
 
+export const testGrades = [10, 11, 12];
+
+export const testSubjects = [
+  { id: "toan", name: "Toán", icon: "∑" },
+  { id: "ngu-van", name: "Ngữ văn", icon: "Aa" },
+  { id: "tieng-anh", name: "Tiếng Anh", icon: "A" },
+  { id: "vat-ly", name: "Vật lý", icon: "◌" },
+  { id: "hoa-hoc", name: "Hóa học", icon: "⚗" },
+  { id: "sinh-hoc", name: "Sinh học", icon: "✿" },
+  { id: "lich-su", name: "Lịch sử", icon: "◷" },
+  { id: "dia-li", name: "Địa lí", icon: "⌖" },
+  { id: "tin-hoc", name: "Tin học", icon: "⌘" },
+  { id: "gdkp", name: "Giáo dục kinh tế và pháp luật", icon: "§" },
+];
+
+export const testExamTypes = [
+  { id: "midterm", name: "Giữa kỳ", suffix: "Giữa học kỳ I", durationMinutes: 45, questionCount: 40, difficulty: "medium" },
+  { id: "final", name: "Cuối kỳ", suffix: "Cuối học kỳ I", durationMinutes: 60, questionCount: 50, difficulty: "advanced" },
+  { id: "15-minute", name: "Kiểm tra 15 phút", suffix: "Kiểm tra 15 phút", durationMinutes: 15, questionCount: 15, difficulty: "basic" },
+  { id: "45-minute", name: "Kiểm tra 45 phút", suffix: "Kiểm tra 45 phút", durationMinutes: 45, questionCount: 40, difficulty: "upper" },
+];
+
+export const testCatalogExamTypes = [
+  ...testExamTypes,
+  { id: "review", name: "Ôn tập" },
+  { id: "topic-review", name: "Ôn tập theo chủ đề" },
+  { id: "integrated-review", name: "Ôn tập tổng hợp" },
+  { id: "graduation-practice", name: "Ôn thi tốt nghiệp THPT" },
+];
+
+export const testDifficulties = [
+  { id: "basic", name: "Cơ bản" },
+  { id: "medium", name: "Trung bình" },
+  { id: "upper", name: "Khá" },
+  { id: "advanced", name: "Nâng cao" },
+];
 export const practiceTests = [
   {
     id: "toan-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "toan",
     subjectName: "Toán",
     title: "Bài kiểm tra Toán lớp 12",
     description: "20 câu từ nhận biết đến vận dụng cao, bao quát các chuyên đề trọng tâm.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "advanced",
+    difficultyName: "Nâng cao",
     durationMinutes: 30,
     questions: toan12Questions,
   },
   {
     id: "dia-li-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "dia-li",
     subjectName: "Địa lí",
     title: "Bài kiểm tra Địa lí lớp 12",
     description: "20 câu về địa lí tự nhiên, dân cư và các vùng kinh tế Việt Nam.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "medium",
+    difficultyName: "Trung bình",
     durationMinutes: 30,
     questions: [
       { id: "dia12-q01", type: "multiple_choice", difficultyName: "Nhận biết", content: "Việt Nam nằm ở khu vực nào của châu Á?", options: ["Đông Á", "Đông Nam Á", "Nam Á", "Tây Á"], correctAnswer: 1, explanation: "Việt Nam nằm ở rìa phía đông bán đảo Đông Dương, thuộc khu vực Đông Nam Á." },
@@ -42,10 +98,15 @@ export const practiceTests = [
   },
   {
     id: "lich-su-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "lich-su",
     subjectName: "Lịch sử",
     title: "Bài kiểm tra Lịch sử lớp 12",
     description: "20 câu về lịch sử Việt Nam và thế giới thời hiện đại, tăng dần độ khó.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "upper",
+    difficultyName: "Khá",
     durationMinutes: 30,
     questions: [
       { id: "su12-q01", type: "multiple_choice", difficultyName: "Nhận biết", content: "Nguyễn Ái Quốc gửi Bản yêu sách của nhân dân An Nam tới Hội nghị Véc-xai vào năm nào?", options: ["1917", "1919", "1920", "1925"], correctAnswer: 1, explanation: "Năm 1919, Nguyễn Ái Quốc gửi Bản yêu sách của nhân dân An Nam tới Hội nghị Véc-xai." },
@@ -70,4 +131,148 @@ export const practiceTests = [
       { id: "su12-q20", type: "multiple_choice", difficultyName: "Vận dụng cao", content: "Ý nghĩa lịch sử lớn nhất của thắng lợi ngày 30/4/1975 đối với Việt Nam là", options: ["Hoàn thành sự nghiệp giải phóng miền Nam, thống nhất đất nước", "Mở đầu công cuộc khai thác thuộc địa", "Thành lập ASEAN", "Kết thúc Chiến tranh thế giới thứ hai"], correctAnswer: 0, explanation: "Đại thắng mùa Xuân 1975 giải phóng hoàn toàn miền Nam, kết thúc chiến tranh và thống nhất đất nước." },
     ],
   },
+  {
+    id: "toan12-on-tap-01",
+    grade: 12,
+    subjectId: "toan",
+    subjectName: "Toán",
+    title: "Đề ôn tập Toán 12 - Số 01",
+    description: "Ôn tập các chuyên đề đạo hàm, tích phân, logarit, hình học không gian và xác suất.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "medium",
+    difficultyName: "Trung bình",
+    durationMinutes: 45,
+    questions: [
+      {
+        id: "toan12-on-tap-01-q01",
+        type: "multiple_choice",
+        content: "Cho hàm số y = x^3 - 3x^2 + 2. Hàm số đạt cực đại tại điểm nào?",
+        options: ["x = 0", "x = 1", "x = 2", "x = 3"],
+        correctAnswer: 0,
+        explanation: "Đạo hàm y' = 3x(x - 2); đạo hàm đổi dấu từ dương sang âm tại x = 0 nên hàm số đạt cực đại tại đó.",
+      },
+      {
+        id: "toan12-on-tap-01-q02",
+        type: "multiple_choice",
+        content: "Tính tích phân từ 0 đến 1 của 2x dx.",
+        options: ["0", "1", "2", "1/2"],
+        correctAnswer: 1,
+        explanation: "Nguyên hàm của 2x là x^2; thay cận từ 0 đến 1 được 1.",
+      },
+      {
+        id: "toan12-on-tap-01-q03",
+        type: "multiple_choice",
+        content: "Cho hàm số f(x) = 2x + 1. Giá trị của f(3) bằng bao nhiêu?",
+        options: ["5", "6", "7", "8"],
+        correctAnswer: 2,
+        explanation: "f(3) = 2 × 3 + 1 = 7.",
+      },
+      {
+        id: "toan12-on-tap-01-q04",
+        type: "multiple_choice",
+        content: "Phương trình log cơ số 2 của x bằng 3 có nghiệm là:",
+        options: ["x = 3", "x = 6", "x = 8", "x = 9"],
+        correctAnswer: 2,
+        explanation: "log cơ số 2 của x bằng 3 tương đương x = 2^3 = 8.",
+      },
+      {
+        id: "toan12-on-tap-01-q05",
+        type: "multiple_choice",
+        content: "Cho cấp số nhân có số hạng đầu u1 = 2 và công bội q = 3. Số hạng thứ ba bằng:",
+        options: ["6", "12", "18", "24"],
+        correctAnswer: 2,
+        explanation: "u3 = u1 × q^2 = 2 × 3^2 = 18.",
+      },
+      {
+        id: "toan12-on-tap-01-q06",
+        type: "multiple_choice",
+        content: "Trong không gian Oxyz, vectơ a = (1; 2; 3) và b = (2; 1; 0). Tích vô hướng a·b bằng:",
+        options: ["2", "4", "5", "6"],
+        correctAnswer: 1,
+        explanation: "a·b = 1 × 2 + 2 × 1 + 3 × 0 = 4.",
+      },
+      {
+        id: "toan12-on-tap-01-q07",
+        type: "multiple_choice",
+        content: "Một hình hộp chữ nhật có ba kích thước lần lượt là 2, 3 và 4. Thể tích của hình hộp là:",
+        options: ["9", "18", "24", "36"],
+        correctAnswer: 2,
+        explanation: "Thể tích hình hộp chữ nhật bằng tích ba kích thước: 2 × 3 × 4 = 24.",
+      },
+      {
+        id: "toan12-on-tap-01-q08",
+        type: "multiple_choice",
+        content: "Hàm số y = e^x có đạo hàm là:",
+        options: ["x·e^(x-1)", "e^x", "e^(x+1)", "1/e^x"],
+        correctAnswer: 1,
+        explanation: "Đạo hàm của hàm số mũ e^x là chính hàm số đó: y' = e^x.",
+      },
+      {
+        id: "toan12-on-tap-01-q09",
+        type: "multiple_choice",
+        content: "Một hộp có 3 viên bi đỏ và 2 viên bi xanh. Lấy ngẫu nhiên một viên. Xác suất lấy được viên bi đỏ là:",
+        options: ["2/5", "3/5", "1/2", "3/4"],
+        correctAnswer: 1,
+        explanation: "Có 3 viên bi đỏ trong tổng số 5 viên, nên xác suất là 3/5.",
+      },
+      {
+        id: "toan12-on-tap-01-q10",
+        type: "multiple_choice",
+        content: "Giá trị của log cơ số 10 của 1000 bằng:",
+        options: ["1", "2", "3", "10"],
+        correctAnswer: 2,
+        explanation: "Vì 10^3 = 1000 nên log cơ số 10 của 1000 bằng 3.",
+      },
+    ],
+  },
+];
+
+const availableSubjectGrades = new Set(practiceTests.map((test) => `${test.grade}-${test.subjectId}`));
+
+const legacyUpcomingTests = testGrades.flatMap((grade) =>
+  testSubjects.flatMap((subject) => {
+    if (availableSubjectGrades.has(`${grade}-${subject.id}`)) return [];
+
+    return testExamTypes.map((examType) => ({
+      id: `upcoming-${grade}-${subject.id}-${examType.id}`,
+      grade,
+      subjectId: subject.id,
+      subjectName: subject.name,
+      title: `Đề kiểm tra ${subject.name} ${grade} – ${examType.suffix}`,
+      description: "Nội dung đề đang được biên soạn và sẽ sớm được cập nhật.",
+      examType: examType.id,
+      examTypeName: examType.name,
+      difficulty: examType.difficulty,
+      difficultyName: testDifficulties.find((item) => item.id === examType.difficulty).name,
+      durationMinutes: examType.durationMinutes,
+      questionCount: examType.questionCount,
+      status: "upcoming",
+    }));
+  }),
+);
+
+const subjectCatalogs = [
+  ["toan", "Toán", mathUpcomingTests],
+  ["ngu-van", "Ngữ văn", literatureUpcomingTests],
+  ["tieng-anh", "Tiếng Anh", englishUpcomingTests],
+  ["vat-ly", "Vật lý", physicsUpcomingTests],
+  ["hoa-hoc", "Hóa học", chemistryUpcomingTests],
+  ["sinh-hoc", "Sinh học", biologyUpcomingTests],
+  ["lich-su", "Lịch sử", historyUpcomingTests],
+  ["dia-li", "Địa lí", geographyUpcomingTests],
+  ["tin-hoc", "Tin học", informaticsUpcomingTests],
+  ["gdkp", "Giáo dục kinh tế và pháp luật", economicsLawUpcomingTests],
+];
+
+export const upcomingTests = [
+  ...legacyUpcomingTests,
+  ...subjectCatalogs.flatMap(([subjectId, subjectName, tests]) =>
+    tests.map((test) => ({
+      ...test,
+      subjectId,
+      subjectName,
+      status: "upcoming",
+    })),
+  ),
 ];

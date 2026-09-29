@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap&subset=vietnamese");
 @import url("./theme.css");
 
 :root {
@@ -12,25 +13,73 @@
   --coral: #e97b63;
   --shadow: 0 20px 55px rgba(23, 59, 87, 0.09);
   --radius: 14px;
-  --font-body: "Trebuchet MS", "Segoe UI", sans-serif;
-  --font-display: Cambria, "Times New Roman", serif;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+  --font-heading: "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+  --font-display: var(--font-body);
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--cream); font-family: var(--font-body); line-height: 1.5; }
 a { color: inherit; text-decoration: none; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 .container { width: min(1160px, calc(100% - 48px)); margin: 0 auto; }
 .eyebrow { margin: 0 0 10px; color: var(--teal-dark); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .eyebrow-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: var(--yellow); vertical-align: 1px; }
 h1, h2, p { margin-top: 0; }
-h1, h2 { line-height: 1.08; }
-h1 { font-family: var(--font-display); font-size: clamp(3.15rem, 6vw, 5.8rem); font-weight: 400; letter-spacing: -0.05em; }
+h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.15; }
+h1 { font-size: clamp(36px, 4vw, 48px); font-weight: 700; }
 h1 em { color: var(--teal); font-style: italic; }
-h2 { margin-bottom: 0; font-size: clamp(2rem, 3vw, 3rem); letter-spacing: -0.04em; }
+h2 { margin-bottom: 0; font-size: clamp(20px, 2vw, 24px); font-weight: 600; }
+h3, h4 { font-weight: 600; }
 .reveal { animation: rise-in 0.7s ease both; }
 .reveal-delay { animation-delay: 0.12s; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-@media (max-width: 640px) { .container { width: min(100% - 32px, 1160px); } h1 { font-size: clamp(2.8rem, 15vw, 4rem); } }
+@media (max-width: 640px) { .container { width: min(100% - 32px, 1160px); } h1 { font-size: clamp(28px, 8vw, 36px); } h2 { font-size: clamp(20px, 6vw, 24px); } }
+
+body .page-intro h1,
+body .history-hero h1,
+body .admin-hero h1,
+body .profile-hero h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+}
+
+body .auth-intro h1 { font-size: clamp(36px, 4vw, 48px); font-weight: 700; }
+
+body .admin-panel-heading h2,
+body .history-heading h2,
+body .profile-heading h2,
+body .profile-summary h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 600;
+}
+
+body .practice-test-card h2 { font-family: var(--font-heading); font-size: 18px; font-weight: 600; }
+body .detail-card h1,
+body .question-card h1,
+body .review-header h2,
+body .review-item h3,
+body .history-item h3 { font-family: var(--font-heading); }
+body .main-nav { font-size: 14px; font-weight: 500; }
+body .header-action { font-size: 14px; font-weight: 600; }
+body .button { font-size: 14px; font-weight: 600; }
+
+@media (max-width: 640px) {
+  body .auth-intro h1 { font-size: clamp(28px, 8vw, 36px); }
+  body .main-nav { font-size: 14px; }
+  body .header-action,
+  body .button { font-size: 14px; }
+  body .quiz-actions .button { font-size: 14px; }
+}
+
+@media (max-width: 360px) {
+  body .header-inner { gap: 4px; }
+  body .brand { gap: 6px; font-size: 16px; }
+  body .brand-mark { width: 28px; height: 28px; font-size: 1.1rem; }
+  body .header-action { padding-inline: 6px; }
+  body .header-action span { display: none; }
+}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Bài kiểm tra trắc nghiệm lớp 12 môn Toán, Địa lí và Lịch sử.">
-  <title>Bài kiểm tra | StudySphere</title>
+  <meta name="description" content="Lọc và chọn đề kiểm tra theo lớp học, môn học và mức độ.">
+  <title>Kho đề kiểm tra | StudySphere</title>
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
@@ -28,8 +28,49 @@
     </div>
   </header>
   <main>
-    <section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Luyện tập theo môn</p><h1>Bài kiểm tra lớp 12</h1><p>Chọn môn để bắt đầu. Mỗi bài gồm 20 câu hỏi, sắp xếp từ cơ bản đến nâng cao.</p></div></section>
-    <section class="section practice-tests-section"><div class="container"><div class="practice-test-grid" id="practice-test-list" aria-live="polite"></div></div></section>
+    <section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Luyện tập theo chương trình</p><h1>Kho đề kiểm tra</h1><p>Chọn lớp, môn học và bộ lọc phù hợp để tìm đề luyện tập.</p></div></section>
+    <section class="section practice-tests-section">
+      <div class="container">
+        <div class="practice-test-filters" aria-label="Bộ lọc đề kiểm tra">
+          <fieldset class="grade-filter">
+            <legend>Lớp học</legend>
+            <div class="grade-options" role="group" aria-label="Chọn lớp học">
+              <button class="grade-option" type="button" data-grade="all" aria-pressed="false">Tất cả</button>
+              <button class="grade-option" type="button" data-grade="10" aria-pressed="false">Lớp 10</button>
+              <button class="grade-option" type="button" data-grade="11" aria-pressed="false">Lớp 11</button>
+              <button class="grade-option is-active" type="button" data-grade="12" aria-pressed="true">Lớp 12</button>
+            </div>
+          </fieldset>
+          <div class="filter-control">
+            <label for="subject-filter">Môn học</label>
+            <select id="subject-filter"><option value="all">Tất cả môn học</option></select>
+          </div>
+          <label class="filter-control search-control" for="test-search">
+            <span>Tìm kiếm</span>
+            <input id="test-search" type="search" placeholder="Tìm đề kiểm tra..." autocomplete="off">
+          </label>
+          <div class="filter-control">
+            <label for="type-filter">Loại đề</label>
+            <select id="type-filter"><option value="all">Tất cả loại đề</option></select>
+          </div>
+          <div class="filter-control">
+            <label for="difficulty-filter">Mức độ</label>
+            <select id="difficulty-filter"><option value="all">Tất cả mức độ</option></select>
+          </div>
+          <button class="filter-reset" id="clear-test-filters" type="button">Xóa bộ lọc</button>
+        </div>
+        <div class="practice-results-heading">
+          <strong id="practice-test-count" aria-live="polite">Đang tải đề...</strong>
+          <span id="practice-test-scope"></span>
+        </div>
+        <div class="practice-test-grid" id="practice-test-list" aria-live="polite"></div>
+        <div class="empty-state practice-test-empty" id="practice-test-empty" hidden>
+          <strong>Không tìm thấy đề kiểm tra</strong>
+          <p>Thử thay đổi lớp học, môn học hoặc bộ lọc để tìm đề phù hợp.</p>
+          <button class="button button-primary" id="empty-clear-test-filters" type="button">Xóa bộ lọc</button>
+        </div>
+      </div>
+    </section>
   </main>
   <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="../pages/history.html">Lịch sử làm bài</a><span>© 2026 StudySphere</span></div></div></footer>
 </body>
