@@ -91,4 +91,36 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
+function setupMobileNavigation() {
+  const header = document.querySelector(".header-inner");
+  const nav = header?.querySelector(".main-nav");
+  if (!header || !nav) return;
+
+  if (!nav.id) nav.id = "main-nav";
+
+  let toggle = header.querySelector(".menu-toggle");
+  if (!toggle) {
+    toggle = document.createElement("button");
+    toggle.className = "menu-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "Mở menu");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", nav.id);
+    toggle.innerHTML = "<span></span><span></span><span></span>";
+    header.insertBefore(toggle, nav);
+
+    toggle.addEventListener("click", () => {
+      const isOpen = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+    });
+  }
+
+  nav.addEventListener("click", (event) => {
+    if (!event.target.closest("a")) return;
+    nav.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+  });
+}
+
+setupMobileNavigation();
 renderAccount();
