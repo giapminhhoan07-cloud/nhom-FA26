@@ -1,21 +1,60 @@
 import { toan12Questions } from "./questions.js";
 
+export const testGrades = [10, 11, 12];
+
+export const testSubjects = [
+  { id: "toan", name: "Toán", icon: "∑" },
+  { id: "ngu-van", name: "Ngữ văn", icon: "Aa" },
+  { id: "tieng-anh", name: "Tiếng Anh", icon: "A" },
+  { id: "vat-ly", name: "Vật lý", icon: "◌" },
+  { id: "hoa-hoc", name: "Hóa học", icon: "⚗" },
+  { id: "sinh-hoc", name: "Sinh học", icon: "✿" },
+  { id: "lich-su", name: "Lịch sử", icon: "◷" },
+  { id: "dia-li", name: "Địa lí", icon: "⌖" },
+  { id: "tin-hoc", name: "Tin học", icon: "⌘" },
+  { id: "gdkp", name: "Giáo dục kinh tế và pháp luật", icon: "§" },
+];
+
+export const testExamTypes = [
+  { id: "midterm", name: "Giữa kỳ", suffix: "Giữa học kỳ I", durationMinutes: 45, questionCount: 40, difficulty: "medium" },
+  { id: "final", name: "Cuối kỳ", suffix: "Cuối học kỳ I", durationMinutes: 60, questionCount: 50, difficulty: "advanced" },
+  { id: "15-minute", name: "Kiểm tra 15 phút", suffix: "Kiểm tra 15 phút", durationMinutes: 15, questionCount: 15, difficulty: "basic" },
+  { id: "45-minute", name: "Kiểm tra 45 phút", suffix: "Kiểm tra 45 phút", durationMinutes: 45, questionCount: 40, difficulty: "upper" },
+];
+
+export const testDifficulties = [
+  { id: "basic", name: "Cơ bản" },
+  { id: "medium", name: "Trung bình" },
+  { id: "upper", name: "Khá" },
+  { id: "advanced", name: "Nâng cao" },
+];
+
 export const practiceTests = [
   {
     id: "toan-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "toan",
     subjectName: "Toán",
     title: "Bài kiểm tra Toán lớp 12",
     description: "20 câu từ nhận biết đến vận dụng cao, bao quát các chuyên đề trọng tâm.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "advanced",
+    difficultyName: "Nâng cao",
     durationMinutes: 30,
     questions: toan12Questions,
   },
   {
     id: "dia-li-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "dia-li",
     subjectName: "Địa lí",
     title: "Bài kiểm tra Địa lí lớp 12",
     description: "20 câu về địa lí tự nhiên, dân cư và các vùng kinh tế Việt Nam.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "medium",
+    difficultyName: "Trung bình",
     durationMinutes: 30,
     questions: [
       { id: "dia12-q01", type: "multiple_choice", difficultyName: "Nhận biết", content: "Việt Nam nằm ở khu vực nào của châu Á?", options: ["Đông Á", "Đông Nam Á", "Nam Á", "Tây Á"], correctAnswer: 1, explanation: "Việt Nam nằm ở rìa phía đông bán đảo Đông Dương, thuộc khu vực Đông Nam Á." },
@@ -42,10 +81,15 @@ export const practiceTests = [
   },
   {
     id: "lich-su-12-trac-nghiem-20-cau",
+    grade: 12,
     subjectId: "lich-su",
     subjectName: "Lịch sử",
     title: "Bài kiểm tra Lịch sử lớp 12",
     description: "20 câu về lịch sử Việt Nam và thế giới thời hiện đại, tăng dần độ khó.",
+    examType: "review",
+    examTypeName: "Ôn tập",
+    difficulty: "upper",
+    difficultyName: "Khá",
     durationMinutes: 30,
     questions: [
       { id: "su12-q01", type: "multiple_choice", difficultyName: "Nhận biết", content: "Nguyễn Ái Quốc gửi Bản yêu sách của nhân dân An Nam tới Hội nghị Véc-xai vào năm nào?", options: ["1917", "1919", "1920", "1925"], correctAnswer: 1, explanation: "Năm 1919, Nguyễn Ái Quốc gửi Bản yêu sách của nhân dân An Nam tới Hội nghị Véc-xai." },
@@ -71,3 +115,27 @@ export const practiceTests = [
     ],
   },
 ];
+
+const availableSubjectGrades = new Set(practiceTests.map((test) => `${test.grade}-${test.subjectId}`));
+
+export const upcomingTests = testGrades.flatMap((grade) =>
+  testSubjects.flatMap((subject) => {
+    if (availableSubjectGrades.has(`${grade}-${subject.id}`)) return [];
+
+    return testExamTypes.map((examType) => ({
+      id: `upcoming-${grade}-${subject.id}-${examType.id}`,
+      grade,
+      subjectId: subject.id,
+      subjectName: subject.name,
+      title: `Đề kiểm tra ${subject.name} ${grade} – ${examType.suffix}`,
+      description: "Nội dung đề đang được biên soạn và sẽ sớm được cập nhật.",
+      examType: examType.id,
+      examTypeName: examType.name,
+      difficulty: examType.difficulty,
+      difficultyName: testDifficulties.find((item) => item.id === examType.difficulty).name,
+      durationMinutes: examType.durationMinutes,
+      questionCount: examType.questionCount,
+      status: "upcoming",
+    }));
+  }),
+);

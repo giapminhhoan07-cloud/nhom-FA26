@@ -96,6 +96,18 @@ function setupMobileNavigation() {
   const nav = header?.querySelector(".main-nav");
   if (!header || !nav) return;
 
+  const testsLink = [...nav.querySelectorAll("a")].find((link) => link.getAttribute("href")?.endsWith("tests.html"));
+  nav.querySelectorAll('a[href$="exams.html"]').forEach((link) => {
+    if (testsLink) {
+      if (link.classList.contains("active")) testsLink.classList.add("active");
+      link.remove();
+      return;
+    }
+
+    link.href = getPagePath("tests.html");
+    link.textContent = "Bài kiểm tra";
+  });
+
   if (!nav.id) nav.id = "main-nav";
 
   let toggle = header.querySelector(".menu-toggle");

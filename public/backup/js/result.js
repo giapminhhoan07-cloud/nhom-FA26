@@ -53,7 +53,7 @@ if (!stored && attemptId && currentUser?.id) {
 }
 
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="exams.html">Về kho đề</a>';
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="tests.html">Về bài kiểm tra</a>';
   throw new Error('No result');
 }
 
@@ -62,7 +62,7 @@ const passed = Number(result.score) >= 5;
 const retryHref = result.quizKind === "practice-test"
   ? `quiz.html?test=${encodeURIComponent(result.examId)}`
   : `quiz.html?id=${encodeURIComponent(result.examId)}`;
-const libraryHref = result.quizKind === "practice-test" ? "tests.html" : "exams.html";
+const libraryHref = "tests.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {

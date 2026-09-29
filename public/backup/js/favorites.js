@@ -1,13 +1,38 @@
 import { exams } from "../data/exams.js";
-const ids = JSON.parse(localStorage.getItem("studysphere_favorites") || "[]");
+import { practiceTests } from "../data/practice-tests.js";
+
+const ids = (() => {
+	try {
+		return JSON.parse(localStorage.getItem("studysphere_favorites") || "[]");
+	} catch {
+		return [];
+	}
+})();
 const list = document.querySelector("#favorite-list");
-const saved = exams.filter((exam) => ids.includes(exam.id));
+const emptyState = document.querySelector("#favorite-empty");
+const emptyLink = emptyState.querySelector("a");
+emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong kho đề kiểm tra để lưu lại.";
+emptyLink.href = "tests.html";
+emptyLink.textContent = "Đến kho đề kiểm tra";
+
+const savedExams = exams.filter((exam) => ids.includes(exam.id));
+const savedTests = practiceTests
+	.filter((test) => ids.includes(test.id))
+	.map((test) => ({
+		...test,
+		favoriteKind: "practice-test",
+		year: `Lớp ${test.grade}`,
+		questionCount: test.questions.length,
+	}));
+const saved = [...savedExams, ...savedTests];
 if (!saved.length) {
 	list.hidden = true;
-	document.querySelector("#favorite-empty").hidden = false;
+	emptyState.hidden = false;
 } else {
 	list.innerHTML = saved.map((exam) => {
-		const destination = exam.questions?.length
+		const destination = exam.favoriteKind === "practice-test"
+			? `quiz.html?test=${encodeURIComponent(exam.id)}`
+			: exam.questions?.length
 			? `quiz.html?id=${encodeURIComponent(exam.id)}`
 			: `exam-detail.html?id=${encodeURIComponent(exam.id)}`;
 		const linkLabel = exam.questions?.length ? `Bắt đầu làm bài: ${exam.title}` : `Xem ${exam.title}`;
