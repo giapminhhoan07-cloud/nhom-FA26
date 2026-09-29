@@ -26,13 +26,17 @@ const availableTests = practiceTests.map((test) => ({
   status: "available",
 }));
 const allTests = [...availableTests, ...upcomingTests];
-const requestedSubject = new URLSearchParams(window.location.search).get("subject");
+const pageParams = new URLSearchParams(window.location.search);
+const requestedGrade = pageParams.get("grade");
+const requestedSubject = pageParams.get("subject");
+const requestedType = pageParams.get("type");
+const requestedDifficulty = pageParams.get("difficulty");
 const state = {
-  grade: "12",
+  grade: ["all", "10", "11", "12"].includes(requestedGrade) ? requestedGrade : "12",
   subject: testSubjects.some((subject) => subject.id === requestedSubject) ? requestedSubject : "all",
-  search: "",
-  type: "all",
-  difficulty: "all",
+  search: pageParams.get("search") || "",
+  type: requestedType === "review" || testExamTypes.some((type) => type.id === requestedType) ? requestedType : "all",
+  difficulty: testDifficulties.some((difficulty) => difficulty.id === requestedDifficulty) ? requestedDifficulty : "all",
 };
 const getFavoriteIds = () => {
   try {
@@ -47,13 +51,30 @@ subjectFilter.insertAdjacentHTML("beforeend", testSubjects.map((subject) =>
   `<option value="${subject.id}">${subject.name}</option>`,
 ).join(""));
 subjectFilter.value = state.subject;
+searchInput.value = state.search;
 typeFilter.insertAdjacentHTML("beforeend", [
   ...testExamTypes.map((type) => `<option value="${type.id}">${type.name}</option>`),
   '<option value="review">Ôn tập</option>',
 ].join(""));
+typeFilter.value = state.type;
 difficultyFilter.insertAdjacentHTML("beforeend", testDifficulties.map((difficulty) =>
   `<option value="${difficulty.id}">${difficulty.name}</option>`,
 ).join(""));
+difficultyFilter.value = state.difficulty;
+
+document.querySelectorAll("[data-grade]").forEach((button) => {
+  const isActive = button.dataset.grade === state.grade;
+  button.classList.toggle("is-active", isActive);
+  button.setAttribute("aria-pressed", String(isActive));
+});
+
+function getReturnUrl() {
+  const returnParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(state)) {
+    if (value !== "all" && value !== "") returnParams.set(key, value);
+  }
+  return `tests.html${returnParams.size ? `?${returnParams}` : ""}`;
+}
 
 function getFilteredTests() {
   const query = state.search.trim().toLocaleLowerCase("vi");
@@ -92,6 +113,7 @@ function renderCard(test) {
 
   if (test.status === "available" && Array.isArray(test.questions) && test.questions.length > 0) {
     const isSaved = favoriteIds.includes(test.id);
+    const detailHref = `exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
     return `
       <article class="practice-test-card">
         ${subject}
@@ -102,8 +124,8 @@ function renderCard(test) {
         <h2>${test.title}</h2>
         <p>${test.description}</p>
         <div class="practice-test-meta">${metadata}</div>
-        <a class="practice-test-start" href="quiz.html?test=${encodeURIComponent(test.id)}">
-          <span>Làm bài</span><span aria-hidden="true">→</span>
+        <a class="practice-test-start" href="${detailHref}">
+          <span>Xem chi tiết</span><span aria-hidden="true">→</span>
         </a>
       </article>
     `;
