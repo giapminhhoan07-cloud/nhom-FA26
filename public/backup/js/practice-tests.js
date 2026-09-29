@@ -1,7 +1,7 @@
 import {
   practiceTests,
   testDifficulties,
-  testExamTypes,
+  testCatalogExamTypes,
   testSubjects,
   upcomingTests,
 } from "../data/practice-tests.js";
@@ -35,7 +35,7 @@ const state = {
   grade: ["all", "10", "11", "12"].includes(requestedGrade) ? requestedGrade : "12",
   subject: testSubjects.some((subject) => subject.id === requestedSubject) ? requestedSubject : "all",
   search: pageParams.get("search") || "",
-  type: requestedType === "review" || testExamTypes.some((type) => type.id === requestedType) ? requestedType : "all",
+  type: testCatalogExamTypes.some((type) => type.id === requestedType) ? requestedType : "all",
   difficulty: testDifficulties.some((difficulty) => difficulty.id === requestedDifficulty) ? requestedDifficulty : "all",
 };
 const getFavoriteIds = () => {
@@ -52,10 +52,9 @@ subjectFilter.insertAdjacentHTML("beforeend", testSubjects.map((subject) =>
 ).join(""));
 subjectFilter.value = state.subject;
 searchInput.value = state.search;
-typeFilter.insertAdjacentHTML("beforeend", [
-  ...testExamTypes.map((type) => `<option value="${type.id}">${type.name}</option>`),
-  '<option value="review">Ôn tập</option>',
-].join(""));
+typeFilter.insertAdjacentHTML("beforeend", testCatalogExamTypes.map((type) =>
+  `<option value="${type.id}">${type.name}</option>`,
+).join(""));
 typeFilter.value = state.type;
 difficultyFilter.insertAdjacentHTML("beforeend", testDifficulties.map((difficulty) =>
   `<option value="${difficulty.id}">${difficulty.name}</option>`,
@@ -98,10 +97,13 @@ function getFilteredTests() {
 }
 
 function renderCard(test) {
+  const questionCount = test.questionCount == null
+    ? "Số câu đang cập nhật"
+    : test.status === "upcoming" ? `${test.questionCount} câu dự kiến` : `${test.questionCount} câu`;
   const metadata = `
     <span class="practice-test-meta-item">${test.examTypeName}</span>
     <span class="practice-test-meta-item">${test.durationMinutes} phút</span>
-    <span class="practice-test-meta-item">${test.questionCount} câu</span>
+    <span class="practice-test-meta-item">${questionCount}</span>
     <span class="practice-test-meta-item">${test.difficultyName}</span>
   `;
   const subject = `
@@ -131,6 +133,7 @@ function renderCard(test) {
     `;
   }
 
+  const detailHref = `exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
   return `
     <article class="practice-test-card is-upcoming">
       ${subject}
@@ -138,7 +141,7 @@ function renderCard(test) {
       <h2>${test.title}</h2>
       <p>${test.description}</p>
       <div class="practice-test-meta">${metadata}</div>
-      <div class="practice-test-start is-disabled" aria-label="Đề chưa có câu hỏi">Đang biên soạn</div>
+      <a class="practice-test-start" href="${detailHref}">Xem chi tiết<span aria-hidden="true">→</span></a>
     </article>
   `;
 }
