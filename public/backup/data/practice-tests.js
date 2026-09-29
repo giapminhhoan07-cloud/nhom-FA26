@@ -1,4 +1,14 @@
 import { toan12Questions } from "./questions.js";
+import { economicsLawUpcomingTests } from "./practice-tests-economics-law.js";
+import { englishUpcomingTests } from "./practice-tests-english.js";
+import { biologyUpcomingTests } from "./practice-tests-biology.js";
+import { chemistryUpcomingTests } from "./practice-tests-chemistry.js";
+import { geographyUpcomingTests } from "./practice-tests-geography.js";
+import { historyUpcomingTests } from "./practice-tests-history.js";
+import { informaticsUpcomingTests } from "./practice-tests-informatics.js";
+import { literatureUpcomingTests } from "./practice-tests-literature.js";
+import { mathUpcomingTests } from "./practice-tests-math.js";
+import { physicsUpcomingTests } from "./practice-tests-physics.js";
 
 export const testGrades = [10, 11, 12];
 
@@ -20,6 +30,14 @@ export const testExamTypes = [
   { id: "final", name: "Cuối kỳ", suffix: "Cuối học kỳ I", durationMinutes: 60, questionCount: 50, difficulty: "advanced" },
   { id: "15-minute", name: "Kiểm tra 15 phút", suffix: "Kiểm tra 15 phút", durationMinutes: 15, questionCount: 15, difficulty: "basic" },
   { id: "45-minute", name: "Kiểm tra 45 phút", suffix: "Kiểm tra 45 phút", durationMinutes: 45, questionCount: 40, difficulty: "upper" },
+];
+
+export const testCatalogExamTypes = [
+  ...testExamTypes,
+  { id: "review", name: "Ôn tập" },
+  { id: "topic-review", name: "Ôn tập theo chủ đề" },
+  { id: "integrated-review", name: "Ôn tập tổng hợp" },
+  { id: "graduation-practice", name: "Ôn thi tốt nghiệp THPT" },
 ];
 
 export const testDifficulties = [
@@ -213,7 +231,7 @@ export const practiceTests = [
 
 const availableSubjectGrades = new Set(practiceTests.map((test) => `${test.grade}-${test.subjectId}`));
 
-export const upcomingTests = testGrades.flatMap((grade) =>
+const legacyUpcomingTests = testGrades.flatMap((grade) =>
   testSubjects.flatMap((subject) => {
     if (availableSubjectGrades.has(`${grade}-${subject.id}`)) return [];
 
@@ -234,3 +252,28 @@ export const upcomingTests = testGrades.flatMap((grade) =>
     }));
   }),
 );
+
+const subjectCatalogs = [
+  ["toan", "Toán", mathUpcomingTests],
+  ["ngu-van", "Ngữ văn", literatureUpcomingTests],
+  ["tieng-anh", "Tiếng Anh", englishUpcomingTests],
+  ["vat-ly", "Vật lý", physicsUpcomingTests],
+  ["hoa-hoc", "Hóa học", chemistryUpcomingTests],
+  ["sinh-hoc", "Sinh học", biologyUpcomingTests],
+  ["lich-su", "Lịch sử", historyUpcomingTests],
+  ["dia-li", "Địa lí", geographyUpcomingTests],
+  ["tin-hoc", "Tin học", informaticsUpcomingTests],
+  ["gdkp", "Giáo dục kinh tế và pháp luật", economicsLawUpcomingTests],
+];
+
+export const upcomingTests = [
+  ...legacyUpcomingTests,
+  ...subjectCatalogs.flatMap(([subjectId, subjectName, tests]) =>
+    tests.map((test) => ({
+      ...test,
+      subjectId,
+      subjectName,
+      status: "upcoming",
+    })),
+  ),
+];
