@@ -26,6 +26,16 @@ function renderAccount() {
 
   if (currentUser.role === "admin") {
     const mainNav = header.querySelector(".main-nav");
+    if (mainNav) {
+      mainNav.innerHTML = `
+        <a href="${getPagePath("admin.html")}">Quản lý đề thi</a>
+        <a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
+      `;
+    }
+  }
+
+  if (currentUser.role === "admin") {
+    const mainNav = header.querySelector(".main-nav");
     if (mainNav && !mainNav.querySelector('a[href$="admin.html"]')) {
       const adminLink = document.createElement("a");
       adminLink.href = getPagePath("admin.html");
@@ -48,10 +58,9 @@ function renderAccount() {
       <span class="account-email"></span>
       <span class="account-role"></span>
       <div class="account-links">
-        <a href="${getPagePath("profile.html")}">Trang cá nhân</a>
-        ${currentUser.role === "admin" ? `<a href="${getPagePath("admin.html")}">Quản trị đề thi</a>` : ""}
-        <a href="${getPagePath("history.html")}">Lịch sử làm bài</a>
-        <a href="${getPagePath("favorites.html")}">Đề đã lưu</a>
+        ${currentUser.role === "admin"
+          ? `<a href="${getPagePath("admin.html")}">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
+          : `<a href="${getPagePath("profile.html")}">Trang cá nhân</a><a href="${getPagePath("history.html")}">Lịch sử làm bài</a><a href="${getPagePath("favorites.html")}">Đề đã lưu</a>`}
       </div>
       <button class="account-logout" type="button">Đăng xuất</button>
     </div>
