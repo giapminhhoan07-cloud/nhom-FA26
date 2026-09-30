@@ -33,7 +33,8 @@ function renderAccount() {
     const mainNav = header.querySelector(".main-nav");
     if (mainNav) {
       mainNav.innerHTML = `
-        <a href="${getPagePath("admin.html")}">Quản lý đề thi</a>
+        <a class="active" href="${getPagePath("admin.html")}#overview">Tổng quan</a>
+        <a href="${getPagePath("admin.html")}#exam-management">Quản lý đề thi</a>
         <a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
       `;
     }
@@ -41,7 +42,7 @@ function renderAccount() {
 
   if (currentUser.role === "admin") {
     const mainNav = header.querySelector(".main-nav");
-    if (mainNav && !mainNav.querySelector('a[href$="admin.html"]')) {
+    if (mainNav && !mainNav.querySelector('a[href*="admin.html"]')) {
       const adminLink = document.createElement("a");
       adminLink.href = getPagePath("admin.html");
       adminLink.textContent = "Quản trị đề thi";

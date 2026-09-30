@@ -2,15 +2,16 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      let signedIn = false;
-      try { signedIn = Boolean(JSON.parse(localStorage.getItem("studysphere_current_user") || "null")); } catch {}
-      location.replace(signedIn ? "backup/index.html" : "backup/pages/auth.html?return=home");
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>StudySphere</title>
+    <meta name="description" content="StudySphere - kho đề thi THPT và công cụ luyện tập trực tuyến.">
+    <title>StudySphere | Ôn thi thông minh</title>
+    <link rel="stylesheet" href="/backup/css/base.css">
+    <link rel="stylesheet" href="/backup/css/layout.css">
+    <link rel="stylesheet" href="/backup/css/components.css">
+    <link rel="stylesheet" href="/backup/css/home.css">
   </head>
-  <body>
+  <body class="home-page">
     <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
