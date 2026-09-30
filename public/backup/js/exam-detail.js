@@ -1,5 +1,5 @@
 import { exams } from "../data/exams.js";
-import { practiceTests, upcomingTests } from "../data/practice-tests.js";
+import { practiceTests, upcomingTests } from "../tests/data/practice-tests.js";
 
 const nav = document.querySelector(".main-nav");
 document.querySelector(".menu-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; const open = nav.classList.toggle("open"); button.setAttribute("aria-expanded", String(open)); });
@@ -13,7 +13,8 @@ function renderPracticeTestDetail() {
 	const test = practiceTests.find((item) => item.id === testId)
 		 || upcomingTests.find((item) => item.id === testId);
 	const requestedReturn = params.get("return") || "";
-	 const returnHref = /^\.\.\/tests\/index\.html(?:\?.*)?$/.test(requestedReturn) ? requestedReturn : "../tests/index.html";
+	const normalizedReturn = requestedReturn.replace(/^\.\//, "../");
+	const returnHref = /^\.\.\/tests\/index\.html(?:\?.*)?$/.test(normalizedReturn) ? normalizedReturn : "../tests/index.html";
 	backLink.href = returnHref;
 
 	if (!test) {
