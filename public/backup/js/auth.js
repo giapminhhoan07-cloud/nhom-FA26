@@ -144,7 +144,7 @@ registerForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "register", name, email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-    window.location.href = "/backup/index.html";
+    window.location.href = "../index.html";
   } catch (error) {
     setMessage("register-message", error.message);
   }
@@ -166,12 +166,8 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-<<<<<<< HEAD
-    window.location.href = returnTarget === "admin" ? "admin.html" : "/backup/index.html";
-=======
-    const adminReturnPaths = { admin: "admin.html", "admin-users": "admin-users.html" };
-    window.location.href = adminReturnPaths[returnTarget] || "/";
->>>>>>> a5a87c85a94ec8805b223c42d71c09c0cc41dd10
+  const returnPaths = { admin: "admin.html", "admin-users": "admin-users.html", home: "../index.html" };
+  window.location.href = returnPaths[returnTarget] || "../index.html";
   } catch (error) {
     setMessage("login-message", error.message);
   }
