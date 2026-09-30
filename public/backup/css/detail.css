@@ -39,6 +39,23 @@
   box-shadow: 0 6px 12px rgba(15, 89, 94, 0.05);
 }
 .review-section { margin-top: 44px; padding-top: 26px; border-top: 1px solid var(--line); }
+.feedback-section { margin-top: 38px; padding-top: 26px; border-top: 1px solid var(--line); }
+.feedback-section .review-header { margin-bottom: 16px; }
+.feedback-form { display: grid; gap: 18px; }
+.feedback-rating { margin: 0; padding: 0; border: 0; }
+.feedback-rating legend, .feedback-comment { color: var(--ink); font-size: .78rem; font-weight: 700; }
+.feedback-stars { display: flex; gap: 5px; margin-top: 8px; }
+.feedback-stars label { position: relative; display: inline-grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 6px; color: #b7c1c9; cursor: pointer; }
+.feedback-stars label.is-selected { color: #d79524; }
+.feedback-stars label:has(input:focus-visible) { outline: 2px solid var(--teal-dark); outline-offset: 2px; }
+.feedback-stars input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.feedback-stars span[aria-hidden="true"] { font-size: 1.35rem; }
+.feedback-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.feedback-comment { display: grid; gap: 8px; }
+.feedback-comment > span { color: var(--ink-soft); font-weight: 400; }
+.feedback-comment textarea { width: 100%; min-height: 96px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: white; font: inherit; font-size: .82rem; line-height: 1.5; resize: vertical; }
+.feedback-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.feedback-message { margin: 0; color: var(--teal-dark); font-size: .76rem; }
 .review-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .review-header h2 { margin: 0; font-family: var(--font-body); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
 .review-header span { padding: 7px 10px; border-radius: 999px; color: var(--teal-dark); background: #e6f5f1; font-size: 0.68rem; font-weight: 700; }
