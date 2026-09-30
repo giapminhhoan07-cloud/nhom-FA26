@@ -63,7 +63,17 @@ function renderQuestion() {
     ? `<label class="short-answer-field">Nhập câu trả lời<input type="text" name="answer" value="${answers[currentIndex] || ""}" placeholder="Nhập đáp án ngắn"></label>`
     : question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("");
   card.innerHTML = `<p class="question-number">${question.type === "short_answer" ? "Trả lời ngắn" : "Trắc nghiệm"} · Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}${question.difficultyName ? ` · ${question.difficultyName}` : ""}</p>${question.image_url ? `<img class="question-image" style="display:block;max-width:100%;max-height:360px;margin:0 0 24px;border-radius:8px;object-fit:contain" src="${question.image_url}" alt="Hình minh họa cho câu hỏi ${currentIndex + 1}">` : ""}<h1>${question.content}</h1><div class="answer-list">${answerMarkup}</div>`;
-  card.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => { answers[currentIndex] = question.type === "short_answer" ? input.value : Number(input.value); saveProgress(); renderQuestion(); renderDots(); }));
+  card.querySelectorAll("input").forEach((input) => {
+    const updateAnswer = () => {
+      answers[currentIndex] = question.type === "short_answer" ? input.value : Number(input.value);
+      saveProgress();
+      if (question.type !== "short_answer") {
+        renderQuestion();
+        renderDots();
+      }
+    };
+    input.addEventListener(question.type === "short_answer" ? "input" : "change", updateAnswer);
+  });
   document.querySelector("#previous-button").disabled = currentIndex === 0;
   document.querySelector("#next-button").textContent = currentIndex === questions.length - 1 ? "Xem lại bài →" : "Câu tiếp theo →";
 }
@@ -140,12 +150,16 @@ async function submitQuiz() {
       throw new Error(data.message || "Không thể lưu bài làm.");
     }
 
+    const savedAttemptId = String(data.attempt_id || result.attemptId);
+    const savedResult = { ...result, attemptId: savedAttemptId };
     const localHistory = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-    localHistory.unshift({ ...result, attemptId: String(data.attempt_id || result.attemptId) });
+    localHistory.unshift(savedResult);
     localStorage.setItem("studysphere_history", JSON.stringify(localHistory));
-    localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
+    const storedResult = JSON.stringify({ result: savedResult, questions });
+    localStorage.setItem(`studysphere_result_${savedAttemptId}`, storedResult);
+    localStorage.setItem(`studysphere_result_${result.attemptId}`, storedResult);
 
-    window.location.href = `result.html?attempt=${encodeURIComponent(data.attempt_id || result.attemptId)}`;
+    window.location.href = `result.html?attempt=${encodeURIComponent(savedAttemptId)}`;
   } catch (error) {
     console.error(error);
     saveLocalResult();
