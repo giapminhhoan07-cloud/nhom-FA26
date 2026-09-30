@@ -28,6 +28,48 @@ const setMessage = (element, text, success = false) => {
   element.classList.toggle("success", success);
 };
 
+function readLocalData(key, fallback) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+    return value ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
+function renderDashboard() {
+  const history = readLocalData("studysphere_history", []);
+  const feedback = readLocalData("studysphere_feedback", []);
+  const attempts = Array.isArray(history) ? history : [];
+  const reviews = Array.isArray(feedback) ? feedback : [];
+  const scores = attempts.map((attempt) => Number(attempt.score)).filter(Number.isFinite);
+  const averageScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1) : "0.0";
+  const averageRating = reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
+  const stats = [
+    { label: "Đề thi", value: exams.length },
+    { label: "Lượt làm bài", value: attempts.length },
+    { label: "Điểm trung bình", value: `${averageScore}/10` },
+    { label: "Đánh giá trung bình", value: `${averageRating}/5` },
+  ];
+  document.querySelector("#admin-stat-grid").innerHTML = stats.map(({ label, value }) => `<article class="admin-stat"><span>${label}</span><strong>${value}</strong></article>`).join("");
+
+  const feedbackList = document.querySelector("#admin-feedback-list");
+  const feedbackCount = document.querySelector("#admin-feedback-count");
+  feedbackCount.textContent = `${reviews.length} đánh giá`;
+  const recentReviews = [...reviews].sort((first, second) => new Date(second.submittedAt) - new Date(first.submittedAt)).slice(0, 12);
+  feedbackList.innerHTML = recentReviews.length ? recentReviews.map((item) => {
+    const rating = Math.max(0, Math.min(5, Number(item.rating) || 0));
+    const date = item.submittedAt ? new Date(item.submittedAt).toLocaleDateString("vi-VN") : "";
+    return `<article class="admin-feedback-item"><div class="admin-feedback-heading"><strong>${escapeHtml(item.examTitle || "Bài kiểm tra")}</strong><span class="admin-feedback-stars" aria-label="${rating} trên 5 sao">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</span></div><p>${escapeHtml(item.comment || "Chỉ gửi đánh giá sao.")}</p><span class="admin-feedback-meta">${escapeHtml(item.userName || "Người học")} · ${escapeHtml(date)}</span></article>`;
+  }).join("") : '<p class="admin-feedback-empty">Chưa có đánh giá nào. Phản hồi sẽ xuất hiện tại đây sau khi người học hoàn thành bài kiểm tra.</p>';
+}
+
 function getFormPayload() {
   const data = new FormData(form);
   const file = fileInput.files[0];
@@ -135,6 +177,7 @@ downloadExportButton.addEventListener("click", () => {
 });
 
 renderList(exams);
+renderDashboard();
 resetForm();
 document.querySelector("#exam-year").value = new Date().getFullYear();
 })();
