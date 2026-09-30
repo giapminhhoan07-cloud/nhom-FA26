@@ -13,23 +13,23 @@ function renderPracticeTestDetail() {
 	const test = practiceTests.find((item) => item.id === testId)
 		 || upcomingTests.find((item) => item.id === testId);
 	const requestedReturn = params.get("return") || "";
-	const returnHref = /^tests\.html(?:\?.*)?$/.test(requestedReturn) ? requestedReturn : "tests.html";
+	 const returnHref = /^\.\.\/tests\/index\.html(?:\?.*)?$/.test(requestedReturn) ? requestedReturn : "../tests/index.html";
 	backLink.href = returnHref;
 
 	if (!test) {
-		detail.innerHTML = '<h1>Không tìm thấy đề kiểm tra</h1><p class="detail-description">Đề có thể đã bị gỡ khỏi kho.</p><a class="button button-primary" href="tests.html">Trở về</a>';
+		detail.innerHTML = '<h1>Không tìm thấy đề kiểm tra</h1><p class="detail-description">Đề có thể đã bị gỡ khỏi kho.</p><a class="button button-primary" href="../tests/index.html">Trở về</a>';
 		return;
 	}
 
 	document.title = `${test.title} | StudySphere`;
 	backLink.hidden = true;
-	       const hasQuestions = Array.isArray(test.questions) && test.questions.length > 0;
-	       const questionCount = hasQuestions
-		       ? test.questions.length
-		       : test.questionCount == null ? "Đang cập nhật" : `${test.questionCount} (dự kiến)`;
-	       const actionMarkup = hasQuestions
-		       ? `<a class="button button-primary" href="quiz.html?test=${encodeURIComponent(test.id)}">Bắt đầu làm bài <span aria-hidden="true">→</span></a>`
-		       : '<span class="test-status">Đề đang được cập nhật</span>';
+	const hasQuestions = Array.isArray(test.questions) && test.questions.length > 0;
+	const questionCount = hasQuestions
+		? test.questions.length
+		: test.questionCount == null ? "Đang cập nhật" : `${test.questionCount} (dự kiến)`;
+	const actionMarkup = hasQuestions
+		? `<a class="button button-primary" href="../tests/quiz.html?test=${encodeURIComponent(test.id)}">Bắt đầu làm bài <span aria-hidden="true">→</span></a>`
+		: '<span class="test-status">Đề đang được cập nhật</span>';
 	detail.innerHTML = `
 		<div class="detail-top">
 			<span class="exam-subject">${test.subjectName}</span>
@@ -42,10 +42,10 @@ function renderPracticeTestDetail() {
 			<div><strong>${test.examTypeName}</strong><span>Loại đề</span></div>
 			<div><strong>${test.difficultyName}</strong><span>Mức độ</span></div>
 			<div><strong>${test.durationMinutes}</strong><span>Phút làm bài</span></div>
-			       <div><strong>${questionCount}</strong><span>Số câu</span></div>
+				<div><strong>${questionCount}</strong><span>Số câu</span></div>
 		</div>
 		<div class="detail-actions">
-			       ${actionMarkup}
+				${actionMarkup}
 			<a class="button button-quiet" href="${returnHref}">Trở về</a>
 		</div>
 	`;

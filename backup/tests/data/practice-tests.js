@@ -1,4 +1,4 @@
-import { toan12Questions } from "./questions.js";
+import { toan12Questions } from "../../data/questions.js";
 
 export const practiceTests = [
   {

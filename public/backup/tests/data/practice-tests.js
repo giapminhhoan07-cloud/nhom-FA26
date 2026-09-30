@@ -1,14 +1,14 @@
-import { toan12Questions } from "./questions.js";
-import { economicsLawUpcomingTests } from "./practice-tests-economics-law.js";
-import { englishUpcomingTests } from "./practice-tests-english.js";
-import { biologyUpcomingTests } from "./practice-tests-biology.js";
-import { chemistryUpcomingTests } from "./practice-tests-chemistry.js";
-import { geographyUpcomingTests } from "./practice-tests-geography.js";
-import { historyUpcomingTests } from "./practice-tests-history.js";
-import { informaticsUpcomingTests } from "./practice-tests-informatics.js";
-import { literatureUpcomingTests } from "./practice-tests-literature.js";
-import { mathUpcomingTests } from "./practice-tests-math.js";
-import { physicsUpcomingTests } from "./practice-tests-physics.js";
+import { toan12Questions } from "../../data/questions.js";
+import { economicsLawUpcomingTests } from "../../data/practice-tests-economics-law.js";
+import { englishUpcomingTests } from "../../data/practice-tests-english.js";
+import { biologyUpcomingTests } from "../../data/practice-tests-biology.js";
+import { chemistryUpcomingTests } from "../../data/practice-tests-chemistry.js";
+import { geographyUpcomingTests } from "../../data/practice-tests-geography.js";
+import { historyUpcomingTests } from "../../data/practice-tests-history.js";
+import { informaticsUpcomingTests } from "../../data/practice-tests-informatics.js";
+import { literatureUpcomingTests } from "../../data/practice-tests-literature.js";
+import { mathUpcomingTests } from "../../data/practice-tests-math.js";
+import { physicsUpcomingTests } from "../../data/practice-tests-physics.js";
 
 export const testGrades = [10, 11, 12];
 
@@ -46,7 +46,6 @@ export const testDifficulties = [
   { id: "upper", name: "Khá" },
   { id: "advanced", name: "Nâng cao" },
 ];
-
 export const practiceTests = [
   {
     id: "toan-12-trac-nghiem-20-cau",

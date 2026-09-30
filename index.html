@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      let signedIn = false;
+      try { signedIn = Boolean(JSON.parse(localStorage.getItem("studysphere_current_user") || "null")); } catch {}
+      location.replace(signedIn ? "/backup/index.html" : "/backup/pages/auth.html?return=home");
+    </script>
     <link rel="stylesheet" href="/backup/css/base.css" />
     <link rel="stylesheet" href="/backup/css/layout.css" />
     <link rel="stylesheet" href="/backup/css/components.css" />
@@ -10,6 +15,5 @@
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

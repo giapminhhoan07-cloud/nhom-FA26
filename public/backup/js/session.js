@@ -9,6 +9,11 @@ const currentUser = (() => {
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
 
+if (!currentUser) {
+  const returnTarget = window.location.pathname.endsWith("/admin.html") ? "admin" : "home";
+  window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
+}
+
 function renderAccount() {
   const header = document.querySelector(".header-inner");
   if (!header) return;
@@ -100,48 +105,4 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
-function setupMobileNavigation() {
-  const header = document.querySelector(".header-inner");
-  const nav = header?.querySelector(".main-nav");
-  if (!header || !nav) return;
-
-  const testsLink = [...nav.querySelectorAll("a")].find((link) => link.getAttribute("href")?.endsWith("tests.html"));
-  nav.querySelectorAll('a[href$="exams.html"]').forEach((link) => {
-    if (testsLink) {
-      if (link.classList.contains("active")) testsLink.classList.add("active");
-      link.remove();
-      return;
-    }
-
-    link.href = getPagePath("tests.html");
-    link.textContent = "Bài kiểm tra";
-  });
-
-  if (!nav.id) nav.id = "main-nav";
-
-  let toggle = header.querySelector(".menu-toggle");
-  if (!toggle) {
-    toggle = document.createElement("button");
-    toggle.className = "menu-toggle";
-    toggle.type = "button";
-    toggle.setAttribute("aria-label", "Mở menu");
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.setAttribute("aria-controls", nav.id);
-    toggle.innerHTML = "<span></span><span></span><span></span>";
-    header.insertBefore(toggle, nav);
-
-    toggle.addEventListener("click", () => {
-      const isOpen = nav.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", String(isOpen));
-    });
-  }
-
-  nav.addEventListener("click", (event) => {
-    if (!event.target.closest("a")) return;
-    nav.classList.remove("open");
-    toggle.setAttribute("aria-expanded", "false");
-  });
-}
-
-setupMobileNavigation();
-renderAccount();
+if (currentUser) renderAccount();

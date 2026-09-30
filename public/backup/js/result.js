@@ -60,9 +60,9 @@ if (!stored) {
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
 const retryHref = result.quizKind === "practice-test"
-  ? `quiz.html?test=${encodeURIComponent(result.examId)}`
+  ? `../tests/quiz.html?test=${encodeURIComponent(result.examId)}`
   : `quiz.html?id=${encodeURIComponent(result.examId)}`;
-const libraryHref = "tests.html";
+const libraryHref = result.quizKind === "practice-test" ? "../tests/" : "exams.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {

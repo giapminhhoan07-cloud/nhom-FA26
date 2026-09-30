@@ -72,7 +72,7 @@ function getReturnUrl() {
   for (const [key, value] of Object.entries(state)) {
     if (value !== "all" && value !== "") returnParams.set(key, value);
   }
-  return `tests.html${returnParams.size ? `?${returnParams}` : ""}`;
+  return `../tests/index.html${returnParams.size ? `?${returnParams}` : ""}`;
 }
 
 function getFilteredTests() {
@@ -115,7 +115,7 @@ function renderCard(test) {
 
   if (test.status === "available" && Array.isArray(test.questions) && test.questions.length > 0) {
     const isSaved = favoriteIds.includes(test.id);
-    const detailHref = `exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
+    const detailHref = `../pages/exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
     return `
       <article class="practice-test-card">
         ${subject}
@@ -133,7 +133,7 @@ function renderCard(test) {
     `;
   }
 
-  const detailHref = `exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
+  const detailHref = `../pages/exam-detail.html?test=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
   return `
     <article class="practice-test-card is-upcoming">
       ${subject}
