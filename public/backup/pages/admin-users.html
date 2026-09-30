@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Quản lý tài khoản StudySphere.">
+  <title>Quản lý người dùng | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script type="module" src="../js/admin-users.js"></script>
+  <script defer src="../js/session.js"></script>
+</head>
+<body class="admin-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
+      <nav class="main-nav" aria-label="Điều hướng quản trị">
+        <a href="admin.html">Quản lý đề thi</a>
+        <a class="active" href="admin-users.html">Quản lý người dùng</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="admin-hero"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Khu vực quản trị</p><h1>Quản lý <em>người dùng.</em></h1><p>Xem tài khoản và trạng thái truy cập trong bộ dữ liệu cục bộ.</p></div></section>
+    <section class="admin-section"><div class="container">
+      <div class="admin-users-panel">
+        <div class="admin-panel-heading"><div><span class="admin-kicker">Tài khoản</span><h2>Danh sách người dùng</h2></div><span class="admin-user-count" id="admin-user-count" aria-live="polite">0 người dùng</span></div>
+        <p class="admin-message" id="admin-users-message" aria-live="polite"></p>
+        <label class="admin-users-search">Tìm người dùng<input id="admin-users-search" type="search" placeholder="Tên hoặc email"></label>
+        <div class="admin-users-table-wrap">
+          <table class="admin-users-table">
+            <thead><tr><th>STT</th><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead>
+            <tbody id="admin-users-list"></tbody>
+          </table>
+        </div>
+        <div class="admin-empty" id="admin-users-empty" hidden>Không tìm thấy người dùng phù hợp.</div>
+        <p class="admin-users-note">Ngày đăng ký không có trong dữ liệu cũ sẽ hiển thị “Chưa có dữ liệu”. Số bài làm hiện chưa gắn với từng tài khoản trong localStorage.</p>
+      </div>
+    </div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Khu vực quản trị nội dung học tập.</p></div></div></footer>
+</body>
+</html>
