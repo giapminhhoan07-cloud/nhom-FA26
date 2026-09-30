@@ -16,6 +16,22 @@ export const exams = [
     featured: true
   },
   {
+    id: "toan-12-khao-sat-giua-hki-2026-2027-tran-phu-ha-noi",
+    title: "Đề khảo sát giữa học kỳ I Toán 12 - THPT Trần Phú Hà Nội",
+    subjectId: "toan",
+    subjectName: "Toán",
+    year: 2026,
+    type: "khao-sat",
+    typeName: "Đề khảo sát",
+    difficulty: "medium",
+    difficultyName: "Trung bình",
+    durationMinutes: null,
+    questionCount: null,
+    description: "Đề giữa học kỳ I năm học 2026–2027.",
+    documentUrl: "../documents/de-khao-sat-giua-hoc-ki-1-toan-12-nam-2026-2027-thpt-tran-phu-ha-noi.pdf",
+    featured: false
+  },
+  {
     id: "ngu-van-2024-thu",
     title: "Đề thi thử Ngữ văn - Sở GD&ĐT 2024",
     subjectId: "ngu-van",

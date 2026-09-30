@@ -1,5 +1,5 @@
 import { exams } from "../data/exams.js";
-import { practiceTests } from "../data/practice-tests.js";
+import { practiceTests } from "../tests/data/practice-tests.js";
 
 const ids = (() => {
 	try {
@@ -12,7 +12,7 @@ const list = document.querySelector("#favorite-list");
 const emptyState = document.querySelector("#favorite-empty");
 const emptyLink = emptyState.querySelector("a");
 emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong kho đề kiểm tra để lưu lại.";
-emptyLink.href = "tests.html";
+emptyLink.href = "../tests/index.html";
 emptyLink.textContent = "Đến kho đề kiểm tra";
 
 const savedExams = exams.filter((exam) => ids.includes(exam.id));
@@ -36,6 +36,8 @@ if (!saved.length) {
 			? `quiz.html?id=${encodeURIComponent(exam.id)}`
 			: `exam-detail.html?id=${encodeURIComponent(exam.id)}`;
 		const linkLabel = exam.questions?.length ? `Bắt đầu làm bài: ${exam.title}` : `Xem ${exam.title}`;
-		return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>◷ ${exam.durationMinutes} phút</span><span>▤ ${exam.questionCount} câu</span></div><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
+		const duration = Number(exam.durationMinutes) > 0 ? `◷ ${exam.durationMinutes} phút` : "◷ Xem trong PDF";
+		const questionCount = Number(exam.questionCount) > 0 ? `▤ ${exam.questionCount} câu` : "▤ PDF đề thi";
+		return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>${duration}</span><span>${questionCount}</span></div><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
 	}).join("");
 }

@@ -32,3 +32,19 @@
 	.admin-users-table td:last-child { border-bottom: 0; }
 	.admin-users-table td::before { color: var(--ink-soft); content: attr(data-label); font-size: 0.68rem; font-weight: 700; }
 }
+
+.admin-export-panel { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.admin-export-panel[hidden] { display: none; }
+.admin-export-note { color: var(--ink-soft); font-size: 0.78rem; line-height: 1.6; }
+.admin-export-panel textarea { display: block; width: 100%; min-height: 220px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #f7fafc; font: 0.72rem/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+.admin-export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.admin-export-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-exam-source { flex: 0 0 auto; color: var(--teal-dark); font-size: 0.68rem; font-weight: 700; }
+
+.admin-export-panel { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.admin-export-panel[hidden] { display: none; }
+.admin-export-note { color: var(--ink-soft); font-size: 0.78rem; line-height: 1.6; }
+.admin-export-panel textarea { display: block; width: 100%; min-height: 220px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #f7fafc; font: 0.72rem/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+.admin-export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.admin-export-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-exam-source { flex: 0 0 auto; color: var(--teal-dark); font-size: 0.68rem; font-weight: 700; }
