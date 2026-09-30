@@ -13,6 +13,11 @@
 .auth-subtitle { margin-bottom: 26px; color: var(--ink-soft); font-size: 0.78rem; }
 .form-field { display: block; margin-bottom: 17px; color: var(--ink); font-size: 0.72rem; font-weight: 700; }
 .form-field input { display: block; width: 100%; height: 46px; margin-top: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 5px; outline: 0; color: var(--ink); background: white; font-size: 0.8rem; }
+.password-control { position: relative; display: block; }
+.password-control input { padding-right: 54px; }
+.password-toggle { position: absolute; top: 7px; right: 4px; display: grid; width: 40px; height: 46px; place-items: center; border: 0; border-radius: 5px; color: var(--ink-soft); background: transparent; cursor: pointer; font: inherit; font-size: 1rem; }
+.password-toggle:hover { color: var(--teal-dark); background: #f2f7fc; }
+.form-field-error { margin: -9px 0 14px; color: #bd5845; font-size: 0.7rem; }
 .form-field input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(22, 159, 154, 0.12); }
 .auth-submit { width: 100%; margin-top: 5px; }
 .form-message { min-height: 20px; margin: 12px 0 0; color: #bd5845; font-size: 0.72rem; }
