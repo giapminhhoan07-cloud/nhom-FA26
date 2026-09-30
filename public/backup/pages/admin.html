@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Quản trị đề thi StudySphere.">
-  <title>Quản trị đề thi | StudySphere</title>
+  <meta name="description" content="Tổng quan hoạt động và quản trị nội dung học tập StudySphere.">
+  <title>Tổng quan quản trị | StudySphere</title>
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
@@ -15,14 +15,14 @@
 <body class="admin-page">
   <header class="site-header"><div class="container header-inner"><a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><nav class="main-nav" aria-label="Điều hướng chính"><a href="../index.html">Trang chủ</a><a class="active" href="admin.html">Quản trị</a><a href="exams.html">Kho đề thi</a></nav></div></header>
   <main>
-    <section class="admin-hero"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Khu vực quản trị</p><h1>Quản lý <em>đề thi.</em></h1><p>Tạo bản cập nhật kho đề để đưa PDF và dữ liệu vào GitHub.</p></div></section>
-    <section class="admin-section"><div class="container">
+    <section class="admin-hero"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Khu vực quản trị</p><h1>Tổng quan <em>quản trị.</em></h1><p>Theo dõi hoạt động học tập, đánh giá và quản lý nội dung đề thi.</p><a class="button button-primary admin-manage-link" href="#exam-management">Quản lý đề thi <span aria-hidden="true">↓</span></a></div></section>
+    <section class="admin-section" id="overview"><div class="container">
       <section class="admin-dashboard" aria-labelledby="dashboard-title">
         <div class="admin-panel-heading"><div><span class="admin-kicker">Tổng quan hoạt động</span><h2 id="dashboard-title">Bảng điều khiển</h2></div><p class="admin-dashboard-note">Số liệu trên trình duyệt này</p></div>
         <div class="admin-stat-grid" id="admin-stat-grid" aria-live="polite"></div>
         <section class="admin-feedback-panel" aria-labelledby="feedback-title"><div class="admin-panel-heading"><div><span class="admin-kicker">Ý kiến người học</span><h2 id="feedback-title">Đánh giá và bình luận</h2></div><span class="admin-feedback-count" id="admin-feedback-count"></span></div><div class="admin-feedback-list" id="admin-feedback-list"></div></section>
       </section>
-      <div class="admin-layout">
+      <div class="admin-layout" id="exam-management">
       <div class="admin-list-panel"><div class="admin-panel-heading"><div><span class="admin-kicker">Thư viện nội bộ</span><h2>Danh sách đề thi</h2></div><button class="button button-primary" id="new-exam-button" type="button">+ Tạo đề mới</button></div><p class="admin-message" id="list-message" aria-live="polite"></p><div class="admin-exam-list" id="admin-exam-list"></div></div>
       <section class="admin-form-panel" aria-labelledby="form-title"><div class="admin-panel-heading"><div><span class="admin-kicker">Biểu mẫu đề thi</span><h2 id="form-title">Upload đề mới</h2></div><button class="admin-reset" id="reset-form" type="button">Làm mới</button></div><p class="admin-message" id="form-message" aria-live="polite"></p><form id="exam-form" novalidate>
         <input id="exam-action" type="hidden" value="create">
