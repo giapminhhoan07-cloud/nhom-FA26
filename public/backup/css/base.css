@@ -38,6 +38,17 @@ h3, h4 { font-weight: 600; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 640px) { .container { width: min(100% - 32px, 1160px); } h1 { font-size: clamp(28px, 8vw, 36px); } h2 { font-size: clamp(20px, 6vw, 24px); } }
 
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+::view-transition-old(root) { animation: page-out 90ms ease-out both; }
+::view-transition-new(root) { animation: page-in 150ms ease-out both; }
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
 body .page-intro h1,
 body .history-hero h1,
 body .admin-hero h1,
