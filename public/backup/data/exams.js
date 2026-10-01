@@ -137,5 +137,21 @@ export const exams = [
     "description": "",
     "documentUrl": "../documents/toan-giua-ki-1.pdf",
     "featured": true
+  },
+  {
+    "id": "toan-doi-tuyen",
+    "title": "Đề chọn đội tuyển thi HSG QG môn Toán THPT năm 2026 – 2027 sở GD&ĐT TP HCM",
+    "subjectId": "toan",
+    "subjectName": "Toán",
+    "year": 2026,
+    "type": "minh-hoa",
+    "typeName": "Đề minh họa",
+    "difficulty": "hard",
+    "difficultyName": "Khá khó",
+    "durationMinutes": 60,
+    "questionCount": 0,
+    "description": "",
+    "documentUrl": "../documents/toan-doi-tuyen.pdf",
+    "featured": true
   }
 ];
