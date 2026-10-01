@@ -121,5 +121,21 @@ export const exams = [
     "description": "",
     "documentUrl": "../documents/toan-khao-sat.pdf",
     "featured": true
+  },
+  {
+    "id": "toan-giua-ki-1",
+    "title": "Ôn tập giữa học kì 1 Toán 10 năm 2026 – 2027 trường THPT Trần Phú – Hà Nội",
+    "subjectId": "toan",
+    "subjectName": "Toán",
+    "year": 2026,
+    "type": "minh-hoa",
+    "typeName": "Đề minh họa",
+    "difficulty": "medium",
+    "difficultyName": "Trung bình",
+    "durationMinutes": 60,
+    "questionCount": 0,
+    "description": "",
+    "documentUrl": "../documents/toan-giua-ki-1.pdf",
+    "featured": true
   }
 ];
