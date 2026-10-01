@@ -5,12 +5,13 @@ const currentUser = (() => {
     return null;
   }
 })();
+const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
 
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
 
 if (!currentUser) {
-  const returnTarget = window.location.pathname.endsWith("/admin.html") ? "admin" : "home";
+  const returnTarget = window.location.pathname.endsWith("/admin.html") || window.location.pathname.endsWith("/admin-dashboard.html") ? "admin" : "home";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
 
@@ -19,6 +20,22 @@ function renderAccount() {
   if (!header) return;
 
   header.querySelector(".header-action")?.remove();
+
+  const currentPath = window.location.pathname;
+  const mainNav = header.querySelector(".main-nav");
+  const menuToggle = header.querySelector(".menu-toggle");
+  const isUserLibraryPage = currentPath.endsWith("/history.html") || currentPath.endsWith("/favorites.html") || currentPath.endsWith("/profile.html");
+  if (!isAdmin && isUserLibraryPage && mainNav && menuToggle) {
+    menuToggle.addEventListener("click", () => {
+      const isOpen = mainNav.classList.toggle("open");
+      menuToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+    mainNav.addEventListener("click", (event) => {
+      if (!event.target.closest("a")) return;
+      mainNav.classList.remove("open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    });
+  }
 
   if (!currentUser) {
     const loginLink = document.createElement("a");
@@ -29,24 +46,26 @@ function renderAccount() {
     return;
   }
 
-  if (currentUser.role === "admin") {
+  if (isAdmin) {
     const mainNav = header.querySelector(".main-nav");
     if (mainNav) {
       mainNav.innerHTML = `
-        <a href="${getPagePath("admin.html")}">Quản lý đề thi</a>
-        <a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
+        <a href="${getPagePath("admin-dashboard.html")}"${window.location.pathname.endsWith("/admin-dashboard.html") ? ' class="active" aria-current="page"' : ""}>Tổng quan</a>
+        <a href="${getPagePath("admin.html")}"${window.location.pathname.endsWith("/admin.html") ? ' class="active" aria-current="page"' : ""}>Quản lý đề thi</a>
+        <a href="${getPagePath("admin-users.html")}"${window.location.pathname.endsWith("/admin-users.html") ? ' class="active" aria-current="page"' : ""}>Quản lý người dùng</a>
       `;
-    }
-  }
-
-  if (currentUser.role === "admin") {
-    const mainNav = header.querySelector(".main-nav");
-    if (mainNav && !mainNav.querySelector('a[href$="admin.html"]')) {
-      const adminLink = document.createElement("a");
-      adminLink.href = getPagePath("admin.html");
-      adminLink.textContent = "Quản trị đề thi";
-      adminLink.dataset.adminNav = "true";
-      mainNav.append(adminLink);
+      const menuToggle = header.querySelector(".menu-toggle");
+      if (menuToggle) {
+        menuToggle.addEventListener("click", () => {
+          const isOpen = mainNav.classList.toggle("open");
+          menuToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+        mainNav.addEventListener("click", (event) => {
+          if (!event.target.closest("a")) return;
+          mainNav.classList.remove("open");
+          menuToggle.setAttribute("aria-expanded", "false");
+        });
+      }
     }
   }
 
@@ -63,9 +82,9 @@ function renderAccount() {
       <span class="account-email"></span>
       <span class="account-role"></span>
       <div class="account-links">
-        ${currentUser.role === "admin"
-          ? `<a href="${getPagePath("admin.html")}">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
-          : `<a href="${getPagePath("profile.html")}">Trang cá nhân</a><a href="${getPagePath("history.html")}">Lịch sử làm bài</a><a href="${getPagePath("favorites.html")}">Đề đã lưu</a>`}
+        ${isAdmin
+          ? `<a href="${getPagePath("admin-dashboard.html")}">Tổng quan</a><a href="${getPagePath("admin.html")}">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
+          : `<a href="${getPagePath("profile.html")}">Trang cá nhân</a>`}
       </div>
       <button class="account-logout" type="button">Đăng xuất</button>
     </div>
@@ -74,7 +93,7 @@ function renderAccount() {
   account.querySelector(".account-name").textContent = currentUser.name || "Tài khoản";
   account.querySelector(".account-full-name").textContent = currentUser.name || "Tài khoản";
   account.querySelector(".account-email").textContent = currentUser.email || "";
-  account.querySelector(".account-role").textContent = currentUser.role === "admin" ? "Quản trị viên" : "Người dùng";
+  account.querySelector(".account-role").textContent = isAdmin ? "Quản trị viên" : "Người dùng";
   header.append(account);
 
   const trigger = account.querySelector(".account-trigger");

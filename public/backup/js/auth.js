@@ -166,7 +166,7 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
-  const returnPaths = { admin: "admin.html", "admin-users": "admin-users.html", home: "../index.html" };
+  const returnPaths = { admin: "admin-dashboard.html", "admin-users": "admin-users.html", home: "../index.html" };
   window.location.href = returnPaths[returnTarget] || "../index.html";
   } catch (error) {
     setMessage("login-message", error.message);
