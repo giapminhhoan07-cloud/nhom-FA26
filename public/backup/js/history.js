@@ -56,26 +56,14 @@ function renderHistory(items) {
 }
 
 async function loadHistory() {
-	const currentUser = getCurrentUser();
-	const fallback = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-
-	if (!currentUser?.id) {
-		renderHistory(fallback);
-		return;
-	}
-
+	let history = [];
 	try {
-		const response = await fetch("../api/attempts.php", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ action: "get_attempts", user_id: currentUser.id }),
-		});
-		const data = await response.json();
-		const attempts = Array.isArray(data.attempts) ? data.attempts : fallback;
-		renderHistory(attempts);
+		const stored = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
+		history = Array.isArray(stored) ? stored : [];
 	} catch {
-		renderHistory(fallback);
+		localStorage.removeItem("studysphere_history");
 	}
+	renderHistory(history);
 }
 
 search.addEventListener("input", () => loadHistory());

@@ -53,10 +53,25 @@ function renderAccount() {
     const mainNav = header.querySelector(".main-nav");
     if (mainNav) {
       mainNav.innerHTML = `
-        <a href="${getPagePath("admin-dashboard.html")}"${window.location.pathname.endsWith("/admin-dashboard.html") ? ' class="active" aria-current="page"' : ""}>Tổng quan</a>
-        <a href="${getPagePath("admin.html")}"${window.location.pathname.endsWith("/admin.html") ? ' class="active" aria-current="page"' : ""}>Quản lý đề thi</a>
-        <a href="${getPagePath("admin-users.html")}"${window.location.pathname.endsWith("/admin-users.html") ? ' class="active" aria-current="page"' : ""}>Quản lý người dùng</a>
+        <a data-admin-section="overview" href="${getPagePath("admin.html")}#overview">Tổng quan</a>
+        <a data-admin-section="exam-management" href="${getPagePath("admin.html")}#exam-management">Quản lý đề thi</a>
+        <a data-admin-section="users" href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
       `;
+      const updateAdminNav = () => {
+        const activeSection = currentPath.endsWith("/admin-users.html")
+          ? "users"
+          : currentPath.endsWith("/admin.html") && window.location.hash === "#exam-management"
+            ? "exam-management"
+            : "overview";
+        mainNav.querySelectorAll("[data-admin-section]").forEach((link) => {
+          const isActive = link.dataset.adminSection === activeSection;
+          link.classList.toggle("active", isActive);
+          if (isActive) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      updateAdminNav();
+      window.addEventListener("hashchange", updateAdminNav);
     }
   }
 
@@ -74,7 +89,7 @@ function renderAccount() {
       <span class="account-role"></span>
       <div class="account-links">
         ${isAdmin
-          ? `<a href="${getPagePath("admin-dashboard.html")}">Tổng quan</a><a href="${getPagePath("admin.html")}">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
+          ? `<a href="${getPagePath("admin.html")}#overview">Tổng quan</a><a href="${getPagePath("admin.html")}#exam-management">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
           : `<a href="${getPagePath("profile.html")}">Trang cá nhân</a>`}
       </div>
       <button class="account-logout" type="button">Đăng xuất</button>

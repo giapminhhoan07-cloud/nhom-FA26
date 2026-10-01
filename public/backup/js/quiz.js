@@ -6,12 +6,8 @@ const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
 const testId = params.get("test");
 const standaloneTest = practiceTests.find((test) => test.id === testId);
-const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
-let exam = standaloneTest || [...exams, ...localExams].find((item) => item.id === examId) || exams[0];
+let exam = standaloneTest || exams.find((item) => item.id === examId) || exams[0];
 let questions = exam.questions || bundledQuestions;
-if (!standaloneTest) {
-  try { const response = await fetch(`../api/exams.php?id=${encodeURIComponent(examId || exam.id)}`); const result = await response.json(); if (response.ok && result.success) { exam = result.exam; questions = result.exam.questions; } } catch { /* Use bundled fallback when PHP is unavailable. */ }
-}
 questions = questions.map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
 let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
@@ -83,14 +79,6 @@ async function submitQuiz() {
   submitted = true;
   clearProgress();
 
-  const currentUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-    } catch {
-      return null;
-    }
-  })();
-
   const isCorrect = (answer, question) => question.type === "short_answer"
     ? String(answer || "").trim().toLowerCase() === String(question.answer || "").trim().toLowerCase()
     : answer === question.correctAnswer;
@@ -109,22 +97,6 @@ async function submitQuiz() {
     answers,
   };
 
-  const payload = {
-    action: "save_attempt",
-    user_id: currentUser?.id ?? 0,
-    exam_id: exam.id,
-    score: result.score,
-    total_questions: result.totalQuestions,
-    correct_count: result.correctCount,
-    wrong_count: result.wrongCount,
-    unanswered_count: result.unansweredCount,
-    answers: questions.map((question, index) => ({
-      question_id: question.id,
-      selected_answer: answers[index],
-      is_correct: isCorrect(answers[index], question) ? 1 : 0,
-    })),
-  };
-
   const saveLocalResult = () => {
     const history = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
     history.unshift(result);
@@ -134,36 +106,7 @@ async function submitQuiz() {
     window.location.href = `${resultPage}?attempt=${encodeURIComponent(result.attemptId)}`;
   };
 
-  if (standaloneTest) {
-    saveLocalResult();
-    return;
-  }
-
-  try {
-    const response = await fetch("../api/attempts.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Không thể lưu bài làm.");
-    }
-
-    const savedAttemptId = String(data.attempt_id || result.attemptId);
-    const savedResult = { ...result, attemptId: savedAttemptId };
-    const localHistory = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-    localHistory.unshift(savedResult);
-    localStorage.setItem("studysphere_history", JSON.stringify(localHistory));
-    const storedResult = JSON.stringify({ result: savedResult, questions });
-    localStorage.setItem(`studysphere_result_${savedAttemptId}`, storedResult);
-    localStorage.setItem(`studysphere_result_${result.attemptId}`, storedResult);
-
-    window.location.href = `result.html?attempt=${encodeURIComponent(savedAttemptId)}`;
-  } catch (error) {
-    console.error(error);
-    saveLocalResult();
-  }
+  saveLocalResult();
 }
 function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) { submitQuiz(); return; } remainingSeconds -= 1; saveProgress(); }
 

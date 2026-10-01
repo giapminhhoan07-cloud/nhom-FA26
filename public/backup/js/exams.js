@@ -1,7 +1,6 @@
 import { exams } from "../data/exams.js";
 
-const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
-let availableExams = [...exams, ...localExams];
+let availableExams = [...exams];
 
 const searchInput = document.querySelector("#search-input");
 const filterIds = ["subject-filter", "year-filter", "type-filter", "difficulty-filter"];
@@ -14,6 +13,17 @@ const filterToggle = document.querySelector(".filter-toggle");
 
 const params = new URLSearchParams(window.location.search);
 if (params.get("subject")) document.querySelector("#subject-filter").value = params.get("subject");
+
+const yearFilter = document.querySelector("#year-filter");
+const typeFilter = document.querySelector("#type-filter");
+for (const exam of exams) {
+  if (![...yearFilter.options].some((option) => option.value === String(exam.year))) {
+    yearFilter.add(new Option(exam.year, exam.year));
+  }
+  if (![...typeFilter.options].some((option) => option.value === exam.type)) {
+    typeFilter.add(new Option(exam.typeName, exam.type));
+  }
+}
 
 const getFavorites = () => {
   try { return JSON.parse(localStorage.getItem("studysphere_favorites") || "[]"); } catch { return []; }
@@ -39,7 +49,9 @@ function renderCard(exam) {
     ? `quiz.html?id=${encodeURIComponent(exam.id)}`
     : `exam-detail.html?id=${encodeURIComponent(exam.id)}`;
   const linkLabel = exam.questions?.length ? `Bắt đầu làm bài: ${exam.title}` : `Xem ${exam.title}`;
-  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>◷ ${exam.durationMinutes} phút</span><span>▤ ${exam.questionCount} câu</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
+  const duration = Number(exam.durationMinutes) > 0 ? `◷ ${exam.durationMinutes} phút` : "◷ Xem trong PDF";
+  const questionCount = Number(exam.questionCount) > 0 ? `▤ ${exam.questionCount} câu` : "▤ PDF đề thi";
+  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>${duration}</span><span>${questionCount}</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
 }
 
 function renderFilters() {
@@ -74,15 +86,4 @@ filterToggle.addEventListener("click", () => { const isOpen = filterPanel.classL
 activeFilters.addEventListener("click", (event) => { const button = event.target.closest("[data-clear-filter]"); if (!button) return; document.querySelector(`#${button.dataset.clearFilter}`).value = "all"; render(); });
 examList.addEventListener("click", (event) => { const button = event.target.closest("[data-favorite]"); if (!button) return; const favorites = getFavorites(); const index = favorites.indexOf(button.dataset.favorite); index >= 0 ? favorites.splice(index, 1) : favorites.push(button.dataset.favorite); setFavorites(favorites); render(); });
 
-async function loadExams() {
-  try {
-    const response = await fetch("../api/exams.php");
-    const result = await response.json();
-    if (response.ok && result.success && result.exams.length) availableExams = [...result.exams, ...localExams];
-  } catch {
-    availableExams = exams;
-  }
-  render();
-}
-
-loadExams();
+render();
