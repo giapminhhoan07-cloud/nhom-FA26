@@ -1,6 +1,8 @@
 import { exams } from "../data/exams.js";
 
 (() => {
+let examCatalog = [...exams];
+let pendingUpload = null;
 const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
 })();
@@ -22,6 +24,9 @@ const exportNote = document.querySelector("#export-note");
 const exportSource = document.querySelector("#export-source");
 const copyExportButton = document.querySelector("#copy-export");
 const downloadExportButton = document.querySelector("#download-export");
+const saveToFolderButton = document.querySelector("#save-to-folder");
+
+if (!window.showDirectoryPicker) saveToFolderButton.hidden = true;
 
 const setMessage = (element, text, success = false) => {
   element.textContent = text;
@@ -52,7 +57,7 @@ function renderDashboard() {
   const averageScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1) : "0.0";
   const averageRating = reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
   const stats = [
-    { label: "Đề thi", value: exams.length },
+    { label: "Đề thi", value: examCatalog.length },
     { label: "Lượt làm bài", value: attempts.length },
     { label: "Điểm trung bình", value: `${averageScore}/10` },
     { label: "Đánh giá trung bình", value: `${averageRating}/5` },
@@ -77,7 +82,7 @@ function getFormPayload() {
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) throw new Error("File đã chọn không phải PDF.");
 
   const id = data.get("id").trim();
-  if (exams.some((exam) => exam.id === id)) throw new Error("Mã đề đã tồn tại trong kho đề.");
+  if (examCatalog.some((exam) => exam.id === id)) throw new Error("Mã đề đã tồn tại trong kho đề.");
   const subjectId = data.get("subject_id");
   const subjectNames = { toan: "Toán", "ngu-van": "Ngữ văn", "tieng-anh": "Tiếng Anh", "vat-ly": "Vật lý", "dia-li": "Địa lí", "lich-su": "Lịch sử" };
   const type = data.get("exam_type");
@@ -112,6 +117,7 @@ function resetForm() {
   document.querySelector("#exam-duration").value = 60;
   exportPanel.hidden = true;
   exportSource.value = "";
+  pendingUpload = null;
   copyExportButton.disabled = true;
   downloadExportButton.disabled = true;
   setMessage(formMessage, "");
@@ -129,14 +135,18 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!form.reportValidity()) return;
   try {
-    const { exam, pdfPath } = getFormPayload();
-    const updatedExams = [...exams, exam];
+    const { exam } = getFormPayload();
+    examCatalog = [...examCatalog, exam];
+    pendingUpload = { exam, file: fileInput.files[0] };
+    renderList(examCatalog);
+    renderDashboard();
+    const updatedExams = examCatalog;
     exportSource.value = `export const exams = ${JSON.stringify(updatedExams, null, 2)};\n`;
-    exportNote.textContent = `Hãy chép PDF đã chọn tới ${pdfPath}, sau đó tải exams.js bên dưới và thay file public/backup/data/exams.js. Commit cả hai file để nhóm cùng truy cập.`;
+    exportNote.textContent = "Chọn thư mục public/backup để lưu PDF vào documents/ và cập nhật data/exams.js. Nếu không dùng được tính năng lưu thư mục, bạn vẫn có thể tải hoặc sao chép dữ liệu bên dưới.";
     exportPanel.hidden = false;
     copyExportButton.disabled = false;
     downloadExportButton.disabled = false;
-    setMessage(formMessage, "Đã tạo dữ liệu đề. Chưa có file nào được lưu tự động vào repo.", true);
+    setMessage(formMessage, "Đã tạo bản ghi đề. Chọn Lưu vào thư mục chung để lưu PDF và dữ liệu vào workspace.", true);
   } catch (error) {
     setMessage(formMessage, error.message);
   }
@@ -152,7 +162,27 @@ fileInput.addEventListener("change", () => {
     setMessage(formMessage, "Vui lòng chọn đúng file PDF.");
     return;
   }
-  setMessage(formMessage, `Đã chọn ${file.name}. Sau khi tạo bản ghi, chép PDF vào thư mục documents theo tên mã đề.`, true);
+  setMessage(formMessage, `Đã chọn ${file.name}. PDF sẽ được lưu vào thư mục documents chung sau khi tạo bản ghi.`, true);
+});
+
+saveToFolderButton.addEventListener("click", async () => {
+  if (!pendingUpload) return;
+  try {
+    const root = await window.showDirectoryPicker({ mode: "readwrite" });
+    const documents = await root.getDirectoryHandle("documents", { create: true });
+    const data = await root.getDirectoryHandle("data", { create: true });
+    const pdfHandle = await documents.getFileHandle(`${pendingUpload.exam.id}.pdf`, { create: true });
+    const pdfWriter = await pdfHandle.createWritable();
+    await pdfWriter.write(pendingUpload.file);
+    await pdfWriter.close();
+    const dataHandle = await data.getFileHandle("exams.js", { create: true });
+    const dataWriter = await dataHandle.createWritable();
+    await dataWriter.write(exportSource.value);
+    await dataWriter.close();
+    setMessage(formMessage, "Đã lưu PDF vào documents/ và cập nhật data/exams.js trong thư mục đã chọn.", true);
+  } catch (error) {
+    if (error.name !== "AbortError") setMessage(formMessage, `Không lưu được vào thư mục: ${error.message}`);
+  }
 });
 
 copyExportButton.addEventListener("click", async () => {
@@ -176,7 +206,7 @@ downloadExportButton.addEventListener("click", () => {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
-renderList(exams);
+renderList(examCatalog);
 renderDashboard();
 resetForm();
 document.querySelector("#exam-year").value = new Date().getFullYear();
