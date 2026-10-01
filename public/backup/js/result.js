@@ -41,8 +41,28 @@ function normalizeAttemptData(stored) {
 
 let stored = normalizeAttemptData(fallbackStored);
 
+const currentUser = readLocalData("studysphere_current_user", null);
+
+if (!stored && attemptId && currentUser?.id) {
+  try {
+    const response = await fetch("../api/attempts.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+      }
+    }
+  } catch {
+    stored = null;
+  }
+}
+
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi bộ nhớ trình duyệt này.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
 }
 
 if (stored) {
@@ -193,7 +213,8 @@ const reviewTrigger = document.querySelector(".review-trigger");
 const reviewModalClose = document.querySelector(".review-modal-close");
 const feedbackForm = document.querySelector("#feedback-form");
 const feedbackMessage = document.querySelector("#feedback-message");
-const existingFeedback = readLocalData("studysphere_feedback", []).find((item) => item.attemptId === result.attemptId);
+const storedFeedback = readLocalData("studysphere_feedback", []);
+const existingFeedback = Array.isArray(storedFeedback) ? storedFeedback.find((item) => item.attemptId === result.attemptId) : null;
 
 function renderSelectedRating() {
   const selectedRating = Number(feedbackForm.elements.rating.value);

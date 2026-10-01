@@ -1,8 +1,6 @@
 import { exams } from "../data/exams.js";
 import { practiceTests, upcomingTests } from "../tests/data/practice-tests.js";
 
-const nav = document.querySelector(".main-nav");
-document.querySelector(".menu-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; const open = nav.classList.toggle("open"); button.setAttribute("aria-expanded", String(open)); });
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 const testId = params.get("test");

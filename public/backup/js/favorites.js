@@ -31,7 +31,7 @@ if (!saved.length) {
 } else {
 	list.innerHTML = saved.map((exam) => {
 		const destination = exam.favoriteKind === "practice-test"
-			? `quiz.html?test=${encodeURIComponent(exam.id)}`
+			? `../tests/quiz.html?test=${encodeURIComponent(exam.id)}`
 			: exam.questions?.length
 			? `quiz.html?id=${encodeURIComponent(exam.id)}`
 			: `exam-detail.html?id=${encodeURIComponent(exam.id)}`;

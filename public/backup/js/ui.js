@@ -1,20 +1,5 @@
 import { exams } from "../data/exams.js";
 
-const menuToggle = document.querySelector(".menu-toggle");
-const mainNav = document.querySelector(".main-nav");
-
-menuToggle?.addEventListener("click", () => {
-  const isOpen = mainNav.classList.toggle("open");
-  menuToggle.setAttribute("aria-expanded", String(isOpen));
-});
-
-document.querySelectorAll(".main-nav a").forEach((link) => {
-  link.addEventListener("click", () => {
-    mainNav?.classList.remove("open");
-    menuToggle?.setAttribute("aria-expanded", "false");
-  });
-});
-
 const featuredContainer = document.querySelector("#featured-exams");
 
 if (featuredContainer) {
