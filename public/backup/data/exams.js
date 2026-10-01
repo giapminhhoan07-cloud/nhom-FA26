@@ -153,5 +153,21 @@ export const exams = [
     "description": "",
     "documentUrl": "../documents/toan-doi-tuyen.pdf",
     "featured": true
+  },
+  {
+    "id": "toan-on-tap-ki-1",
+    "title": "Bộ đề ôn tập giữa học kỳ 1 Toán 12 năm học 2026 – 2027 theo SGK thống nhất",
+    "subjectId": "toan",
+    "subjectName": "Toán",
+    "year": 2026,
+    "type": "minh-hoa",
+    "typeName": "Đề minh họa",
+    "difficulty": "easy",
+    "difficultyName": "Cơ bản",
+    "durationMinutes": 60,
+    "questionCount": 0,
+    "description": "",
+    "documentUrl": "../documents/toan-on-tap-ki-1.pdf",
+    "featured": false
   }
 ];
