@@ -12,7 +12,7 @@ const currentPath = window.location.pathname;
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
 const isAdminRoute = currentPath.endsWith("/admin.html") || currentPath.endsWith("/admin-dashboard.html") || currentPath.endsWith("/admin-users.html");
 
-if (!currentUser || (isAdminRoute && !isAdmin)) {
+if (isAdminRoute && (!currentUser || !isAdmin)) {
   const returnTarget = currentPath.endsWith("/admin-users.html") ? "admin-users" : isAdminRoute ? "admin" : "home";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
@@ -130,4 +130,4 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
-if (currentUser) renderAccount();
+renderAccount();
