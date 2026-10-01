@@ -33,7 +33,7 @@ function renderHistory(items) {
 
 	count.textContent = `${filtered.length} lần làm`;
 	if (!filtered.length) {
-		list.innerHTML = `<div class="empty-state"><strong>${items.length ? "Không tìm thấy kết quả phù hợp" : "Chưa có lịch sử làm bài"}</strong><p>${items.length ? "Hãy thử đổi từ khóa hoặc trạng thái lọc." : "Hoàn thành một đề để thấy kết quả ở đây."}</p>${items.length ? "" : '<a class="button button-primary" href="tests.html">Chọn đề đầu tiên</a>'}</div>`;
+		list.innerHTML = `<div class="empty-state"><strong>${items.length ? "Không tìm thấy kết quả phù hợp" : "Chưa có lịch sử làm bài"}</strong><p>${items.length ? "Hãy thử đổi từ khóa hoặc trạng thái lọc." : "Hoàn thành một đề để thấy kết quả ở đây."}</p>${items.length ? "" : '<a class="button button-primary" href="../tests/index.html">Chọn đề đầu tiên</a>'}</div>`;
 		return;
 	}
 

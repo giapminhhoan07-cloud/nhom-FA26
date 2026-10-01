@@ -8,11 +8,27 @@ const currentUser = (() => {
 const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
 
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
+const currentPath = window.location.pathname;
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
+const isAdminRoute = currentPath.endsWith("/admin.html") || currentPath.endsWith("/admin-dashboard.html") || currentPath.endsWith("/admin-users.html");
 
-if (!currentUser) {
-  const returnTarget = window.location.pathname.endsWith("/admin.html") || window.location.pathname.endsWith("/admin-dashboard.html") ? "admin" : "home";
+if (!currentUser || (isAdminRoute && !isAdmin)) {
+  const returnTarget = currentPath.endsWith("/admin-users.html") ? "admin-users" : isAdminRoute ? "admin" : "home";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
+}
+
+const menuToggle = document.querySelector(".menu-toggle");
+const sharedNav = document.querySelector(".main-nav");
+if (menuToggle && sharedNav) {
+  menuToggle.addEventListener("click", () => {
+    const isOpen = sharedNav.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+  sharedNav.addEventListener("click", (event) => {
+    if (!event.target.closest("a")) return;
+    sharedNav.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+  });
 }
 
 function renderAccount() {
@@ -23,19 +39,6 @@ function renderAccount() {
 
   const currentPath = window.location.pathname;
   const mainNav = header.querySelector(".main-nav");
-  const menuToggle = header.querySelector(".menu-toggle");
-  const isUserLibraryPage = currentPath.endsWith("/history.html") || currentPath.endsWith("/favorites.html") || currentPath.endsWith("/profile.html");
-  if (!isAdmin && isUserLibraryPage && mainNav && menuToggle) {
-    menuToggle.addEventListener("click", () => {
-      const isOpen = mainNav.classList.toggle("open");
-      menuToggle.setAttribute("aria-expanded", String(isOpen));
-    });
-    mainNav.addEventListener("click", (event) => {
-      if (!event.target.closest("a")) return;
-      mainNav.classList.remove("open");
-      menuToggle.setAttribute("aria-expanded", "false");
-    });
-  }
 
   if (!currentUser) {
     const loginLink = document.createElement("a");
@@ -54,18 +57,6 @@ function renderAccount() {
         <a href="${getPagePath("admin.html")}"${window.location.pathname.endsWith("/admin.html") ? ' class="active" aria-current="page"' : ""}>Quản lý đề thi</a>
         <a href="${getPagePath("admin-users.html")}"${window.location.pathname.endsWith("/admin-users.html") ? ' class="active" aria-current="page"' : ""}>Quản lý người dùng</a>
       `;
-      const menuToggle = header.querySelector(".menu-toggle");
-      if (menuToggle) {
-        menuToggle.addEventListener("click", () => {
-          const isOpen = mainNav.classList.toggle("open");
-          menuToggle.setAttribute("aria-expanded", String(isOpen));
-        });
-        mainNav.addEventListener("click", (event) => {
-          if (!event.target.closest("a")) return;
-          mainNav.classList.remove("open");
-          menuToggle.setAttribute("aria-expanded", "false");
-        });
-      }
     }
   }
 

@@ -1,5 +1,5 @@
 import { exams } from "../data/exams.js";
-import { practiceTests } from "../data/practice-tests.js";
+import { practiceTests } from "../tests/data/practice-tests.js";
 
 const ids = (() => {
 	try {
@@ -12,7 +12,7 @@ const list = document.querySelector("#favorite-list");
 const emptyState = document.querySelector("#favorite-empty");
 const emptyLink = emptyState.querySelector("a");
 emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong kho đề kiểm tra để lưu lại.";
-emptyLink.href = "tests.html";
+emptyLink.href = "../tests/index.html";
 emptyLink.textContent = "Đến kho đề kiểm tra";
 
 const savedExams = exams.filter((exam) => ids.includes(exam.id));
@@ -31,7 +31,7 @@ if (!saved.length) {
 } else {
 	list.innerHTML = saved.map((exam) => {
 		const destination = exam.favoriteKind === "practice-test"
-			? `quiz.html?test=${encodeURIComponent(exam.id)}`
+			? `../tests/quiz.html?test=${encodeURIComponent(exam.id)}`
 			: exam.questions?.length
 			? `quiz.html?id=${encodeURIComponent(exam.id)}`
 			: `exam-detail.html?id=${encodeURIComponent(exam.id)}`;

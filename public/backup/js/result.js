@@ -1,6 +1,12 @@
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
 const fallbackKey = `studysphere_result_${attemptId}`;
-const fallbackStored = JSON.parse(localStorage.getItem(fallbackKey) || "null");
+const fallbackStored = (() => {
+  try {
+    return JSON.parse(localStorage.getItem(fallbackKey) || "null");
+  } catch {
+    return null;
+  }
+})();
 const card = document.querySelector("#result-card");
 
 function getOptionLabel(index) {
@@ -41,21 +47,26 @@ const currentUser = (() => {
 let stored = normalizeAttemptData(fallbackStored);
 
 if (!stored && attemptId && currentUser?.id) {
-  const response = await fetch("../api/attempts.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
-  });
-  const data = await response.json();
-  if (response.ok && data.success) {
-    stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+  try {
+    const response = await fetch("../api/attempts.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+      }
+    }
+  } catch {
+    stored = null;
   }
 }
 
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="tests.html">Về bài kiểm tra</a>';
-  throw new Error('No result');
-}
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
+} else {
 
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
@@ -286,3 +297,4 @@ filterButtons.forEach((button) => {
 
 const defaultButton = document.querySelector('.review-filter-button[data-filter="all"]');
 if (defaultButton) defaultButton.classList.add("is-active");
+}

@@ -3,15 +3,6 @@ import { exams } from "../data/exams.js";
 const localExams = (() => { try { return JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]"); } catch { return []; } })();
 let availableExams = [...exams, ...localExams];
 
-const menuToggle = document.querySelector(".menu-toggle");
-const mainNav = document.querySelector(".main-nav");
-menuToggle?.addEventListener("click", () => {
-  const isOpen = mainNav.classList.toggle("open");
-  menuToggle.setAttribute("aria-expanded", String(isOpen));
-});
-
-document.querySelectorAll(".main-nav a").forEach((link) => link.addEventListener("click", () => mainNav?.classList.remove("open")));
-
 const searchInput = document.querySelector("#search-input");
 const filterIds = ["subject-filter", "year-filter", "type-filter", "difficulty-filter"];
 const resultCount = document.querySelector("#result-count");
