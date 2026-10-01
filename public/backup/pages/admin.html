@@ -26,7 +26,7 @@
       <div class="admin-list-panel"><div class="admin-panel-heading"><div><span class="admin-kicker">Thư viện nội bộ</span><h2>Danh sách đề thi</h2></div><button class="button button-primary" id="new-exam-button" type="button">+ Tạo đề mới</button></div><p class="admin-message" id="list-message" aria-live="polite"></p><div class="admin-exam-list" id="admin-exam-list"></div></div>
       <section class="admin-form-panel" aria-labelledby="form-title"><div class="admin-panel-heading"><div><span class="admin-kicker">Biểu mẫu đề thi</span><h2 id="form-title">Upload đề mới</h2></div><button class="admin-reset" id="reset-form" type="button">Làm mới</button></div><p class="admin-message" id="form-message" aria-live="polite"></p><form id="exam-form" novalidate>
         <input id="exam-action" type="hidden" value="create">
-        <label class="admin-upload-field">Chọn file đề (.pdf)<input id="exam-file" type="file" accept="application/pdf,.pdf" required><small>PDF được giữ trong máy. Sau khi tạo bản cập nhật, chép file vào public/backup/documents/ với tên mã đề hiển thị.</small></label>
+        <label class="admin-upload-field">Chọn file đề (.pdf)<input id="exam-file" type="file" accept="application/pdf,.pdf" required><small>Sau khi tạo bản ghi, bạn có thể lưu PDF và danh sách đề vào các thư mục dùng chung trong public/backup.</small></label>
         <div class="admin-form-grid"><label class="admin-field">Mã đề<input id="exam-id" name="id" required pattern="[a-z0-9\-]{3,100}" placeholder="toan-2026-de-01"><small>Chỉ dùng chữ thường, số và dấu gạch ngang.</small></label><label class="admin-field">Tên đề<input id="exam-title" name="title" required placeholder="Đề ôn tập Toán 2026"></label></div>
         <div class="admin-form-grid"><label class="admin-field">Môn học<select id="exam-subject" name="subject_id"><option value="toan">Toán</option><option value="ngu-van">Ngữ văn</option><option value="tieng-anh">Tiếng Anh</option><option value="vat-ly">Vật lý</option><option value="dia-li">Địa lí</option><option value="lich-su">Lịch sử</option></select></label><label class="admin-field">Năm<input id="exam-year" name="year" type="number" min="2000" max="2100" value="2026" required></label></div>
         <div class="admin-form-grid"><label class="admin-field">Loại đề<select id="exam-type" name="exam_type"><option value="minh-hoa">Đề minh họa</option><option value="khao-sat">Đề khảo sát</option><option value="thi-thu">Đề thi thử</option><option value="on-tap">Đề ôn tập</option><option value="thpt">Tốt nghiệp THPT</option></select></label><label class="admin-field">Mức độ<select id="exam-difficulty" name="difficulty"><option value="easy">Cơ bản</option><option value="medium" selected>Trung bình</option><option value="hard">Khá khó</option></select></label></div>
@@ -37,9 +37,9 @@
       <section class="admin-export-panel" id="export-panel" aria-labelledby="export-title" hidden>
         <div class="admin-panel-heading"><div><span class="admin-kicker">Sẵn sàng đưa lên GitHub</span><h2 id="export-title">Tệp dữ liệu đề</h2></div></div>
         <p class="admin-export-note" id="export-note"></p>
-        <label class="admin-field" for="export-source">Thay nội dung file public/backup/data/exams.js bằng bản này</label>
+        <label class="admin-field" for="export-source">Dữ liệu dự phòng để cập nhật public/backup/data/exams.js</label>
         <textarea id="export-source" rows="12" readonly></textarea>
-        <div class="admin-export-actions"><button class="button button-primary" id="copy-export" type="button">Sao chép mã</button><button class="button button-quiet" id="download-export" type="button">Tải exams.js</button></div>
+        <div class="admin-export-actions"><button class="button button-primary" id="save-to-folder" type="button">Lưu vào thư mục chung</button><button class="button button-quiet" id="copy-export" type="button">Sao chép mã</button><button class="button button-quiet" id="download-export" type="button">Tải exams.js</button></div>
       </section>
       </section>
       </div>
