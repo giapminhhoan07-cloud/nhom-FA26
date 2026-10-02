@@ -167,13 +167,14 @@ loginForm.addEventListener("submit", async (event) => {
     const result = await submitAuth({ action: "login", email, password });
     localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
     const returnPaths = {
-      admin: "admin.html#overview",
+      admin: "admin-dashboard.html#overview",
       "admin-users": "admin-users.html",
       "admin-dashboard": "admin-dashboard.html#overview",
       "admin-feedback": "admin-feedback.html",
       home: "../index.html",
     };
-    window.location.href = returnPaths[returnTarget] || "../index.html";
+    const defaultPath = result.user.role === "admin" ? "admin-dashboard.html" : "../index.html";
+    window.location.href = returnPaths[returnTarget] || defaultPath;
   } catch (error) {
     setMessage("login-message", error.message);
   }
