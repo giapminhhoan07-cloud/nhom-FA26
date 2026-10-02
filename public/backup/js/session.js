@@ -7,6 +7,17 @@ const currentUser = (() => {
 })();
 const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
 
+const isHomeRoute = () => {
+  const pathname = window.location.pathname.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+  const homePaths = ["/", "/index.html", "/backup", "/backup/index.html", "/public", "/public/index.html", "/public/backup", "/public/backup/index.html"];
+  return homePaths.includes(pathname) || pathname.endsWith("/backup") || pathname.endsWith("/public/backup");
+};
+
+if (isAdmin && isHomeRoute()) {
+  window.location.replace("/backup/pages/admin-dashboard.html");
+  return;
+}
+
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const currentPath = window.location.pathname;
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
