@@ -109,6 +109,34 @@
   margin-bottom: 22px;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-home-link:hover {
+  background: rgba(22, 159, 154, 0.06);
+  border-color: rgba(22, 159, 154, 0.32);
+  color: var(--teal-dark);
+}
+
 .admin-page-kicker {
   margin: 0 0 8px;
   color: var(--teal-dark);
