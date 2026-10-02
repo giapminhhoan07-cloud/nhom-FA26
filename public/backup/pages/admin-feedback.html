@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Quản lý phản hồi và báo cáo StudySphere.">
+  <title>Phản hồi & báo cáo | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script type="module" src="../js/admin-feedback.js"></script>
+  <script defer src="../js/session.js"></script>
+</head>
+<body class="admin-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+        <span class="brand-mark">S</span>
+        <span>Study<span>Sphere</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="brand-block">
+        <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+          <span class="brand-mark">S</span>
+          <span>Study<span>Sphere</span></span>
+        </a>
+      </div>
+
+      <nav class="admin-sidebar-nav" aria-label="Menu quản trị">
+        <a class="admin-nav-item" data-admin-section="overview" href="admin-dashboard.html"><span class="nav-icon">◫</span><span>Tổng quan</span></a>
+        <a class="admin-nav-item" data-admin-section="exams" href="admin.html"><span class="nav-icon">▣</span><span>Quản lý đề thi</span></a>
+        <a class="admin-nav-item" data-admin-section="users" href="admin-users.html"><span class="nav-icon">◍</span><span>Quản lý người dùng</span></a>
+        <a class="admin-nav-item active" data-admin-section="feedback" href="admin-feedback.html"><span class="nav-icon">◌</span><span>Phản hồi &amp; báo cáo</span></a>
+      </nav>
+
+      <div class="sidebar-summary">
+        <span class="sidebar-kicker">Hệ thống</span>
+        <strong>StudySphere</strong>
+        <small>Website luyện thi THPT</small>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-header">
+        <div>
+          <p class="admin-page-kicker">Khu vực quản trị</p>
+          <h1>Phản hồi &amp; báo cáo</h1>
+        </div>
+        <span class="admin-header-pill">Theo dõi phản hồi thực tế</span>
+      </header>
+
+      <section class="admin-content">
+        <section class="admin-list-panel" aria-labelledby="feedback-title">
+          <div class="admin-panel-heading">
+            <div>
+              <span class="admin-kicker">Phản hồi</span>
+              <h2 id="feedback-title">Danh sách phản hồi</h2>
+            </div>
+          </div>
+          <div class="admin-toolbar">
+            <label class="admin-search-field">
+              <span>Tìm phản hồi</span>
+              <input id="feedback-search" type="search" placeholder="Tên người gửi hoặc nội dung">
+            </label>
+            <label class="admin-filter-field">
+              <span>Trạng thái</span>
+              <select id="feedback-status-filter">
+                <option value="all">Tất cả</option>
+                <option value="new">Mới</option>
+                <option value="reviewing">Đang xem xét</option>
+                <option value="resolved">Đã giải quyết</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Xếp hạng</span>
+              <select id="feedback-rating-filter">
+                <option value="all">Tất cả</option>
+                <option value="5">5 sao</option>
+                <option value="4">4 sao</option>
+                <option value="3">3 sao</option>
+                <option value="2">2 sao</option>
+                <option value="1">1 sao</option>
+              </select>
+            </label>
+          </div>
+          <div id="feedback-summary" class="admin-message" aria-live="polite"></div>
+          <div class="admin-exam-list" id="feedback-list"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
