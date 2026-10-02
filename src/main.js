@@ -1,13 +1,21 @@
 import { exams } from "../backup/data/exams.js";
 import { shouldRedirectToAdminDashboard } from "./redirectPolicy.js";
 
-const currentUser = (() => {
-  try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-  } catch {
-    return null;
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const readStoredUser = () => {
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed session values.
+    }
   }
-})();
+  return null;
+};
+const currentUser = readStoredUser();
 
 if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser)) {
   window.location.replace("/backup/pages/admin-dashboard.html");

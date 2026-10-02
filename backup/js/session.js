@@ -1,10 +1,18 @@
-const currentUser = (() => {
-  try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-  } catch {
-    return null;
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const readStoredUser = () => {
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed session values.
+    }
   }
-})();
+  return null;
+};
+const currentUser = readStoredUser();
 
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
@@ -20,8 +28,26 @@ if (currentUser && currentUser.role === "admin" && isHomeRoute()) {
   return;
 }
 
-if (!currentUser) {
-  const returnTarget = window.location.pathname.endsWith("/admin.html") ? "admin" : "home";
+const protectedRoutes = [
+  "/profile.html",
+  "/history.html",
+  "/favorites.html",
+  "/admin.html",
+  "/admin-dashboard.html",
+  "/admin-users.html",
+  "/admin-feedback.html",
+];
+const isProtectedRoute = protectedRoutes.some((page) => window.location.pathname.endsWith(page));
+if (!currentUser && isProtectedRoute) {
+  const returnTarget = window.location.pathname.endsWith("/admin.html")
+    ? "admin"
+    : window.location.pathname.endsWith("/admin-dashboard.html")
+      ? "admin-dashboard"
+      : window.location.pathname.endsWith("/admin-users.html")
+        ? "admin-users"
+        : window.location.pathname.endsWith("/admin-feedback.html")
+          ? "admin-feedback"
+          : "home";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
 
@@ -86,7 +112,7 @@ function renderAccount() {
     trigger.setAttribute("aria-expanded", String(open));
   });
   account.querySelector(".account-logout").addEventListener("click", async () => {
-    localStorage.removeItem("studysphere_current_user");
+    CURRENT_USER_KEYS.forEach((key) => localStorage.removeItem(key));
     try {
       await fetch(getPagePath("../api/auth.php"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
     } catch {

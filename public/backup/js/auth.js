@@ -37,6 +37,26 @@ const setMessage = (id, text, success = false) => {
   message.classList.toggle("success", success);
 };
 
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const readStoredUser = () => {
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed storage and keep checking other keys.
+    }
+  }
+  return null;
+};
+
+const writeStoredUser = (user) => {
+  const payload = JSON.stringify(user || null);
+  CURRENT_USER_KEYS.forEach((key) => localStorage.setItem(key, payload));
+};
+
 const normalizeUser = (user) => ({
   ...user,
   role: user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 ? "admin" : (user.role || "user"),
@@ -143,7 +163,7 @@ registerForm.addEventListener("submit", async (event) => {
 
   try {
     const result = await submitAuth({ action: "register", name, email, password });
-    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    writeStoredUser(result.user);
     window.location.href = "../index.html";
   } catch (error) {
     setMessage("register-message", error.message);
@@ -165,7 +185,7 @@ loginForm.addEventListener("submit", async (event) => {
   if (passwordMessage) return;
   try {
     const result = await submitAuth({ action: "login", email, password });
-    localStorage.setItem("studysphere_current_user", JSON.stringify(result.user));
+    writeStoredUser(result.user);
     const returnPaths = {
       admin: "admin-dashboard.html#overview",
       "admin-users": "admin-users.html",

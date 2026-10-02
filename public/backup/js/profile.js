@@ -1,11 +1,18 @@
 const profileForm = document.querySelector("#profile-form");
 
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
 function readUser() {
-  try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-  } catch {
-    return null;
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed session values.
+    }
   }
+  return null;
 }
 
 const user = readUser();
@@ -40,7 +47,8 @@ if (!user) {
 
     const updatedProfile = { name: nextName, goal: data.get("goal"), bio: data.get("bio").trim(), reminder: data.get("reminder") === "on" };
     localStorage.setItem(profileKey, JSON.stringify(updatedProfile));
-    localStorage.setItem("studysphere_current_user", JSON.stringify({ ...user, name: nextName }));
+    const nextUser = { ...user, name: nextName };
+    CURRENT_USER_KEYS.forEach((key) => localStorage.setItem(key, JSON.stringify(nextUser)));
     document.querySelector("#summary-name").textContent = nextName;
     document.querySelector("#profile-avatar").textContent = nextName.charAt(0).toUpperCase();
     document.querySelector("#summary-avatar").textContent = nextName.charAt(0).toUpperCase();
