@@ -23,7 +23,6 @@ const isHomeRoute = () => {
 
 if (isAdmin && isHomeRoute()) {
   window.location.replace("/backup/pages/admin-dashboard.html");
-  return;
 }
 
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
