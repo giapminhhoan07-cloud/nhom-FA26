@@ -25,29 +25,33 @@ const isHomeRoute = () => {
 
 if (currentUser && currentUser.role === "admin" && isHomeRoute()) {
   window.location.replace("/backup/pages/admin-dashboard.html");
-  return;
+}
+
+const isAdminRoute = [
+  "/admin.html",
+  "/admin-dashboard.html",
+  "/admin-users.html",
+  "/admin-feedback.html",
+].some((page) => window.location.pathname.endsWith(page));
+if (isAdminRoute && (!currentUser || !currentUser.role || currentUser.role !== "admin")) {
+  const returnTarget = window.location.pathname.endsWith("/admin-users.html")
+    ? "admin-users"
+    : window.location.pathname.endsWith("/admin-feedback.html")
+      ? "admin-feedback"
+      : window.location.pathname.endsWith("/admin-dashboard.html")
+        ? "admin-dashboard"
+        : "admin";
+  window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
 
 const protectedRoutes = [
   "/profile.html",
   "/history.html",
   "/favorites.html",
-  "/admin.html",
-  "/admin-dashboard.html",
-  "/admin-users.html",
-  "/admin-feedback.html",
 ];
 const isProtectedRoute = protectedRoutes.some((page) => window.location.pathname.endsWith(page));
 if (!currentUser && isProtectedRoute) {
-  const returnTarget = window.location.pathname.endsWith("/admin.html")
-    ? "admin"
-    : window.location.pathname.endsWith("/admin-dashboard.html")
-      ? "admin-dashboard"
-      : window.location.pathname.endsWith("/admin-users.html")
-        ? "admin-users"
-        : window.location.pathname.endsWith("/admin-feedback.html")
-          ? "admin-feedback"
-          : "home";
+  const returnTarget = "home";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
 

@@ -109,7 +109,7 @@ const submitAuth = async (payload) => {
 };
 
 const registerForm = document.querySelector("#register-form");
-registerForm.addEventListener("submit", async (event) => {
+registerForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(registerForm);
   const name = data.get("name").trim();
@@ -125,7 +125,7 @@ registerForm.addEventListener("submit", async (event) => {
 });
 
 const loginForm = document.querySelector("#login-form");
-loginForm.addEventListener("submit", async (event) => {
+loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(loginForm);
   const email = data.get("email").trim().toLowerCase();
@@ -133,7 +133,14 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     writeStoredUser(result.user);
-    window.location.href = returnTarget === "admin" ? "admin.html" : "/backup/index.html";
+    const returnPaths = {
+      admin: "admin.html",
+      "admin-dashboard": "admin-dashboard.html",
+      "admin-users": "admin-users.html",
+      "admin-feedback": "admin-feedback.html",
+      home: "/backup/index.html",
+    };
+    window.location.href = returnPaths[returnTarget] || (result.user.role === "admin" ? "admin-dashboard.html" : "/backup/index.html");
   } catch (error) {
     setMessage("login-message", error.message);
   }

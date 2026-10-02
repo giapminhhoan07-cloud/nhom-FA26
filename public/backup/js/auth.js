@@ -134,7 +134,7 @@ const submitAuth = async (payload) => {
 };
 
 const registerForm = document.querySelector("#register-form");
-registerForm.addEventListener("submit", async (event) => {
+registerForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(registerForm);
   const name = data.get("name").trim();
@@ -154,8 +154,10 @@ registerForm.addEventListener("submit", async (event) => {
   let hasError = false;
   validation.forEach(({ input, errorId, message }) => {
     const error = document.querySelector(`#${errorId}`);
-    error.textContent = message;
-    error.hidden = !message;
+    if (error) {
+      error.textContent = message;
+      error.hidden = !message;
+    }
     input.setAttribute("aria-invalid", String(Boolean(message)));
     hasError ||= Boolean(message);
   });
@@ -171,7 +173,7 @@ registerForm.addEventListener("submit", async (event) => {
 });
 
 const loginForm = document.querySelector("#login-form");
-loginForm.addEventListener("submit", async (event) => {
+loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(loginForm);
   const email = data.get("email").trim().toLowerCase();
@@ -179,8 +181,10 @@ loginForm.addEventListener("submit", async (event) => {
   const passwordInput = loginForm.elements.namedItem("password");
   const passwordError = document.querySelector("#login-password-error");
   const passwordMessage = password ? "" : "Vui lòng nhập mật khẩu.";
-  passwordError.textContent = passwordMessage;
-  passwordError.hidden = !passwordMessage;
+  if (passwordError) {
+    passwordError.textContent = passwordMessage;
+    passwordError.hidden = !passwordMessage;
+  }
   passwordInput.setAttribute("aria-invalid", String(Boolean(passwordMessage)));
   if (passwordMessage) return;
   try {
