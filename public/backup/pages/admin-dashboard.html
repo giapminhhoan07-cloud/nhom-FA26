@@ -3,33 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Tổng quan khu vực quản trị StudySphere.">
+  <meta name="description" content="Tổng quan hoạt động và quản trị StudySphere.">
   <title>Tổng quan quản trị | StudySphere</title>
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/admin.css">
+  <script type="module" src="../js/admin-dashboard.js"></script>
   <script defer src="../js/session.js"></script>
 </head>
 <body class="admin-page">
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu"><span></span><span></span><span></span></button>
-      <nav class="main-nav" id="main-nav" aria-label="Điều hướng quản trị">
-        <a class="active" aria-current="page" href="admin-dashboard.html">Tổng quan</a>
-        <a href="admin.html">Quản lý đề thi</a>
-        <a href="admin-users.html">Quản lý người dùng</a>
-      </nav>
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+        <span class="brand-mark">S</span>
+        <span>Study<span>Sphere</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
-  <main>
-    <section class="admin-hero"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Khu vực quản trị</p><h1>Tổng <em>quan.</em></h1><p>Lối tắt đến quản lý đề thi và tài khoản người dùng.</p></div></section>
-    <section class="admin-section"><div class="container admin-layout">
-      <section class="admin-list-panel"><div class="admin-panel-heading"><div><span class="admin-kicker">Thư viện nội bộ</span><h2>Quản lý đề thi</h2></div></div><p>Thêm, cập nhật và tổ chức các đề thi StudySphere.</p><a class="button button-primary" href="admin.html">Mở quản lý đề thi <span aria-hidden="true">→</span></a></section>
-      <section class="admin-list-panel"><div class="admin-panel-heading"><div><span class="admin-kicker">Tài khoản</span><h2>Quản lý người dùng</h2></div></div><p>Xem danh sách, tìm kiếm và cập nhật trạng thái tài khoản.</p><a class="button button-primary" href="admin-users.html">Mở quản lý người dùng <span aria-hidden="true">→</span></a></section>
-    </div></section>
-  </main>
-  <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Khu vực quản trị nội dung học tập.</p></div></div></footer>
+
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="brand-block">
+        <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+          <span class="brand-mark">S</span>
+          <span>Study<span>Sphere</span></span>
+        </a>
+      </div>
+
+      <nav class="admin-sidebar-nav" aria-label="Menu quản trị">
+        <a class="admin-nav-item active" data-admin-section="overview" href="admin-dashboard.html"><span class="nav-icon">◫</span><span>Tổng quan</span></a>
+        <a class="admin-nav-item" data-admin-section="exams" href="admin.html"><span class="nav-icon">▣</span><span>Quản lý đề thi</span></a>
+        <a class="admin-nav-item" data-admin-section="users" href="admin-users.html"><span class="nav-icon">◍</span><span>Quản lý người dùng</span></a>
+        <a class="admin-nav-item" data-admin-section="feedback" href="admin-feedback.html"><span class="nav-icon">◌</span><span>Phản hồi &amp; báo cáo</span></a>
+      </nav>
+
+      <div class="sidebar-summary">
+        <span class="sidebar-kicker">Hệ thống</span>
+        <strong>StudySphere</strong>
+        <small>Website luyện thi THPT</small>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-header">
+        <div>
+          <p class="admin-page-kicker">Khu vực quản trị</p>
+          <h1>Tổng quan</h1>
+        </div>
+        <span class="admin-header-pill">Theo dõi hoạt động thực tế</span>
+      </header>
+
+      <section class="admin-content">
+        <div class="admin-stat-grid" id="admin-stat-grid" aria-live="polite"></div>
+
+        <section class="admin-chart-panel" aria-labelledby="chart-title">
+          <div class="admin-panel-heading">
+            <div>
+              <span class="admin-kicker">Biểu đồ</span>
+              <h2 id="chart-title">Hoạt động 7 ngày gần nhất</h2>
+            </div>
+          </div>
+          <div class="admin-chart" id="admin-activity-chart" aria-live="polite"></div>
+        </section>
+
+        <div class="admin-grid-two">
+          <section class="admin-data-panel" aria-labelledby="featured-title">
+            <div class="admin-panel-heading">
+              <div>
+                <span class="admin-kicker">Đề thi</span>
+                <h2 id="featured-title">Đề thi nổi bật</h2>
+              </div>
+            </div>
+            <table class="admin-table" id="admin-featured-table"></table>
+          </section>
+
+          <section class="admin-data-panel" aria-labelledby="recent-feedback-title">
+            <div class="admin-panel-heading">
+              <div>
+                <span class="admin-kicker">Phản hồi</span>
+                <h2 id="recent-feedback-title">Phản hồi gần đây</h2>
+              </div>
+            </div>
+            <table class="admin-table" id="admin-feedback-table"></table>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

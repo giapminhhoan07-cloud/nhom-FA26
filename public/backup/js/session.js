@@ -10,10 +10,21 @@ const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_a
 const isBackupPage = window.location.pathname.includes("/backup/pages/");
 const currentPath = window.location.pathname;
 const getAuthPath = () => isBackupPage ? "auth.html" : "/backup/pages/auth.html";
-const isAdminRoute = currentPath.endsWith("/admin.html") || currentPath.endsWith("/admin-dashboard.html") || currentPath.endsWith("/admin-users.html");
+const isAdminRoute = [
+  "/admin.html",
+  "/admin-dashboard.html",
+  "/admin-users.html",
+  "/admin-feedback.html",
+].some((page) => currentPath.endsWith(page));
 
 if (isAdminRoute && (!currentUser || !isAdmin)) {
-  const returnTarget = currentPath.endsWith("/admin-users.html") ? "admin-users" : isAdminRoute ? "admin" : "home";
+  const returnTarget = currentPath.endsWith("/admin-users.html")
+    ? "admin-users"
+    : currentPath.endsWith("/admin-feedback.html")
+      ? "admin-feedback"
+      : currentPath.endsWith("/admin-dashboard.html")
+        ? "admin-dashboard"
+        : "admin";
   window.location.replace(`${getAuthPath()}?return=${returnTarget}`);
 }
 
@@ -31,13 +42,32 @@ if (menuToggle && sharedNav) {
   });
 }
 
+function syncSidebarState() {
+  const sidebarLinks = document.querySelectorAll(".admin-sidebar-nav [data-admin-section]");
+  if (!sidebarLinks.length) return;
+
+  const pageKey = currentPath.endsWith("/admin-feedback.html")
+    ? "feedback"
+    : currentPath.endsWith("/admin-users.html")
+      ? "users"
+      : currentPath.endsWith("/admin.html")
+        ? "exams"
+        : "overview";
+
+  sidebarLinks.forEach((link) => {
+    const isActive = link.dataset.adminSection === pageKey;
+    link.classList.toggle("active", isActive);
+    if (isActive) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
+
 function renderAccount() {
   const header = document.querySelector(".header-inner");
   if (!header) return;
 
   header.querySelector(".header-action")?.remove();
-
-  const currentPath = window.location.pathname;
+  const pagePath = window.location.pathname;
   const mainNav = header.querySelector(".main-nav");
 
   if (!currentUser) {
@@ -49,30 +79,30 @@ function renderAccount() {
     return;
   }
 
-  if (isAdmin) {
-    const mainNav = header.querySelector(".main-nav");
-    if (mainNav) {
-      mainNav.innerHTML = `
-        <a data-admin-section="overview" href="${getPagePath("admin.html")}#overview">Tổng quan</a>
-        <a data-admin-section="exam-management" href="${getPagePath("admin.html")}#exam-management">Quản lý đề thi</a>
-        <a data-admin-section="users" href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
-      `;
-      const updateAdminNav = () => {
-        const activeSection = currentPath.endsWith("/admin-users.html")
+  if (isAdmin && mainNav) {
+    mainNav.innerHTML = `
+      <a data-admin-section="overview" href="${getPagePath("admin-dashboard.html")}">Tổng quan</a>
+      <a data-admin-section="exams" href="${getPagePath("admin.html")}">Quản lý đề thi</a>
+      <a data-admin-section="users" href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>
+      <a data-admin-section="feedback" href="${getPagePath("admin-feedback.html")}">Phản hồi &amp; báo cáo</a>
+    `;
+    const updateAdminNav = () => {
+      const pageKey = pagePath.endsWith("/admin-feedback.html")
+        ? "feedback"
+        : pagePath.endsWith("/admin-users.html")
           ? "users"
-          : currentPath.endsWith("/admin.html") && window.location.hash === "#exam-management"
-            ? "exam-management"
+          : pagePath.endsWith("/admin.html")
+            ? "exams"
             : "overview";
-        mainNav.querySelectorAll("[data-admin-section]").forEach((link) => {
-          const isActive = link.dataset.adminSection === activeSection;
-          link.classList.toggle("active", isActive);
-          if (isActive) link.setAttribute("aria-current", "page");
-          else link.removeAttribute("aria-current");
-        });
-      };
-      updateAdminNav();
-      window.addEventListener("hashchange", updateAdminNav);
-    }
+      mainNav.querySelectorAll("[data-admin-section]").forEach((link) => {
+        const isActive = link.dataset.adminSection === pageKey;
+        link.classList.toggle("active", isActive);
+        if (isActive) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    };
+    updateAdminNav();
+    window.addEventListener("hashchange", updateAdminNav); 
   }
 
   const account = document.createElement("div");
@@ -89,7 +119,7 @@ function renderAccount() {
       <span class="account-role"></span>
       <div class="account-links">
         ${isAdmin
-          ? `<a href="${getPagePath("admin.html")}#overview">Tổng quan</a><a href="${getPagePath("admin.html")}#exam-management">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a>`
+          ? `<a href="${getPagePath("admin-dashboard.html")}">Tổng quan</a><a href="${getPagePath("admin.html")}">Quản lý đề thi</a><a href="${getPagePath("admin-users.html")}">Quản lý người dùng</a><a href="${getPagePath("admin-feedback.html")}">Phản hồi &amp; báo cáo</a>`
           : `<a href="${getPagePath("profile.html")}">Trang cá nhân</a>`}
       </div>
       <button class="account-logout" type="button">Đăng xuất</button>
@@ -130,4 +160,5 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
+syncSidebarState();
 renderAccount();
