@@ -2,6 +2,27 @@
 @media (max-width: 850px) { .admin-layout { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .admin-hero { padding: 56px 0 48px; }.admin-list-panel, .admin-form-panel { padding: 20px 17px; }.admin-panel-heading { align-items: flex-start; flex-direction: column; }.admin-form-grid { grid-template-columns: 1fr; gap: 0; }.admin-exam-item { align-items: flex-start; flex-direction: column; }.admin-item-actions { width: 100%; }.admin-item-actions button { flex: 1; } }
 
+.admin-dashboard { margin-bottom: 32px; }
+.admin-dashboard .admin-panel-heading { align-items: center; }
+.admin-dashboard-note, .admin-feedback-count { margin: 0; color: var(--ink-soft); font-size: .72rem; }
+.admin-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 20px 0 28px; }
+.admin-stat { display: grid; min-height: 104px; align-content: space-between; padding: 17px 19px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+.admin-stat span { color: var(--ink-soft); font-size: .72rem; }
+.admin-stat strong { color: var(--ink); font-family: var(--font-heading); font-size: 1.7rem; }
+.admin-feedback-panel { padding: 24px 28px; border: 1px solid var(--line); border-radius: 10px; background: white; box-shadow: var(--shadow); }
+.admin-feedback-panel .admin-panel-heading { padding-bottom: 17px; }
+.admin-feedback-list { display: grid; gap: 0; }
+.admin-feedback-item { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.admin-feedback-item:last-child { border-bottom: 0; }
+.admin-feedback-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.admin-feedback-heading strong { font-size: .86rem; }
+.admin-feedback-stars { color: #d79524; font-size: .9rem; white-space: nowrap; }
+.admin-feedback-item p { margin: 8px 0; color: var(--ink); font-size: .8rem; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-feedback-meta { color: var(--ink-soft); font-size: .68rem; }
+.admin-feedback-empty { margin: 18px 0 0; color: var(--ink-soft); font-size: .8rem; }
+@media (max-width: 700px) { .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.admin-feedback-panel { padding: 20px 17px; } }
+@media (max-width: 560px) { .admin-dashboard .admin-panel-heading { align-items: flex-start; }.admin-stat { min-height: 90px; padding: 14px; }.admin-stat strong { font-size: 1.4rem; }.admin-feedback-heading { align-items: flex-start; flex-direction: column; gap: 6px; } }
+
 .admin-users-panel { padding: 28px; border: 1px solid var(--line); border-radius: 16px; background: white; box-shadow: var(--shadow); }
 .admin-user-count { color: var(--ink-soft); font-size: 0.78rem; }
 .admin-users-search { display: grid; max-width: 420px; gap: 7px; margin: 20px 0; color: var(--ink-soft); font-size: 0.72rem; font-weight: 700; }
@@ -32,3 +53,21 @@
 	.admin-users-table td:last-child { border-bottom: 0; }
 	.admin-users-table td::before { color: var(--ink-soft); content: attr(data-label); font-size: 0.68rem; font-weight: 700; }
 }
+
+.admin-export-panel { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.admin-export-panel[hidden] { display: none; }
+.admin-export-note { color: var(--ink-soft); font-size: 0.78rem; line-height: 1.6; }
+.admin-export-panel textarea { display: block; width: 100%; min-height: 220px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #f7fafc; font: 0.72rem/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+.admin-export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.admin-export-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-exam-source { flex: 0 0 auto; color: var(--teal-dark); font-size: 0.68rem; font-weight: 700; }
+
+.admin-list-panel, .admin-form-panel, .admin-exam-list, .admin-exam-item { min-width: 0; }
+
+.admin-export-panel { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.admin-export-panel[hidden] { display: none; }
+.admin-export-note { color: var(--ink-soft); font-size: 0.78rem; line-height: 1.6; }
+.admin-export-panel textarea { display: block; width: 100%; min-height: 220px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #f7fafc; font: 0.72rem/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+.admin-export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.admin-export-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-exam-source { flex: 0 0 auto; color: var(--teal-dark); font-size: 0.68rem; font-weight: 700; }

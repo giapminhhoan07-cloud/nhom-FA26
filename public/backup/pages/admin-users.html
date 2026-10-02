@@ -16,9 +16,11 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
-      <nav class="main-nav" aria-label="Điều hướng quản trị">
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu"><span></span><span></span><span></span></button>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng quản trị">
+        <a href="admin-dashboard.html">Tổng quan</a>
         <a href="admin.html">Quản lý đề thi</a>
-        <a class="active" href="admin-users.html">Quản lý người dùng</a>
+        <a class="active" aria-current="page" href="admin-users.html">Quản lý người dùng</a>
       </nav>
     </div>
   </header>

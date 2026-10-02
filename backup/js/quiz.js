@@ -17,6 +17,35 @@ let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = (Number(exam.durationMinutes) || 45) * 60;
 let submitted = false;
+const progressStorageKey = `studysphere_quiz_progress_${standaloneTest ? "test" : "exam"}_${exam.id}`;
+
+function restoreProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(progressStorageKey) || "null");
+    if (!saved || !Array.isArray(saved.answers) || saved.answers.length !== questions.length) return;
+    answers = saved.answers;
+    currentIndex = Math.min(Math.max(Number(saved.currentIndex) || 0, 0), questions.length - 1);
+    remainingSeconds = Math.max(Number(saved.remainingSeconds) || 0, 0);
+  } catch {
+    localStorage.removeItem(progressStorageKey);
+  }
+}
+
+function saveProgress() {
+  if (submitted) return;
+  localStorage.setItem(progressStorageKey, JSON.stringify({
+    answers,
+    currentIndex,
+    remainingSeconds,
+    savedAt: new Date().toISOString(),
+  }));
+}
+
+function clearProgress() {
+  localStorage.removeItem(progressStorageKey);
+}
+
+restoreProgress();
 
 const title = document.querySelector("#quiz-title");
 const timer = document.querySelector("#timer");
@@ -34,7 +63,17 @@ function renderQuestion() {
     ? `<label class="short-answer-field">Nhập câu trả lời<input type="text" name="answer" value="${answers[currentIndex] || ""}" placeholder="Nhập đáp án ngắn"></label>`
     : question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("");
   card.innerHTML = `<p class="question-number">${question.type === "short_answer" ? "Trả lời ngắn" : "Trắc nghiệm"} · Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}${question.difficultyName ? ` · ${question.difficultyName}` : ""}</p>${question.image_url ? `<img class="question-image" style="display:block;max-width:100%;max-height:360px;margin:0 0 24px;border-radius:8px;object-fit:contain" src="${question.image_url}" alt="Hình minh họa cho câu hỏi ${currentIndex + 1}">` : ""}<h1>${question.content}</h1><div class="answer-list">${answerMarkup}</div>`;
-  card.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => { answers[currentIndex] = question.type === "short_answer" ? input.value : Number(input.value); renderQuestion(); renderDots(); }));
+  card.querySelectorAll("input").forEach((input) => {
+    const updateAnswer = () => {
+      answers[currentIndex] = question.type === "short_answer" ? input.value : Number(input.value);
+      saveProgress();
+      if (question.type !== "short_answer") {
+        renderQuestion();
+        renderDots();
+      }
+    };
+    input.addEventListener(question.type === "short_answer" ? "input" : "change", updateAnswer);
+  });
   document.querySelector("#previous-button").disabled = currentIndex === 0;
   document.querySelector("#next-button").textContent = currentIndex === questions.length - 1 ? "Xem lại bài →" : "Câu tiếp theo →";
 }
@@ -42,6 +81,7 @@ function renderDots() { dots.innerHTML = questions.map((_, index) => `<button cl
 async function submitQuiz() {
   if (submitted) return;
   submitted = true;
+  clearProgress();
 
   const currentUser = (() => {
     try {
@@ -110,21 +150,26 @@ async function submitQuiz() {
       throw new Error(data.message || "Không thể lưu bài làm.");
     }
 
+    const savedAttemptId = String(data.attempt_id || result.attemptId);
+    const savedResult = { ...result, attemptId: savedAttemptId };
     const localHistory = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-    localHistory.unshift({ ...result, attemptId: String(data.attempt_id || result.attemptId) });
+    localHistory.unshift(savedResult);
     localStorage.setItem("studysphere_history", JSON.stringify(localHistory));
-    localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
+    const storedResult = JSON.stringify({ result: savedResult, questions });
+    localStorage.setItem(`studysphere_result_${savedAttemptId}`, storedResult);
+    localStorage.setItem(`studysphere_result_${result.attemptId}`, storedResult);
 
-    window.location.href = `result.html?attempt=${encodeURIComponent(data.attempt_id || result.attemptId)}`;
+    window.location.href = `result.html?attempt=${encodeURIComponent(savedAttemptId)}`;
   } catch (error) {
     console.error(error);
     saveLocalResult();
   }
 }
-function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) submitQuiz(); remainingSeconds -= 1; }
+function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) { submitQuiz(); return; } remainingSeconds -= 1; saveProgress(); }
 
-document.querySelector("#previous-button").addEventListener("click", () => { if (currentIndex > 0) { currentIndex -= 1; renderQuestion(); renderDots(); } });
-document.querySelector("#next-button").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex += 1; renderQuestion(); renderDots(); } else { document.querySelector("#submit-button").focus(); } });
-dots.addEventListener("click", (event) => { const button = event.target.closest("[data-index]"); if (button) { currentIndex = Number(button.dataset.index); renderQuestion(); renderDots(); } });
+document.querySelector("#previous-button").addEventListener("click", () => { if (currentIndex > 0) { currentIndex -= 1; saveProgress(); renderQuestion(); renderDots(); } });
+document.querySelector("#next-button").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex += 1; saveProgress(); renderQuestion(); renderDots(); } else { document.querySelector("#submit-button").focus(); } });
+dots.addEventListener("click", (event) => { const button = event.target.closest("[data-index]"); if (button) { currentIndex = Number(button.dataset.index); saveProgress(); renderQuestion(); renderDots(); } });
 document.querySelector("#submit-button").addEventListener("click", () => { if (window.confirm("Bạn chắc chắn muốn nộp bài?")) submitQuiz(); });
+window.addEventListener("pagehide", saveProgress);
 renderQuestion(); renderDots(); updateTimer(); setInterval(updateTimer, 1000);

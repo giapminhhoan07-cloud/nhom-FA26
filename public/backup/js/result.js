@@ -1,7 +1,16 @@
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
 const fallbackKey = `studysphere_result_${attemptId}`;
-const fallbackStored = JSON.parse(localStorage.getItem(fallbackKey) || "null");
+const readLocalData = (key, fallback) => {
+  try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
+};
+const fallbackStored = readLocalData(fallbackKey, null);
 const card = document.querySelector("#result-card");
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
 
 function getOptionLabel(index) {
   return String.fromCharCode(65 + index);
@@ -30,33 +39,33 @@ function normalizeAttemptData(stored) {
   return null;
 }
 
-const currentUser = (() => {
-  try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-  } catch {
-    return null;
-  }
-})();
-
 let stored = normalizeAttemptData(fallbackStored);
 
+const currentUser = readLocalData("studysphere_current_user", null);
+
 if (!stored && attemptId && currentUser?.id) {
-  const response = await fetch("../api/attempts.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
-  });
-  const data = await response.json();
-  if (response.ok && data.success) {
-    stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+  try {
+    const response = await fetch("../api/attempts.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
+      }
+    }
+  } catch {
+    stored = null;
   }
 }
 
 if (!stored) {
-  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="tests.html">Về bài kiểm tra</a>';
-  throw new Error('No result');
+  card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
 }
 
+if (stored) {
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
 const retryHref = result.quizKind === "practice-test"
@@ -153,6 +162,14 @@ card.innerHTML = `
     </div>
     <div class="review-list" id="review-list">${buildReviewMarkup()}</div>
   </section>
+  <section class="feedback-section" aria-labelledby="feedback-title">
+    <div class="review-header"><h2 id="feedback-title">Đánh giá bài kiểm tra</h2></div>
+    <form class="feedback-form" id="feedback-form">
+      <fieldset class="feedback-rating"><legend>Mức độ hài lòng của bạn</legend><div class="feedback-stars">${[1, 2, 3, 4, 5].map((rating) => `<label><input type="radio" name="rating" value="${rating}" required><span aria-hidden="true">★</span><span class="feedback-sr-only">${rating} sao</span></label>`).join("")}</div></fieldset>
+      <label class="feedback-comment" for="feedback-comment">Bình luận <span>(không bắt buộc)</span><textarea id="feedback-comment" name="comment" maxlength="500" rows="3" placeholder="Chia sẻ cảm nhận về đề thi"></textarea></label>
+      <div class="feedback-submit-row"><p class="feedback-message" id="feedback-message" aria-live="polite"></p><button class="button button-primary" type="submit">Gửi đánh giá</button></div>
+    </form>
+  </section>
 
   <div class="review-modal-overlay" id="review-modal-overlay" hidden>
     <div class="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
@@ -194,6 +211,47 @@ const reviewModalOverlay = document.querySelector("#review-modal-overlay");
 const reviewModalQuestion = document.querySelector("#review-modal-question");
 const reviewTrigger = document.querySelector(".review-trigger");
 const reviewModalClose = document.querySelector(".review-modal-close");
+const feedbackForm = document.querySelector("#feedback-form");
+const feedbackMessage = document.querySelector("#feedback-message");
+const storedFeedback = readLocalData("studysphere_feedback", []);
+const existingFeedback = Array.isArray(storedFeedback) ? storedFeedback.find((item) => item.attemptId === result.attemptId) : null;
+
+function renderSelectedRating() {
+  const selectedRating = Number(feedbackForm.elements.rating.value);
+  feedbackForm.querySelectorAll(".feedback-stars label").forEach((label, index) => {
+    label.classList.toggle("is-selected", index < selectedRating);
+  });
+}
+
+feedbackForm.querySelectorAll('input[name="rating"]').forEach((input) => input.addEventListener("change", renderSelectedRating));
+
+if (existingFeedback) {
+  feedbackForm.elements.rating.value = String(existingFeedback.rating);
+  feedbackForm.elements.comment.value = existingFeedback.comment || "";
+  feedbackForm.querySelector("button[type=submit]").textContent = "Cập nhật đánh giá";
+  renderSelectedRating();
+}
+
+feedbackForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!feedbackForm.reportValidity()) return;
+  const currentUser = readLocalData("studysphere_current_user", null);
+  const feedback = readLocalData("studysphere_feedback", []);
+  const entry = {
+    attemptId: result.attemptId,
+    examId: result.examId,
+    examTitle: result.examTitle,
+    userName: currentUser?.name || currentUser?.email || "Người học",
+    rating: Number(feedbackForm.elements.rating.value),
+    comment: feedbackForm.elements.comment.value.trim(),
+    submittedAt: new Date().toISOString(),
+  };
+  const updatedFeedback = Array.isArray(feedback) ? feedback.filter((item) => item.attemptId !== result.attemptId) : [];
+  updatedFeedback.unshift(entry);
+  localStorage.setItem("studysphere_feedback", JSON.stringify(updatedFeedback));
+  feedbackMessage.textContent = "Đã lưu đánh giá của bạn.";
+  feedbackForm.querySelector("button[type=submit]").textContent = "Cập nhật đánh giá";
+});
 
 function renderQuestionDetail(index) {
   const question = questions[index];
@@ -286,3 +344,4 @@ filterButtons.forEach((button) => {
 
 const defaultButton = document.querySelector('.review-filter-button[data-filter="all"]');
 if (defaultButton) defaultButton.classList.add("is-active");
+}

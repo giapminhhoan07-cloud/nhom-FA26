@@ -35,3 +35,9 @@
 .history-status.failed { color: #bd5845; background: #fae8e3; }
 .history-review { min-height: 36px; padding: 0 13px; font-family: var(--font-body); white-space: nowrap; font-size: 0.7rem; }
 @media (max-width: 760px) { .history-board { padding: 22px 17px; }.history-toolbar { grid-template-columns: 1fr; }.history-item { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; }.history-score { grid-column: 2; }.history-status { grid-column: 3; grid-row: 1; }.history-review { grid-column: 1 / -1; width: 100%; }.history-heading { align-items: flex-start; flex-direction: column; }.history-hero { padding: 58px 0 52px; } }
+
+.page-intro { padding: 52px 0 44px; }
+.page-intro + .section { padding-top: 42px; }
+@media (max-width: 760px) {
+	.page-intro { padding: 42px 0 36px; }
+}

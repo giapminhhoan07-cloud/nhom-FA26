@@ -1,4 +1,8 @@
+import { exams } from "../data/exams.js";
+
 (() => {
+let examCatalog = [...exams];
+let pendingUpload = null;
 const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
 })();
@@ -7,6 +11,7 @@ const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_a
 
 if (!isAdmin) {
   window.location.replace("auth.html?return=admin");
+  return;
 }
 
 const form = document.querySelector("#exam-form");
@@ -14,44 +19,93 @@ const list = document.querySelector("#admin-exam-list");
 const formMessage = document.querySelector("#form-message");
 const listMessage = document.querySelector("#list-message");
 const fileInput = document.querySelector("#exam-file");
-const localExamKey = "studysphere_custom_exams";
-let uploadedPdf = "";
-const getLocalExams = () => { try { return JSON.parse(localStorage.getItem(localExamKey) || "[]"); } catch { return []; } };
-const setLocalExams = (items) => localStorage.setItem(localExamKey, JSON.stringify(items));
+const exportPanel = document.querySelector("#export-panel");
+const exportNote = document.querySelector("#export-note");
+const exportSource = document.querySelector("#export-source");
+const copyExportButton = document.querySelector("#copy-export");
+const downloadExportButton = document.querySelector("#download-export");
+const saveToFolderButton = document.querySelector("#save-to-folder");
+
+if (!window.showDirectoryPicker) saveToFolderButton.hidden = true;
 
 const setMessage = (element, text, success = false) => {
   element.textContent = text;
   element.classList.toggle("success", success);
 };
 
-async function request(payload) {
+function readLocalData(key, fallback) {
   try {
-    const response = await fetch("../api/admin-exams.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    const result = await response.json();
-    if (response.ok) return result;
+    const value = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+    return value ?? fallback;
   } catch {
-    // Browser-only fallback when the PHP API is unavailable.
+    return fallback;
   }
+}
 
-  const localExams = getLocalExams();
-  if (payload.action === "list") return { exams: localExams };
-  if (payload.action === "get") return { exam: localExams.find((item) => item.id === payload.id) };
-  if (payload.action === "delete") {
-    setLocalExams(localExams.filter((item) => item.id !== payload.id));
-    return { message: "Đã xóa đề thi." };
-  }
-  const subjectNames = { toan: "Toán", "ngu-van": "Ngữ văn", "tieng-anh": "Tiếng Anh", "vat-ly": "Vật lý", "dia-li": "Địa lí", "lich-su": "Lịch sử" };
-  const difficultyNames = { easy: "Cơ bản", medium: "Trung bình", hard: "Khá khó" };
-  const exam = { ...payload, subject_name: subjectNames[payload.subject_id] || payload.subject_id, subjectName: subjectNames[payload.subject_id] || payload.subject_id, exam_type: payload.exam_type, type: payload.exam_type, typeName: payload.exam_type, difficultyName: difficultyNames[payload.difficulty] || payload.difficulty, question_count: 0, questionCount: 0, duration_minutes: payload.duration_minutes, durationMinutes: payload.duration_minutes };
-  if (payload.action === "update") setLocalExams(localExams.map((item) => item.id === exam.id ? exam : item));
-  else setLocalExams([...localExams.filter((item) => item.id !== exam.id), exam]);
-  return { message: "Đã lưu đề thi." };
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
+function renderDashboard() {
+  const history = readLocalData("studysphere_history", []);
+  const feedback = readLocalData("studysphere_feedback", []);
+  const attempts = Array.isArray(history) ? history : [];
+  const reviews = Array.isArray(feedback) ? feedback : [];
+  const scores = attempts.map((attempt) => Number(attempt.score)).filter(Number.isFinite);
+  const averageScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1) : "0.0";
+  const averageRating = reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
+  const stats = [
+    { label: "Đề thi", value: examCatalog.length },
+    { label: "Lượt làm bài", value: attempts.length },
+    { label: "Điểm trung bình", value: `${averageScore}/10` },
+    { label: "Đánh giá trung bình", value: `${averageRating}/5` },
+  ];
+  document.querySelector("#admin-stat-grid").innerHTML = stats.map(({ label, value }) => `<article class="admin-stat"><span>${label}</span><strong>${value}</strong></article>`).join("");
+
+  const feedbackList = document.querySelector("#admin-feedback-list");
+  const feedbackCount = document.querySelector("#admin-feedback-count");
+  feedbackCount.textContent = `${reviews.length} đánh giá`;
+  const recentReviews = [...reviews].sort((first, second) => new Date(second.submittedAt) - new Date(first.submittedAt)).slice(0, 12);
+  feedbackList.innerHTML = recentReviews.length ? recentReviews.map((item) => {
+    const rating = Math.max(0, Math.min(5, Number(item.rating) || 0));
+    const date = item.submittedAt ? new Date(item.submittedAt).toLocaleDateString("vi-VN") : "";
+    return `<article class="admin-feedback-item"><div class="admin-feedback-heading"><strong>${escapeHtml(item.examTitle || "Bài kiểm tra")}</strong><span class="admin-feedback-stars" aria-label="${rating} trên 5 sao">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</span></div><p>${escapeHtml(item.comment || "Chỉ gửi đánh giá sao.")}</p><span class="admin-feedback-meta">${escapeHtml(item.userName || "Người học")} · ${escapeHtml(date)}</span></article>`;
+  }).join("") : '<p class="admin-feedback-empty">Chưa có đánh giá nào. Phản hồi sẽ xuất hiện tại đây sau khi người học hoàn thành bài kiểm tra.</p>';
 }
 
 function getFormPayload() {
   const data = new FormData(form);
-  if (!uploadedPdf) throw new Error("Vui lòng chọn file PDF của đề thi.");
-  return { action: document.querySelector("#exam-action").value, id: data.get("id").trim(), title: data.get("title").trim(), subject_id: data.get("subject_id"), year: Number(data.get("year")), exam_type: data.get("exam_type").trim(), difficulty: data.get("difficulty"), duration_minutes: Number(data.get("duration_minutes")), description: data.get("description").trim(), featured: data.get("featured") === "on" ? 1 : 0, document_url: uploadedPdf, documentUrl: uploadedPdf, document_name: fileInput.files[0]?.name || "Đề thi PDF" };
+  const file = fileInput.files[0];
+  if (!file) throw new Error("Vui lòng chọn file PDF của đề thi.");
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) throw new Error("File đã chọn không phải PDF.");
+
+  const id = data.get("id").trim();
+  if (examCatalog.some((exam) => exam.id === id)) throw new Error("Mã đề đã tồn tại trong kho đề.");
+  const subjectId = data.get("subject_id");
+  const subjectNames = { toan: "Toán", "ngu-van": "Ngữ văn", "tieng-anh": "Tiếng Anh", "vat-ly": "Vật lý", "dia-li": "Địa lí", "lich-su": "Lịch sử" };
+  const type = data.get("exam_type");
+  const typeNames = { "minh-hoa": "Đề minh họa", "khao-sat": "Đề khảo sát", "thi-thu": "Đề thi thử", "on-tap": "Đề ôn tập", thpt: "Tốt nghiệp THPT" };
+  const difficulty = data.get("difficulty");
+  const difficultyNames = { easy: "Cơ bản", medium: "Trung bình", hard: "Khá khó" };
+  const exam = {
+    id,
+    title: data.get("title").trim(),
+    subjectId,
+    subjectName: subjectNames[subjectId] || subjectId,
+    year: Number(data.get("year")),
+    type,
+    typeName: typeNames[type],
+    difficulty,
+    difficultyName: difficultyNames[difficulty],
+    durationMinutes: Number(data.get("duration_minutes")),
+    questionCount: 0,
+    description: data.get("description").trim(),
+    documentUrl: `../documents/${id}.pdf`,
+    featured: data.get("featured") === "on",
+  };
+  return { exam, pdfPath: `public/backup/documents/${id}.pdf` };
 }
 
 function resetForm() {
@@ -61,68 +115,41 @@ function resetForm() {
   document.querySelector("#exam-id").readOnly = false;
   document.querySelector("#exam-year").value = 2026;
   document.querySelector("#exam-duration").value = 60;
-  uploadedPdf = "";
+  exportPanel.hidden = true;
+  exportSource.value = "";
+  pendingUpload = null;
+  copyExportButton.disabled = true;
+  downloadExportButton.disabled = true;
   setMessage(formMessage, "");
 }
 
-function fillForm(exam) {
-  document.querySelector("#exam-action").value = "create";
-  document.querySelector("#form-title").textContent = "Upload đề mới";
-  document.querySelector("#exam-id").readOnly = false;
-  document.querySelector("#exam-id").value = exam.id || "";
-  document.querySelector("#exam-title").value = exam.title || "";
-  document.querySelector("#exam-subject").value = exam.subject_id || exam.subjectId || "toan";
-  document.querySelector("#exam-year").value = exam.year || 2026;
-  document.querySelector("#exam-type").value = exam.exam_type || exam.type || "on-tap";
-  document.querySelector("#exam-difficulty").value = exam.difficulty || "medium";
-  document.querySelector("#exam-duration").value = exam.duration_minutes || exam.durationMinutes || 60;
-  document.querySelector("#exam-description").value = exam.description || "";
-  document.querySelector("#exam-featured").checked = Boolean(exam.featured);
-  uploadedPdf = exam.document_url || exam.documentUrl || "";
-}
-
 function renderList(exams) {
-  if (!exams.length) { list.innerHTML = '<div class="admin-empty">Chưa có đề thi trong cơ sở dữ liệu.</div>'; return; }
-  list.innerHTML = exams.map((exam) => `<article class="admin-exam-item"><div><span>${exam.subject_name} · ${exam.year}</span><h3>${exam.title}</h3><small>PDF đề thi · ${exam.duration_minutes} phút</small></div><div class="admin-item-actions"><button class="admin-edit" type="button" data-edit="${exam.id}">Sửa</button><button class="admin-delete" type="button" data-delete="${exam.id}">Xóa</button></div></article>`).join("");
+  if (!exams.length) { list.innerHTML = '<div class="admin-empty">Chưa có đề thi trong kho dữ liệu.</div>'; return; }
+  list.innerHTML = exams.map((exam) => {
+    const duration = Number(exam.durationMinutes) > 0 ? `${exam.durationMinutes} phút` : "Xem trong PDF";
+    return `<article class="admin-exam-item"><div><span>${exam.subjectName} · ${exam.year}</span><h3>${exam.title}</h3><small>${exam.typeName} · ${duration}</small></div><span class="admin-exam-source">${exam.documentUrl ? "PDF trong repo" : "Chưa gắn PDF"}</span></article>`;
+  }).join("");
 }
-
-async function loadExams() {
-  try { const result = await request({ action: "list" }); renderList(result.exams); } catch (error) { setMessage(listMessage, error.message); }
-}
-
-async function editExam(id) {
-  try {
-    const result = await request({ action: "get", id });
-    const exam = result.exam;
-    document.querySelector("#exam-action").value = "update";
-    document.querySelector("#form-title").textContent = "Chỉnh sửa đề thi";
-    document.querySelector("#exam-id").value = exam.id;
-    document.querySelector("#exam-title").value = exam.title;
-    document.querySelector("#exam-subject").value = exam.subject_id;
-    document.querySelector("#exam-year").value = exam.year;
-    document.querySelector("#exam-type").value = exam.exam_type;
-    document.querySelector("#exam-difficulty").value = exam.difficulty;
-    document.querySelector("#exam-duration").value = exam.duration_minutes;
-    document.querySelector("#exam-description").value = exam.description || "";
-    document.querySelector("#exam-featured").checked = Number(exam.featured) === 1;
-    uploadedPdf = exam.document_url || exam.documentUrl || "";
-    document.querySelector("#exam-id").readOnly = true;
-    document.querySelector("#form-title").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (error) { setMessage(listMessage, error.message); }
-}
-
-list.addEventListener("click", async (event) => {
-  const editButton = event.target.closest("[data-edit]");
-  const deleteButton = event.target.closest("[data-delete]");
-  if (editButton) await editExam(editButton.dataset.edit);
-  if (deleteButton && window.confirm("Xóa đề thi này? Lịch sử và đề yêu thích liên quan cũng sẽ bị xóa.")) {
-    try { await request({ action: "delete", id: deleteButton.dataset.delete }); setMessage(listMessage, "Đã xóa đề thi.", true); await loadExams(); } catch (error) { setMessage(listMessage, error.message); }
-  }
-});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  try { const result = await request(getFormPayload()); resetForm(); setMessage(formMessage, result.message, true); await loadExams(); } catch (error) { setMessage(formMessage, error.message); }
+  if (!form.reportValidity()) return;
+  try {
+    const { exam } = getFormPayload();
+    examCatalog = [...examCatalog, exam];
+    pendingUpload = { exam, file: fileInput.files[0] };
+    renderList(examCatalog);
+    renderDashboard();
+    const updatedExams = examCatalog;
+    exportSource.value = `export const exams = ${JSON.stringify(updatedExams, null, 2)};\n`;
+    exportNote.textContent = "Chọn thư mục public/backup để lưu PDF vào documents/ và cập nhật data/exams.js. Nếu không dùng được tính năng lưu thư mục, bạn vẫn có thể tải hoặc sao chép dữ liệu bên dưới.";
+    exportPanel.hidden = false;
+    copyExportButton.disabled = false;
+    downloadExportButton.disabled = false;
+    setMessage(formMessage, "Đã tạo bản ghi đề. Chọn Lưu vào thư mục chung để lưu PDF và dữ liệu vào workspace.", true);
+  } catch (error) {
+    setMessage(formMessage, error.message);
+  }
 });
 
 document.querySelector("#new-exam-button").addEventListener("click", resetForm);
@@ -132,17 +159,55 @@ fileInput.addEventListener("change", () => {
   if (!file) return;
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
     fileInput.value = "";
-    uploadedPdf = "";
     setMessage(formMessage, "Vui lòng chọn đúng file PDF.");
     return;
   }
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    uploadedPdf = reader.result;
-    setMessage(formMessage, `Đã chọn file ${file.name}. Kiểm tra thông tin rồi bấm Lưu đề thi.`, true);
-  });
-  reader.readAsDataURL(file);
+  setMessage(formMessage, `Đã chọn ${file.name}. PDF sẽ được lưu vào thư mục documents chung sau khi tạo bản ghi.`, true);
 });
+
+saveToFolderButton.addEventListener("click", async () => {
+  if (!pendingUpload) return;
+  try {
+    const root = await window.showDirectoryPicker({ mode: "readwrite" });
+    const documents = await root.getDirectoryHandle("documents", { create: true });
+    const data = await root.getDirectoryHandle("data", { create: true });
+    const pdfHandle = await documents.getFileHandle(`${pendingUpload.exam.id}.pdf`, { create: true });
+    const pdfWriter = await pdfHandle.createWritable();
+    await pdfWriter.write(pendingUpload.file);
+    await pdfWriter.close();
+    const dataHandle = await data.getFileHandle("exams.js", { create: true });
+    const dataWriter = await dataHandle.createWritable();
+    await dataWriter.write(exportSource.value);
+    await dataWriter.close();
+    setMessage(formMessage, "Đã lưu PDF vào documents/ và cập nhật data/exams.js trong thư mục đã chọn.", true);
+  } catch (error) {
+    if (error.name !== "AbortError") setMessage(formMessage, `Không lưu được vào thư mục: ${error.message}`);
+  }
+});
+
+copyExportButton.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(exportSource.value);
+    setMessage(formMessage, "Đã sao chép dữ liệu exams.js.", true);
+  } catch {
+    exportSource.select();
+    document.execCommand("copy");
+    setMessage(formMessage, "Đã chọn nội dung. Nhấn Ctrl+C để sao chép.");
+  }
+});
+
+downloadExportButton.addEventListener("click", () => {
+  const file = new Blob([exportSource.value], { type: "text/javascript;charset=utf-8" });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "exams.js";
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+renderList(examCatalog);
+renderDashboard();
 resetForm();
-loadExams();
+document.querySelector("#exam-year").value = new Date().getFullYear();
 })();
