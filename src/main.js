@@ -1,4 +1,17 @@
 import { exams } from "../backup/data/exams.js";
+import { shouldRedirectToAdminDashboard } from "./redirectPolicy.js";
+
+const currentUser = (() => {
+  try {
+    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
+  } catch {
+    return null;
+  }
+})();
+
+if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser)) {
+  window.location.replace("/backup/pages/admin-dashboard.html");
+}
 
 document.querySelector("#app").innerHTML = `
     <header class="site-header">
