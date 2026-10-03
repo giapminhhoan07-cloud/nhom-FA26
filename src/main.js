@@ -17,7 +17,7 @@ const readStoredUser = () => {
 };
 const currentUser = readStoredUser();
 
-if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser)) {
+if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser, window.location.search)) {
   window.location.replace("/backup/pages/admin-dashboard.html");
 }
 

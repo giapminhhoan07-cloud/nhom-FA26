@@ -3,8 +3,9 @@ export function hasAdminRole(user) {
   return user.role === 'admin' || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1;
 }
 
-export function shouldRedirectToAdminDashboard(pathname, user) {
+export function shouldRedirectToAdminDashboard(pathname, user, search = '') {
   if (!hasAdminRole(user)) return false;
+  if (new URLSearchParams(search).get('from') === 'admin') return false;
 
   const normalized = (pathname || '/').split('?')[0].split('#')[0];
   const trimmed = normalized.replace(/\/+$/, '') || '/';
