@@ -8,6 +8,7 @@ test('redirects admin from home page to admin dashboard', () => {
   assert.equal(shouldRedirectToAdminDashboard('/', adminUser), true);
   assert.equal(shouldRedirectToAdminDashboard('/index.html', adminUser), true);
   assert.equal(shouldRedirectToAdminDashboard('/backup/index.html', adminUser), true);
+  assert.equal(shouldRedirectToAdminDashboard('/', adminUser, '?from=admin'), false);
 });
 
 test('does not redirect regular users or other pages', () => {
