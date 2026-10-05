@@ -1,26 +1,48 @@
+import { resetLocalPassword } from "./passwordRecovery.js";
+
 const tabs = document.querySelectorAll("[data-auth-tab]");
 const returnTarget = new URLSearchParams(window.location.search).get("return");
+const authTabs = document.querySelector(".auth-tabs");
 const panels = {
   login: document.querySelector("#login-panel"),
   register: document.querySelector("#register-panel"),
+  reset: document.querySelector("#reset-panel"),
 };
 
-function switchTab(name) {
+function showPanel(name) {
+  authTabs.hidden = name === "reset";
   tabs.forEach((tab) => {
     const active = tab.dataset.authTab === name;
     tab.classList.toggle("active", active);
     tab.setAttribute("aria-selected", String(active));
   });
   Object.entries(panels).forEach(([key, panel]) => { panel.hidden = key !== name; });
-  document.title = name === "login" ? "Đăng nhập | StudySphere" : "Đăng ký | StudySphere";
+  document.title = name === "register"
+    ? "Đăng ký | StudySphere"
+    : name === "reset" ? "Đặt lại mật khẩu | StudySphere" : "Đăng nhập | StudySphere";
 }
 
 document.addEventListener("click", (event) => {
   const tab = event.target.closest("[data-auth-tab]");
   const switchButton = event.target.closest("[data-switch-tab]");
+  const resetButton = event.target.closest("[data-show-reset]");
   const passwordToggle = event.target.closest("[data-password-toggle]");
-  if (tab) switchTab(tab.dataset.authTab);
-  if (switchButton) switchTab(switchButton.dataset.switchTab);
+  if (tab) showPanel(tab.dataset.authTab);
+  if (switchButton) showPanel(switchButton.dataset.switchTab);
+  if (resetButton) {
+    const loginEmail = document.querySelector('#login-form [name="email"]').value.trim();
+    const resetEmail = document.querySelector('#reset-form [name="email"]');
+    resetEmail.value = loginEmail;
+    document.querySelector("#reset-form").reset();
+    resetEmail.value = loginEmail;
+    document.querySelector("#reset-message").textContent = "";
+    document.querySelectorAll("#reset-form .form-field-error").forEach((error) => {
+      error.textContent = "";
+      error.hidden = true;
+    });
+    showPanel("reset");
+    resetEmail.focus();
+  }
   if (passwordToggle) {
     const input = document.getElementById(passwordToggle.dataset.passwordToggle);
     if (!input) return;
@@ -38,6 +60,7 @@ const setMessage = (id, text, success = false) => {
 };
 
 const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const LOCAL_PASSWORD_RESET_EMAILS_KEY = "studysphere_local_password_reset_emails";
 const readStoredUser = () => {
   for (const key of CURRENT_USER_KEYS) {
     try {
@@ -71,6 +94,16 @@ const getLocalUsers = () => {
 };
 
 const setLocalUsers = (users) => localStorage.setItem("studysphere_users", JSON.stringify(users));
+const hasLocalPasswordReset = (email) => {
+  const resetEmails = JSON.parse(localStorage.getItem(LOCAL_PASSWORD_RESET_EMAILS_KEY) || "[]");
+  return Array.isArray(resetEmails) && resetEmails.includes(email);
+};
+const rememberLocalPasswordReset = (email) => {
+  const resetEmails = JSON.parse(localStorage.getItem(LOCAL_PASSWORD_RESET_EMAILS_KEY) || "[]");
+  if (!Array.isArray(resetEmails)) throw new Error("Không thể đọc trạng thái đặt lại mật khẩu.");
+  if (!resetEmails.includes(email)) resetEmails.push(email);
+  localStorage.setItem(LOCAL_PASSWORD_RESET_EMAILS_KEY, JSON.stringify(resetEmails));
+};
 const readLocalMap = (key) => {
   try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
 };
@@ -99,6 +132,10 @@ const submitAuth = async (payload) => {
     const userStatuses = readLocalMap(userStatusKey);
     if (localUser && userStatuses[localUser.id || localUser.email] === "locked") {
       throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
+    }
+    if (hasLocalPasswordReset(payload.email)) {
+      if (!localUser || localUser.password !== payload.password) throw new Error("Email hoặc mật khẩu không đúng.");
+      return { success: true, user: normalizeUser(localUser) };
     }
   }
 
@@ -202,4 +239,73 @@ loginForm?.addEventListener("submit", async (event) => {
   } catch (error) {
     setMessage("login-message", error.message);
   }
+});
+
+const resetForm = document.querySelector("#reset-form");
+resetForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const emailInput = resetForm.elements.namedItem("email");
+  const passwordInput = resetForm.elements.namedItem("password");
+  const confirmInput = resetForm.elements.namedItem("confirmPassword");
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
+  const confirmPassword = confirmInput.value;
+  const validation = [
+    {
+      input: emailInput,
+      errorId: "reset-email-error",
+      message: !email ? "Vui lòng nhập email tài khoản." : emailInput.validity.typeMismatch ? "Email chưa đúng định dạng." : "",
+    },
+    {
+      input: passwordInput,
+      errorId: "reset-password-error",
+      message: !password ? "Vui lòng nhập mật khẩu mới." : password.length < 6 ? "Mật khẩu cần ít nhất 6 ký tự." : "",
+    },
+    {
+      input: confirmInput,
+      errorId: "reset-confirm-password-error",
+      message: !confirmPassword ? "Vui lòng xác nhận mật khẩu mới." : confirmPassword !== password ? "Mật khẩu xác nhận không khớp." : "",
+    },
+  ];
+  let firstInvalid = null;
+  validation.forEach(({ input, errorId, message }) => {
+    const error = document.querySelector(`#${errorId}`);
+    error.textContent = message;
+    error.hidden = !message;
+    input.setAttribute("aria-invalid", String(Boolean(message)));
+    if (message && !firstInvalid) firstInvalid = input;
+  });
+  if (firstInvalid) {
+    firstInvalid.focus();
+    return;
+  }
+
+  try {
+    const users = getLocalUsers();
+    const { updatedUsers } = resetLocalPassword(users, email, password);
+    setLocalUsers(updatedUsers);
+    rememberLocalPasswordReset(email);
+
+    const currentUser = readStoredUser();
+    if (currentUser?.email?.trim().toLowerCase() === email) {
+      CURRENT_USER_KEYS.forEach((key) => localStorage.removeItem(key));
+    }
+
+    resetForm.reset();
+    setMessage("reset-message", "Mật khẩu đã được đổi trên trình duyệt này. Bạn có thể đăng nhập bằng mật khẩu mới.", true);
+  } catch (error) {
+    setMessage("reset-message", error.message);
+  }
+});
+
+resetForm?.addEventListener("input", (event) => {
+  const input = event.target;
+  const errorId = input.getAttribute("aria-describedby");
+  if (!errorId) return;
+  const error = document.getElementById(errorId);
+  if (error) {
+    error.textContent = "";
+    error.hidden = true;
+  }
+  input.setAttribute("aria-invalid", "false");
 });
