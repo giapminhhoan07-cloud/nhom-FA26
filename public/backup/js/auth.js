@@ -3,6 +3,7 @@ import { resetLocalPassword } from "./passwordRecovery.js";
 const tabs = document.querySelectorAll("[data-auth-tab]");
 const returnTarget = new URLSearchParams(window.location.search).get("return");
 const authTabs = document.querySelector(".auth-tabs");
+const AUTH_NOTICE_KEY = "studysphere_auth_success_notice";
 const panels = {
   login: document.querySelector("#login-panel"),
   register: document.querySelector("#register-panel"),
@@ -203,6 +204,7 @@ registerForm?.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "register", name, email, password });
     writeStoredUser(result.user);
+    sessionStorage.setItem(AUTH_NOTICE_KEY, "register");
     window.location.href = "../index.html";
   } catch (error) {
     setMessage("register-message", error.message);
@@ -227,6 +229,7 @@ loginForm?.addEventListener("submit", async (event) => {
   try {
     const result = await submitAuth({ action: "login", email, password });
     writeStoredUser(result.user);
+    sessionStorage.setItem(AUTH_NOTICE_KEY, "login");
     const returnPaths = {
       admin: "admin-dashboard.html#overview",
       "admin-users": "admin-users.html",
@@ -292,7 +295,11 @@ resetForm?.addEventListener("submit", (event) => {
     }
 
     resetForm.reset();
-    setMessage("reset-message", "Mật khẩu đã được đổi trên trình duyệt này. Bạn có thể đăng nhập bằng mật khẩu mới.", true);
+    document.querySelector('#login-form [name="email"]').value = email;
+    setMessage("reset-message", "");
+    showPanel("login");
+    setMessage("login-message", "Mật khẩu đã được đổi trên trình duyệt này. Hãy đăng nhập bằng mật khẩu mới.", true);
+    document.querySelector('#login-form [name="password"]').focus();
   } catch (error) {
     setMessage("reset-message", error.message);
   }

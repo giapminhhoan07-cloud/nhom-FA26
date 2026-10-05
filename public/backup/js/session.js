@@ -215,6 +215,31 @@ function addContactNavigationLink() {
   mainNav.append(link);
 }
 
+function showAuthSuccessNotice() {
+  const noticeKey = "studysphere_auth_success_notice";
+  const noticeType = sessionStorage.getItem(noticeKey);
+  if (noticeType !== "login" && noticeType !== "register") return;
+  sessionStorage.removeItem(noticeKey);
+
+  const notice = document.createElement("div");
+  notice.className = "site-notice";
+  notice.setAttribute("role", "status");
+  notice.setAttribute("aria-live", "polite");
+  const message = document.createElement("p");
+  message.textContent = noticeType === "register"
+    ? "Đăng ký thành công! Chào mừng bạn đến với StudySphere."
+    : "Đăng nhập thành công! Chào mừng bạn trở lại.";
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "site-notice-dismiss";
+  dismiss.setAttribute("aria-label", "Đóng thông báo");
+  dismiss.textContent = "×";
+  dismiss.addEventListener("click", () => notice.remove());
+  notice.append(message, dismiss);
+  document.body.append(notice);
+}
+
 addContactNavigationLink();
+showAuthSuccessNotice();
 syncSidebarState();
 renderAccount();
