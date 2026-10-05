@@ -141,4 +141,19 @@ function getPagePath(page) {
   return isBackupPage ? page : `/backup/pages/${page}`;
 }
 
+function addContactNavigationLink() {
+  const mainNav = document.querySelector(".main-nav");
+  if (!mainNav || mainNav.querySelector('a[href$="contact.html"]')) return;
+
+  const link = document.createElement("a");
+  link.href = getPagePath("contact.html");
+  link.textContent = "Liên hệ";
+  if (window.location.pathname.endsWith("/contact.html")) {
+    link.classList.add("active");
+    link.setAttribute("aria-current", "page");
+  }
+  mainNav.append(link);
+}
+
+addContactNavigationLink();
 if (currentUser) renderAccount();

@@ -1,2 +1,162 @@
-<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Liên hệ | StudySphere</title><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/layout.css"><link rel="stylesheet" href="../css/pages.css"><script defer src="../js/session.js"></script></head>
-<body><header class="site-header"><div class="container header-inner"><a class="brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><nav class="main-nav"><a href="../index.html">Trang chủ</a></nav></div></header><main><section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Kết nối với nhóm</p><h1>Liên hệ</h1><p>StudySphere được thực hiện bởi nhóm sinh viên với mục tiêu tạo một không gian ôn thi dễ dùng và tập trung.</p></div></section></main><footer class="site-footer"><div class="container footer-inner"><p>© 2026 StudySphere</p></div></footer></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tìm câu trả lời và nhận hỗ trợ khi sử dụng StudySphere.">
+  <title>Liên hệ &amp; Hỗ trợ | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/contact.css">
+  <script type="module" src="../js/contact.js"></script>
+  <script defer src="../js/session.js"></script>
+</head>
+<body class="contact-body">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+        <span class="brand-mark">S</span>
+        <span>Study<span>Sphere</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+        <a href="../index.html">Trang chủ</a>
+        <a href="../tests/index.html">Bài kiểm tra</a>
+        <a href="history.html">Lịch sử</a>
+        <a href="favorites.html">Đề đã lưu</a>
+        <a class="active" href="contact.html" aria-current="page">Liên hệ</a>
+      </nav>
+      <a class="header-action" href="auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main class="contact-page">
+    <section class="support-hero">
+      <div class="container support-hero-inner">
+        <div class="support-hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> Trung tâm hỗ trợ</p>
+          <h1>Bạn cần hỗ trợ?</h1>
+          <p>Hãy chọn câu hỏi bên dưới hoặc nhập vấn đề của bạn. StudySphere sẽ giúp bạn tìm câu trả lời nhanh nhất.</p>
+        </div>
+        <div class="support-hero-mark" aria-hidden="true">?</div>
+      </div>
+    </section>
+
+    <section class="support-section" aria-labelledby="support-search-title">
+      <div class="container">
+        <div class="support-search-card">
+          <label for="faq-search" id="support-search-title">Bạn đang gặp vấn đề gì?</label>
+          <div class="support-search-input">
+            <span aria-hidden="true">⌕</span>
+            <input id="faq-search" type="search" placeholder="Nhập câu hỏi của bạn..." autocomplete="off" aria-describedby="search-hint">
+          </div>
+          <p class="support-search-hint" id="search-hint">Ví dụ: Tôi quên mật khẩu · Làm thế nào để làm bài thi? · Tôi muốn xem điểm · Tôi không thể đăng nhập</p>
+        </div>
+
+        <div class="support-section-heading">
+          <div>
+            <p class="eyebrow">Giải đáp nhanh</p>
+            <h2>Câu hỏi thường gặp</h2>
+          </div>
+          <p class="support-result-count" id="faq-result-count" aria-live="polite"></p>
+        </div>
+
+        <div class="faq-layout">
+          <nav class="faq-categories" id="faq-categories" aria-label="Chủ đề câu hỏi"></nav>
+          <div class="faq-results" id="faq-results" aria-live="polite"></div>
+        </div>
+
+        <section class="contact-form-section" id="contact-form-section" aria-labelledby="contact-form-title">
+          <div class="contact-form-intro">
+            <p class="eyebrow">Cần hỗ trợ thêm?</p>
+            <h2 id="contact-form-title">Liên hệ tư vấn viên</h2>
+            <p>Hãy để lại thông tin và mô tả vấn đề để chúng tôi hiểu bạn cần giúp gì.</p>
+          </div>
+          <div class="contact-form-card">
+            <p class="form-notice" id="form-notice">
+              Biểu mẫu hiện chưa kết nối máy chủ nên thông tin sẽ không được gửi đi. Để đội ngũ nhận được câu hỏi, bạn có thể gửi email hỗ trợ ở cuối trang.
+            </p>
+            <form id="support-form" novalidate>
+              <div class="support-form-grid">
+                <div class="support-field">
+                  <label for="support-name">Họ và tên</label>
+                  <input id="support-name" name="name" type="text" autocomplete="name" placeholder="Nhập họ và tên" required maxlength="80" aria-describedby="name-error">
+                  <p class="field-error" id="name-error" hidden></p>
+                </div>
+                <div class="support-field">
+                  <label for="support-email">Email</label>
+                  <input id="support-email" name="email" type="email" autocomplete="email" placeholder="Nhập email của bạn" required aria-describedby="email-error">
+                  <p class="field-error" id="email-error" hidden></p>
+                </div>
+                <div class="support-field support-field-full">
+                  <label for="support-topic">Chủ đề</label>
+                  <select id="support-topic" name="topic" required aria-describedby="topic-error">
+                    <option value="">Chọn chủ đề</option>
+                    <option value="Tài khoản">Tài khoản</option>
+                    <option value="Bài thi">Bài thi</option>
+                    <option value="Kết quả">Kết quả</option>
+                    <option value="Đề thi">Đề thi</option>
+                    <option value="Lỗi website">Lỗi website</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                  <p class="field-error" id="topic-error" hidden></p>
+                </div>
+                <div class="support-field support-field-full">
+                  <label for="support-message">Nội dung</label>
+                  <textarea id="support-message" name="message" rows="5" placeholder="Mô tả vấn đề bạn đang gặp phải..." required maxlength="2000" aria-describedby="message-error"></textarea>
+                  <p class="field-error" id="message-error" hidden></p>
+                </div>
+              </div>
+              <button class="button button-primary" type="submit">Gửi yêu cầu hỗ trợ <span aria-hidden="true">→</span></button>
+            </form>
+            <div class="form-success" id="form-success" role="status" tabindex="-1" hidden>
+              <span class="form-success-icon" aria-hidden="true">✓</span>
+              <div>
+                <h3>Đã tiếp nhận yêu cầu!</h3>
+                <p>Cảm ơn bạn đã liên hệ. Yêu cầu mới chỉ được ghi nhận trên trang này, chưa được gửi đến đội ngũ StudySphere.</p>
+                <p>Để nhận hỗ trợ, hãy gửi email trực tiếp đến <a id="support-email-link" href="mailto:studysphere@gmail.com">studysphere@gmail.com</a>.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="support-contact" aria-labelledby="support-contact-title">
+          <div>
+            <p class="eyebrow">Chúng tôi luôn sẵn lòng lắng nghe</p>
+            <h2 id="support-contact-title">Bạn vẫn cần hỗ trợ?</h2>
+            <p>Gửi email cho StudySphere nếu bạn cần trao đổi trực tiếp.</p>
+          </div>
+          <div class="support-contact-details">
+            <a class="support-contact-card" id="support-contact-email" href="mailto:studysphere@gmail.com">
+              <span class="support-contact-icon" aria-hidden="true">@</span>
+              <span><small>Email hỗ trợ</small><strong>studysphere@gmail.com</strong></span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <div class="support-contact-card support-hours" id="support-hours">
+              <span class="support-contact-icon support-contact-icon-warm" aria-hidden="true">◷</span>
+              <span><small>Thời gian hỗ trợ</small><strong>Thông tin sẽ được cập nhật</strong></span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
+        <p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p>
+      </div>
+      <div class="footer-links">
+        <a href="about.html">Về StudySphere</a>
+        <a href="contact.html" aria-current="page">Liên hệ</a>
+        <span>© 2026 StudySphere</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
