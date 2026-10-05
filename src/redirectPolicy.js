@@ -1,13 +1,20 @@
 export function hasAdminRole(user) {
-  if (!user) return false;
-  return user.role === 'admin' || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1;
+  if (!user || typeof user !== 'object') return false;
+
+  const roleValue = typeof user.role === 'string' ? user.role.trim().toLowerCase() : '';
+  const adminFlagValue = user.is_admin ?? user.isAdmin;
+  const adminFlag = adminFlagValue === true || adminFlagValue === 1 || String(adminFlagValue ?? '').trim() === '1' || String(adminFlagValue ?? '').trim().toLowerCase() === 'true';
+
+  return roleValue === 'admin' || adminFlag;
 }
 
 export function shouldRedirectToAdminDashboard(pathname, user, search = '') {
   if (!hasAdminRole(user)) return false;
-  if (new URLSearchParams(search).get('from') === 'admin') return false;
 
-  const normalized = (pathname || '/').split('?')[0].split('#')[0];
+  const safeSearch = search == null ? '' : String(search);
+  if (new URLSearchParams(safeSearch).get('from') === 'admin') return false;
+
+  const normalized = String(pathname ?? '/').split('?')[0].split('#')[0];
   const trimmed = normalized.replace(/\/+$/, '') || '/';
   const homePaths = [
     '/',
