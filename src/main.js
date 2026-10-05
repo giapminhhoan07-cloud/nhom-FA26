@@ -36,6 +36,7 @@ document.querySelector("#app").innerHTML = `
           <a href="/backup/tests/">Bài kiểm tra</a>
           <a href="/backup/pages/history.html">Lịch sử</a>
           <a href="/backup/pages/favorites.html">Đề đã lưu</a>
+          <a href="/backup/pages/contact.html">Liên hệ</a>
         </nav>
         <a class="header-action" href="/backup/pages/auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
       </div>

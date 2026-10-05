@@ -15,6 +15,7 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
 - Đánh dấu câu sai để ôn tập hiệu quả
 - Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
+- Trung tâm hỗ trợ với FAQ tìm kiếm theo từ khóa và biểu mẫu liên hệ phía giao diện
 
 ## Công nghệ sử dụng
 
@@ -41,7 +42,18 @@ git clone https://github.com/giapminhhoan07-cloud/nhom-FA26.git
 
 Dự án này đang sử dụng localStorage để lưu trạng thái người dùng, lịch sử làm bài và kết quả bài làm. Vì vậy dữ liệu sẽ được lưu trong trình duyệt của người dùng.
 
+## Trung tâm hỗ trợ
+
+- Trang hỗ trợ: `public/backup/pages/contact.html`
+- FAQ và thông tin email/giờ hỗ trợ: `public/backup/data/supportFaq.js`
+- Từ đồng nghĩa dùng trong tìm kiếm: `public/backup/js/supportSearch.js`
+
+Để thêm câu hỏi, thêm một phần tử `{ question, answer, keywords }` vào `questions` của chủ đề phù hợp trong `supportFaq.js`. `keywords` là các từ/cụm từ người dùng có thể nhập để tìm câu hỏi. Có thể thêm chủ đề bằng cách thêm một mục `{ id, category, questions }` vào `faqData`. Nếu muốn tìm các cách diễn đạt tương đương ở nhiều câu hỏi, cập nhật nhóm từ khóa trong `supportSearch.js`.
+
+Email và thời gian hỗ trợ được cấu hình trong `supportContact` ở `supportFaq.js`. Biểu mẫu hiện chỉ chạy ở giao diện, chưa gửi hoặc lưu yêu cầu lên máy chủ.
+
+Chạy giao diện bằng `npm run dev`; kiểm tra bằng `npm test` và `npm run build`.
+
 ## Tác giả
 
 Dự án StudySphere được phát triển trong nhóm FA26.
-
