@@ -54,6 +54,12 @@ Email và thời gian hỗ trợ được cấu hình trong `supportContact` ở
 
 Chạy giao diện bằng `npm run dev`; kiểm tra bằng `npm test` và `npm run build`.
 
+## Đặt lại mật khẩu (bản demo)
+
+Trang đăng nhập có luồng `Quên mật khẩu?` dành riêng cho tài khoản demo lưu trong `localStorage` của trình duyệt hiện tại. Người dùng nhập email tài khoản và mật khẩu mới để cập nhật dữ liệu local; phiên đăng nhập hiện tại của tài khoản đó sẽ bị xóa.
+
+Luồng này không gửi email, không xác minh danh tính và không thể đổi mật khẩu tài khoản lưu ở backend hoặc trên thiết bị khác. Không dùng làm cơ chế khôi phục tài khoản thật; để triển khai an toàn cần backend, token dùng một lần có hạn sử dụng và dịch vụ email.
+
 ## Tác giả
 
 Dự án StudySphere được phát triển trong nhóm FA26.

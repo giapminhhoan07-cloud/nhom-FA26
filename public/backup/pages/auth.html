@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/auth.css">
-  <script defer src="../js/auth.js?v=3"></script>
+  <script type="module" src="../js/auth.js?v=4"></script>
 </head>
 <body class="auth-page">
   <header class="site-header">
@@ -40,6 +40,7 @@
             <button class="button button-primary auth-submit" type="submit">Đăng nhập <span aria-hidden="true">→</span></button>
             <p class="form-message" id="login-message" aria-live="polite"></p>
           </form>
+          <p class="auth-forgot"><button type="button" data-show-reset>Quên mật khẩu?</button></p>
           <p class="auth-switch">Chưa có tài khoản? <button type="button" data-switch-tab="register">Đăng ký ngay</button></p>
         </div>
         <div class="auth-panel" id="register-panel" role="tabpanel" hidden>
@@ -58,6 +59,24 @@
             <p class="form-message" id="register-message" aria-live="polite"></p>
           </form>
           <p class="auth-switch">Đã có tài khoản? <button type="button" data-switch-tab="login">Đăng nhập</button></p>
+        </div>
+        <div class="auth-panel" id="reset-panel" role="tabpanel" hidden>
+          <h2>Đặt lại mật khẩu</h2>
+          <p class="auth-subtitle">Cập nhật mật khẩu cho tài khoản dùng trên thiết bị này.</p>
+          <div class="auth-recovery-notice" role="note">
+            Chế độ demo: không gửi email hoặc xác minh danh tính. Chỉ dùng với tài khoản đã đăng ký trên trình duyệt này. Bất kỳ ai biết email đều có thể đổi mật khẩu.
+          </div>
+          <form id="reset-form" novalidate>
+            <label class="form-field">Email tài khoản<input type="email" name="email" autocomplete="email" placeholder="ban@example.com" required aria-describedby="reset-email-error"></label>
+            <p class="form-field-error" id="reset-email-error" hidden></p>
+            <label class="form-field">Mật khẩu mới<span class="password-control"><input id="reset-password" type="password" name="password" autocomplete="new-password" placeholder="Ít nhất 6 ký tự" minlength="6" required aria-describedby="reset-password-error"><button class="password-toggle" type="button" data-password-toggle="reset-password" aria-label="Hiện mật khẩu">👁</button></span></label>
+            <p class="form-field-error" id="reset-password-error" hidden></p>
+            <label class="form-field">Xác nhận mật khẩu mới<span class="password-control"><input id="reset-confirm-password" type="password" name="confirmPassword" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới" minlength="6" required aria-describedby="reset-confirm-password-error"><button class="password-toggle" type="button" data-password-toggle="reset-confirm-password" aria-label="Hiện mật khẩu">👁</button></span></label>
+            <p class="form-field-error" id="reset-confirm-password-error" hidden></p>
+            <button class="button button-primary auth-submit" type="submit">Đặt lại mật khẩu <span aria-hidden="true">→</span></button>
+            <p class="form-message" id="reset-message" aria-live="polite"></p>
+          </form>
+          <p class="auth-switch">Nhớ mật khẩu rồi? <button type="button" data-switch-tab="login">Quay lại đăng nhập</button></p>
         </div>
       </div>
     </section>
