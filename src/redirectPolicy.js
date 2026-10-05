@@ -8,6 +8,22 @@ export function hasAdminRole(user) {
   return roleValue === 'admin' || adminFlag;
 }
 
+export function shouldRequireLogin(pathname, user) {
+  if (user) return false;
+
+  const normalized = String(pathname ?? '/').split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  const authPaths = [
+    '/auth.html',
+    '/backup/auth.html',
+    '/backup/pages/auth.html',
+    '/public/auth.html',
+    '/public/backup/pages/auth.html',
+  ];
+
+  if (authPaths.includes(normalized)) return false;
+  return !normalized.endsWith('/auth.html') && !normalized.endsWith('/backup/auth.html') && !normalized.endsWith('/backup/pages/auth.html');
+}
+
 export function shouldRedirectToAdminDashboard(pathname, user, search = '') {
   if (!hasAdminRole(user)) return false;
 

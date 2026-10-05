@@ -1,5 +1,5 @@
 import { exams } from "../backup/data/exams.js";
-import { shouldRedirectToAdminDashboard } from "./redirectPolicy.js";
+import { shouldRedirectToAdminDashboard, shouldRequireLogin } from "./redirectPolicy.js";
 
 const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
 const readStoredUser = () => {
@@ -16,6 +16,10 @@ const readStoredUser = () => {
   return null;
 };
 const currentUser = readStoredUser();
+
+if (shouldRequireLogin(window.location.pathname, currentUser)) {
+  window.location.replace("/backup/pages/auth.html");
+}
 
 if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser, window.location.search)) {
   window.location.replace("/backup/pages/admin-dashboard.html");
