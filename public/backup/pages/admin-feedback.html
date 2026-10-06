@@ -75,8 +75,8 @@
               <select id="feedback-status-filter">
                 <option value="all">Tất cả</option>
                 <option value="new">Mới</option>
-                <option value="reviewing">Đang xem xét</option>
-                <option value="resolved">Đã giải quyết</option>
+                <option value="processing">Đang xử lý</option>
+                <option value="processed">Đã xử lý</option>
               </select>
             </label>
             <label class="admin-filter-field">
@@ -91,7 +91,8 @@
               </select>
             </label>
           </div>
-          <div id="feedback-summary" class="admin-message" aria-live="polite"></div>
+          <div id="feedback-summary" class="admin-stat-grid" aria-live="polite"></div>
+          <p id="feedback-message" class="admin-message" role="status" aria-live="polite"></p>
           <div class="admin-exam-list" id="feedback-list"></div>
         </section>
       </section>

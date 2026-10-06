@@ -50,7 +50,7 @@ Dự án này đang sử dụng localStorage để lưu trạng thái người d
 
 Để thêm câu hỏi, thêm một phần tử `{ question, answer, keywords }` vào `questions` của chủ đề phù hợp trong `supportFaq.js`. `keywords` là các từ/cụm từ người dùng có thể nhập để tìm câu hỏi. Có thể thêm chủ đề bằng cách thêm một mục `{ id, category, questions }` vào `faqData`. Nếu muốn tìm các cách diễn đạt tương đương ở nhiều câu hỏi, cập nhật nhóm từ khóa trong `supportSearch.js`.
 
-Email và thời gian hỗ trợ được cấu hình trong `supportContact` ở `supportFaq.js`. Biểu mẫu hiện chỉ chạy ở giao diện, chưa gửi hoặc lưu yêu cầu lên máy chủ.
+Email và thời gian hỗ trợ được cấu hình trong `supportContact` ở `supportFaq.js`. Yêu cầu từ biểu mẫu được lưu trong `localStorage` với các phản hồi khác và hiển thị tại trang quản trị `admin-feedback.html`. Dữ liệu chỉ có trên trình duyệt/thiết bị đã gửi; hiện chưa có máy chủ nên không được đồng bộ cho quản trị viên ở thiết bị khác. Để gửi yêu cầu thực tế qua thiết bị, hãy liên hệ email hỗ trợ.
 
 Chạy giao diện bằng `npm run dev`; kiểm tra bằng `npm test` và `npm run build`.
 
