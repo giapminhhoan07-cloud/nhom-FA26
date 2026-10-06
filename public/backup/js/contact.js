@@ -8,6 +8,7 @@ const resultCount = document.querySelector("#faq-result-count");
 const contactForm = document.querySelector("#support-form");
 const contactFormSection = document.querySelector("#contact-form-section");
 const formSuccess = document.querySelector("#form-success");
+const formNotice = document.querySelector("#form-notice");
 const supportEmailLink = document.querySelector("#support-email-link");
 const supportContactEmail = document.querySelector("#support-contact-email");
 const supportHours = document.querySelector("#support-hours");
@@ -216,6 +217,27 @@ contactForm.addEventListener("submit", (event) => {
   const firstInvalid = fields.find(([, , message]) => message)?.[0];
   if (firstInvalid) {
     firstInvalid.focus();
+    return;
+  }
+
+  try {
+    const feedback = JSON.parse(localStorage.getItem("studysphere_feedback") || "[]");
+    if (!Array.isArray(feedback)) throw new Error("Dữ liệu phản hồi không hợp lệ.");
+    feedback.unshift({
+      id: `contact-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      source: "contact",
+      userName: nameInput.value.trim(),
+      email: emailInput.value.trim(),
+      type: topicInput.value,
+      comment: messageInput.value.trim(),
+      submittedAt: new Date().toISOString(),
+      status: "new",
+    });
+    localStorage.setItem("studysphere_feedback", JSON.stringify(feedback));
+  } catch {
+    formNotice.textContent = "Không thể lưu yêu cầu trong trình duyệt này. Vui lòng gửi email trực tiếp đến địa chỉ hỗ trợ bên dưới.";
+    formNotice.classList.add("is-error");
+    formNotice.focus();
     return;
   }
 
