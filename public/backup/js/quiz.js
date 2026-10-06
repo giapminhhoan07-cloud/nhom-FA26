@@ -1,14 +1,17 @@
 import { exams } from "../data/exams.js";
 import { questions as bundledQuestions } from "../data/questions.js";
 import { practiceTests } from "../tests/data/practice-tests.js";
+import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
+import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
 const testId = params.get("test");
 const standaloneTest = practiceTests.find((test) => test.id === testId);
 let exam = standaloneTest || exams.find((item) => item.id === examId) || exams[0];
-let questions = exam.questions || bundledQuestions;
-questions = questions.map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
+const questionPool = (exam.questions || bundledQuestions).map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
+let questionOrder = createQuestionOrder(questionPool.length);
+let questions = questionOrder.map((index) => questionPool[index]);
 let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = (Number(exam.durationMinutes) || 45) * 60;
@@ -18,8 +21,15 @@ const progressStorageKey = `studysphere_quiz_progress_${standaloneTest ? "test" 
 function restoreProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(progressStorageKey) || "null");
-    if (!saved || !Array.isArray(saved.answers) || saved.answers.length !== questions.length) return;
-    answers = saved.answers;
+    if (!saved || !Array.isArray(saved.answers) || saved.answers.length > questionPool.length) return;
+    const savedLength = saved.answers.length;
+    const savedOrder = Array.isArray(saved.questionOrder)
+      ? saved.questionOrder
+      : Array.from({ length: savedLength }, (_, index) => index);
+    if (!isValidQuestionOrder(savedOrder, savedLength)) return;
+    questionOrder = [...savedOrder, ...Array.from({ length: questionPool.length - savedLength }, (_, index) => savedLength + index)];
+    questions = questionOrder.map((index) => questionPool[index]);
+    answers = [...saved.answers, ...Array(questionPool.length - savedLength).fill(null)];
     currentIndex = Math.min(Math.max(Number(saved.currentIndex) || 0, 0), questions.length - 1);
     remainingSeconds = Math.max(Number(saved.remainingSeconds) || 0, 0);
   } catch {
@@ -31,6 +41,7 @@ function saveProgress() {
   if (submitted) return;
   localStorage.setItem(progressStorageKey, JSON.stringify({
     answers,
+    questionOrder,
     currentIndex,
     remainingSeconds,
     savedAt: new Date().toISOString(),
@@ -73,16 +84,13 @@ function renderQuestion() {
   document.querySelector("#previous-button").disabled = currentIndex === 0;
   document.querySelector("#next-button").textContent = currentIndex === questions.length - 1 ? "Xem lại bài →" : "Câu tiếp theo →";
 }
-function renderDots() { dots.innerHTML = questions.map((_, index) => `<button class="dot ${index === currentIndex ? "current" : ""} ${answers[index] !== null ? "answered" : ""}" type="button" data-index="${index}">${index + 1}</button>`).join(""); }
+function renderDots() { dots.innerHTML = questions.map((_, index) => `<button class="dot ${index === currentIndex ? "current" : ""} ${answers[index] !== null && answers[index] !== "" ? "answered" : ""}" type="button" data-index="${index}">${index + 1}</button>`).join(""); }
 async function submitQuiz() {
   if (submitted) return;
   submitted = true;
   clearProgress();
 
-  const isCorrect = (answer, question) => question.type === "short_answer"
-    ? String(answer || "").trim().toLowerCase() === String(question.answer || "").trim().toLowerCase()
-    : answer === question.correctAnswer;
-  const correctCount = answers.reduce((total, answer, index) => total + (isCorrect(answer, questions[index]) ? 1 : 0), 0);
+  const correctCount = answers.reduce((total, answer, index) => total + (isQuestionAnswerCorrect(answer, questions[index]) ? 1 : 0), 0);
   const result = {
     attemptId: `attempt-${Date.now()}`,
     examId: exam.id,
@@ -92,8 +100,8 @@ async function submitQuiz() {
     score: Number(((correctCount / questions.length) * 10).toFixed(2)),
     totalQuestions: questions.length,
     correctCount,
-    wrongCount: answers.filter((answer, index) => answer !== null && !isCorrect(answer, questions[index])).length,
-    unansweredCount: answers.filter((answer) => answer === null).length,
+    wrongCount: answers.filter((answer, index) => answer !== null && answer !== "" && !isQuestionAnswerCorrect(answer, questions[index])).length,
+    unansweredCount: answers.filter((answer) => answer === null || answer === "").length,
     answers,
   };
 

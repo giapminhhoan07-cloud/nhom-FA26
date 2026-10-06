@@ -8,6 +8,7 @@ import { historyUpcomingTests } from "../../data/practice-tests-history.js";
 import { informaticsUpcomingTests } from "../../data/practice-tests-informatics.js";
 import { literatureUpcomingTests } from "../../data/practice-tests-literature.js";
 import { mathUpcomingTests } from "../../data/practice-tests-math.js";
+import { additionalQuestionsByTestId } from "./questionAdditions.js";
 import { physicsUpcomingTests } from "../../data/practice-tests-physics.js";
 
 export const testGrades = [10, 11, 12];
@@ -46,14 +47,14 @@ export const testDifficulties = [
   { id: "upper", name: "Khá" },
   { id: "advanced", name: "Nâng cao" },
 ];
-export const practiceTests = [
+const basePracticeTests = [
   {
     id: "toan-12-trac-nghiem-20-cau",
     grade: 12,
     subjectId: "toan",
     subjectName: "Toán",
     title: "Bài kiểm tra Toán lớp 12",
-    description: "20 câu từ nhận biết đến vận dụng cao, bao quát các chuyên đề trọng tâm.",
+    description: "25 câu từ nhận biết đến vận dụng cao, bao quát các chuyên đề trọng tâm.",
     examType: "review",
     examTypeName: "Ôn tập",
     difficulty: "advanced",
@@ -67,7 +68,7 @@ export const practiceTests = [
     subjectId: "dia-li",
     subjectName: "Địa lí",
     title: "Bài kiểm tra Địa lí lớp 12",
-    description: "20 câu về địa lí tự nhiên, dân cư và các vùng kinh tế Việt Nam.",
+    description: "25 câu về địa lí tự nhiên, dân cư và các vùng kinh tế Việt Nam.",
     examType: "review",
     examTypeName: "Ôn tập",
     difficulty: "medium",
@@ -102,7 +103,7 @@ export const practiceTests = [
     subjectId: "lich-su",
     subjectName: "Lịch sử",
     title: "Bài kiểm tra Lịch sử lớp 12",
-    description: "20 câu về lịch sử Việt Nam và thế giới thời hiện đại, tăng dần độ khó.",
+    description: "25 câu về lịch sử Việt Nam và thế giới thời hiện đại, tăng dần độ khó.",
     examType: "review",
     examTypeName: "Ôn tập",
     difficulty: "upper",
@@ -227,6 +228,11 @@ export const practiceTests = [
     ],
   },
 ];
+
+export const practiceTests = basePracticeTests.map((test) => ({
+  ...test,
+  questions: [...test.questions, ...(additionalQuestionsByTestId[test.id] || [])],
+}));
 
 const availableSubjectGrades = new Set(practiceTests.map((test) => `${test.grade}-${test.subjectId}`));
 

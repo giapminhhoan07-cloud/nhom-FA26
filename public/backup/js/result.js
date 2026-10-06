@@ -1,3 +1,5 @@
+import { isQuestionAnswered, isQuestionAnswerCorrect } from "./questionAnswers.js";
+
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
 const fallbackKey = `studysphere_result_${attemptId}`;
 const readLocalData = (key, fallback) => {
@@ -77,33 +79,50 @@ function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {
     const selectedAnswer = result.answers?.[index];
     const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
-    const isCorrect = selectedIndex === question.correctAnswer;
-    const isWrong = selectedIndex !== null && selectedIndex !== question.correctAnswer;
-    const isUnanswered = selectedIndex === null;
+    const answered = isQuestionAnswered(selectedAnswer, question);
+    const isCorrect = isQuestionAnswerCorrect(selectedAnswer, question);
+    const isWrong = answered && !isCorrect;
+    const isUnanswered = !answered;
     const statusClass = isCorrect ? "is-correct" : isWrong ? "is-wrong" : "is-unanswered";
     const statusText = isCorrect ? "Đúng" : isWrong ? "Sai" : "Bỏ qua";
 
     const shouldRender = filter === "all" || (filter === "wrong" && isWrong) || (filter === "unanswered" && isUnanswered);
     if (!shouldRender) return "";
 
-    const optionsMarkup = question.options.map((option, optionIndex) => {
-      const isSelected = selectedIndex === optionIndex;
-      const isCorrectAnswer = optionIndex === question.correctAnswer;
-      const optionClasses = [
-        "review-option",
-        isSelected ? "selected" : "",
-        isCorrectAnswer ? "answer-correct" : "",
-        isWrong && isSelected ? "answer-selected-wrong" : "",
-      ].filter(Boolean).join(" ");
-
-      return `
-        <li class="${optionClasses}">
-          <span class="review-option-letter">${getOptionLabel(optionIndex)}</span>
-          <span class="review-option-text">${option}</span>
-          ${isCorrectAnswer ? '<span class="review-option-badge">Đáp án đúng</span>' : ""}
+    const optionsMarkup = question.type === "short_answer"
+      ? `
+        <li class="review-option ${isCorrect ? "answer-correct" : isWrong ? "answer-selected-wrong" : ""}">
+          <span class="review-option-text"><strong>Đáp án của bạn:</strong> ${escapeHtml(answered ? selectedAnswer : "Chưa trả lời")}</span>
         </li>
-      `;
-    }).join("");
+        <li class="review-option answer-correct">
+          <span class="review-option-text"><strong>Đáp án đúng:</strong> ${escapeHtml(question.answer)}</span>
+        </li>
+      `
+      : question.options.map((option, optionIndex) => {
+          const isSelected = selectedIndex === optionIndex;
+          const isCorrectAnswer = optionIndex === question.correctAnswer;
+          const optionClasses = [
+            "review-option",
+            isSelected ? "selected" : "",
+            isCorrectAnswer ? "answer-correct" : "",
+            isWrong && isSelected ? "answer-selected-wrong" : "",
+          ].filter(Boolean).join(" ");
+
+          return `
+            <li class="${optionClasses}">
+              <span class="review-option-letter">${getOptionLabel(optionIndex)}</span>
+              <span class="review-option-text">${option}</span>
+              ${isCorrectAnswer ? '<span class="review-option-badge">Đáp án đúng</span>' : ""}
+            </li>
+          `;
+        }).join("");
+
+    const answerFooter = question.type === "short_answer" ? "" : `
+      <div class="review-footer">
+        <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa trả lời" : getOptionLabel(selectedIndex)}</p>
+        <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+      </div>
+    `;
 
     return `
       <article class="review-item ${statusClass}">
@@ -113,10 +132,7 @@ function buildReviewMarkup(filter = "all") {
         </div>
         <h3>${question.content}</h3>
         <ul class="review-options">${optionsMarkup}</ul>
-        <div class="review-footer">
-          <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa trả lời" : `${getOptionLabel(selectedIndex)}`}</p>
-          <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
-        </div>
+        ${answerFooter}
         <p class="review-explanation">${question.explanation}</p>
       </article>
     `;
@@ -194,8 +210,8 @@ card.innerHTML = `
       <div class="review-modal-status-row">
         ${questions.map((_, i) => {
           const selected = result.answers?.[i];
-          const isCorrect = selected === questions[i].correctAnswer;
-          const state = selected === null ? "skip" : isCorrect ? "correct" : "wrong";
+          const isCorrect = isQuestionAnswerCorrect(selected, questions[i]);
+          const state = !isQuestionAnswered(selected, questions[i]) ? "skip" : isCorrect ? "correct" : "wrong";
           return `<button class="review-chip ${state}" type="button" data-question-index="${i}">${i + 1}</button>`;
         }).join("")}
       </div>
@@ -257,8 +273,9 @@ function renderQuestionDetail(index) {
   const question = questions[index];
   const selectedAnswer = result.answers?.[index];
   const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
-  const isCorrect = selectedIndex === question.correctAnswer;
-  const isWrong = selectedIndex !== null && selectedIndex !== question.correctAnswer;
+  const answered = isQuestionAnswered(selectedAnswer, question);
+  const isCorrect = isQuestionAnswerCorrect(selectedAnswer, question);
+  const isWrong = answered && !isCorrect;
   const statusClass = isCorrect ? "is-correct" : isWrong ? "is-wrong" : "is-unanswered";
   const statusText = isCorrect ? "Đúng" : isWrong ? "Sai" : "Bỏ qua";
 
@@ -269,6 +286,12 @@ function renderQuestionDetail(index) {
         <span class="review-question-status ${statusClass}">${statusText}</span>
       </div>
       <h4>${question.content}</h4>
+      ${question.type === "short_answer" ? `
+        <div class="review-question-options">
+          <p class="review-answer-row ${isCorrect ? "correct" : isWrong ? "wrong" : ""}"><strong>Đáp án của bạn:</strong> ${escapeHtml(answered ? selectedAnswer : "Chưa trả lời")}</p>
+          <p class="review-answer-row correct"><strong>Đáp án đúng:</strong> ${escapeHtml(question.answer)}</p>
+        </div>
+      ` : `
       <ul class="review-question-options">
         ${question.options.map((option, optionIndex) => {
           const isSelected = selectedIndex === optionIndex;
@@ -289,9 +312,12 @@ function renderQuestionDetail(index) {
           `;
         }).join("")}
       </ul>
+      `}
       <div class="review-question-footer">
-        <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa chọn" : getOptionLabel(selectedIndex)}</p>
-        <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+        ${question.type === "short_answer" ? "" : `
+          <p><strong>Đáp án của bạn:</strong> ${selectedIndex === null ? "Chưa chọn" : getOptionLabel(selectedIndex)}</p>
+          <p><strong>Đáp án đúng:</strong> ${getOptionLabel(question.correctAnswer)}</p>
+        `}
       </div>
       <div class="review-question-explain">
         <strong>Giải thích:</strong>
@@ -330,7 +356,7 @@ document.querySelectorAll(".review-chip").forEach((chip) => {
   });
 });
 
-const defaultModalIndex = questions.findIndex((_, index) => result.answers?.[index] !== questions[index].correctAnswer || result.answers?.[index] === null);
+const defaultModalIndex = questions.findIndex((question, index) => !isQuestionAnswerCorrect(result.answers?.[index], question));
 renderQuestionDetail(defaultModalIndex >= 0 ? defaultModalIndex : 0);
 document.querySelectorAll(".review-chip").forEach((chip) => chip.classList.toggle("active", Number(chip.dataset.questionIndex) === (defaultModalIndex >= 0 ? defaultModalIndex : 0)));
 
