@@ -11,6 +11,8 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 
 - Kho đề thi theo từng môn/đề
 - Bài làm với thời gian đếm ngược
+- Xáo trộn thứ tự câu hỏi mỗi lượt làm bài; tiến độ giữ nguyên thứ tự khi tiếp tục bài đang làm
+- Mỗi bài kiểm tra hiện có thêm 5 câu trả lời ngắn
 - Tự động lưu lịch sử làm bài vào localStorage
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
 - Đánh dấu câu sai để ôn tập hiệu quả
