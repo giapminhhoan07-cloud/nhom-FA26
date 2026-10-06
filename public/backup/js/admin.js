@@ -89,6 +89,11 @@ if (!isAdmin) {
   }
 
   function renderDashboard() {
+    const statGrid = document.querySelector("#admin-stat-grid");
+    const feedbackList = document.querySelector("#admin-feedback-list");
+    const feedbackCount = document.querySelector("#admin-feedback-count");
+    if (!statGrid || !feedbackList || !feedbackCount) return;
+
     const history = readLocalData("studysphere_history", []);
     const feedback = readLocalData("studysphere_feedback", []);
     const attempts = Array.isArray(history) ? history : [];
@@ -103,10 +108,8 @@ if (!isAdmin) {
       { label: "Đánh giá TB", value: `${averageRating}/5` },
     ];
 
-    document.querySelector("#admin-stat-grid").innerHTML = stats.map(({ label, value }) => `<article class="admin-stat"><span>${label}</span><strong>${value}</strong></article>`).join("");
+    statGrid.innerHTML = stats.map(({ label, value }) => `<article class="admin-stat"><span>${label}</span><strong>${value}</strong></article>`).join("");
 
-    const feedbackList = document.querySelector("#admin-feedback-list");
-    const feedbackCount = document.querySelector("#admin-feedback-count");
     feedbackCount.textContent = `${reviews.length} đánh giá`;
     const recentReviews = [...reviews].sort((first, second) => new Date(second.submittedAt || 0) - new Date(first.submittedAt || 0)).slice(0, 8);
     feedbackList.innerHTML = recentReviews.length ? recentReviews.map((item) => {
@@ -160,20 +163,22 @@ if (!isAdmin) {
     return { exam, file };
   }
 
-  function resetForm() {
+  function resetForm({ preserveUpload = false } = {}) {
     form.reset();
     state.editingId = null;
-    state.pendingUpload = null;
+    if (!preserveUpload) state.pendingUpload = null;
     document.querySelector("#exam-action").value = "create";
     document.querySelector("#form-title").textContent = "Tạo đề thi mới";
     document.querySelector("#exam-id").readOnly = false;
     document.querySelector("#exam-year").value = new Date().getFullYear();
     document.querySelector("#exam-duration").value = 60;
-    exportPanel.hidden = true;
-    exportSource.value = "";
-    copyExportButton.disabled = true;
-    downloadExportButton.disabled = true;
-    setMessage(formMessage, "");
+    if (!preserveUpload) {
+      exportPanel.hidden = true;
+      exportSource.value = "";
+      copyExportButton.disabled = true;
+      downloadExportButton.disabled = true;
+      setMessage(formMessage, "");
+    }
   }
 
   function renderList(items) {
@@ -271,6 +276,7 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       const { exam, file } = getFormPayload();
       const customExams = getCustomExams();
       const existingIndex = customExams.findIndex((item) => item.id === state.editingId);
+      let successMessage;
 
       if (state.editingId) {
         const updatedList = customExams.map((item) => (item.id === state.editingId ? exam : item));
@@ -278,11 +284,11 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
           updatedList.push(exam);
         }
         persistCustomExams(updatedList);
-        setMessage(formMessage, `Đã lưu thay đổi cho "${exam.title}".`, true);
+        successMessage = `Đã lưu thay đổi cho "${exam.title}".`;
       } else {
         customExams.push(exam);
         persistCustomExams(customExams);
-        setMessage(formMessage, `Đã tạo đề thi "${exam.title}".`, true);
+        successMessage = `Đã tạo đề thi "${exam.title}".`;
       }
 
       state.pendingUpload = file ? { exam, file } : null;
@@ -296,7 +302,8 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       }
       renderList(getExamCatalog());
       renderDashboard();
-      resetForm();
+      resetForm({ preserveUpload: Boolean(file) });
+      setMessage(formMessage, successMessage, true);
     } catch (error) {
       setMessage(formMessage, error.message);
     }
