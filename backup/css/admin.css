@@ -106,30 +106,35 @@
 
 .admin-layout-two {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   gap: 18px;
   align-items: start;
 }
 
 .admin-list-panel,
 .admin-form-panel {
-  padding: 22px 20px 18px;
+  padding: 20px 18px 16px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.86);
   box-shadow: none;
 }
 
 .admin-list-panel {
-  margin-left: -8px;
+  margin-left: 0;
+  min-height: 610px;
+}
+
+.admin-form-panel {
+  min-height: 610px;
 }
 
 .admin-panel-heading {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -150,9 +155,9 @@
 
 #new-exam-button,
 .admin-submit {
-  min-height: 48px;
+  min-height: 44px;
   border-radius: 10px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .admin-message {
@@ -168,16 +173,17 @@
 
 .admin-exam-list {
   display: grid;
-  gap: 12px;
-  margin-top: 14px;
+  gap: 9px;
+  margin-top: 12px;
 }
 
 .admin-exam-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  min-height: 90px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #fbfdfc;
@@ -191,14 +197,16 @@
 .admin-exam-item span,
 .admin-exam-item small {
   color: var(--ink-soft);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
+  line-height: 1.25;
 }
 
 .admin-exam-item h3 {
-  margin: 6px 0 6px;
-  font-size: 1.05rem;
+  margin: 4px 0 5px;
+  font-size: 0.96rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  line-height: 1.34;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -208,17 +216,19 @@
   display: flex;
   gap: 8px;
   margin-left: 8px;
+  flex-shrink: 0;
 }
 
 .admin-item-actions button,
 .admin-reset {
+  min-width: 46px;
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
   color: var(--ink);
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -252,6 +262,10 @@
   color: var(--ink);
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.admin-form-panel .admin-panel-heading {
+  margin-bottom: 2px;
 }
 
 .admin-upload-field input,
