@@ -79,7 +79,7 @@
 }
 
 .admin-header {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .admin-page-kicker {
@@ -106,8 +106,8 @@
 
 .admin-layout-two {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 18px;
   align-items: start;
 }
 
@@ -128,8 +128,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 18px;
+  gap: 12px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -185,6 +185,7 @@
 
 .admin-exam-item > div:first-child {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .admin-exam-item span,
@@ -206,6 +207,7 @@
 .admin-item-actions {
   display: flex;
   gap: 8px;
+  margin-left: 8px;
 }
 
 .admin-item-actions button,
