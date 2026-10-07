@@ -1,3 +1,5 @@
+import { createNotifications } from "./notifications.js";
+
 const readJson = (key, fallback) => {
   try {
     const value = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
@@ -139,6 +141,12 @@ function submitReply(id, rawReply) {
 
   try {
     const feedback = getFeedback();
+    const matchedItem = feedback.find((item) => String(item.id || item.attemptId) === String(id));
+    if (!matchedItem) {
+      document.querySelector("#feedback-message").textContent = "Không tìm thấy phản hồi cần trả lời. Vui lòng tải lại trang.";
+      document.querySelector("#feedback-message").classList.remove("success");
+      return;
+    }
     const updated = feedback.map((item) => {
       const itemId = item.id || item.attemptId;
       return String(itemId) === String(id)
@@ -146,8 +154,26 @@ function submitReply(id, rawReply) {
         : item;
     });
     localStorage.setItem("studysphere_feedback", JSON.stringify(updated));
-    document.querySelector("#feedback-message").textContent = "Đã gửi phản hồi cho người dùng và trạng thái tự động chuyển sang đã xử lý.";
-    document.querySelector("#feedback-message").classList.add("success");
+    let notificationMessage = "";
+    try {
+      const notificationCount = createNotifications(
+        [{ email: matchedItem.email, id: matchedItem.userId }],
+        {
+          type: "admin-reply",
+          title: "Quản trị viên đã trả lời",
+          message: trimmedReply,
+          link: "/backup/pages/contact.html",
+        },
+      );
+      notificationMessage = notificationCount
+        ? "Đã gửi phản hồi và thông báo cho người dùng."
+        : "Đã lưu phản hồi nhưng không thể gửi thông báo do phản hồi chưa có email hoặc tài khoản người nhận.";
+      document.querySelector("#feedback-message").classList.toggle("success", notificationCount > 0);
+    } catch (error) {
+      notificationMessage = `Đã lưu phản hồi nhưng không thể lưu thông báo: ${error.message}`;
+      document.querySelector("#feedback-message").classList.remove("success");
+    }
+    document.querySelector("#feedback-message").textContent = notificationMessage;
     renderSummary();
     renderList();
   } catch {

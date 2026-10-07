@@ -1,4 +1,5 @@
 import { exams as seedExams } from "../data/exams.js";
+import { createNotifications } from "./notifications.js";
 
 const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
@@ -277,6 +278,7 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       const customExams = getCustomExams();
       const existingIndex = customExams.findIndex((item) => item.id === state.editingId);
       let successMessage;
+      let notificationWarning = "";
 
       if (state.editingId) {
         const updatedList = customExams.map((item) => (item.id === state.editingId ? exam : item));
@@ -288,6 +290,24 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       } else {
         customExams.push(exam);
         persistCustomExams(customExams);
+        const users = readLocalData("studysphere_users", []);
+        const recipients = (Array.isArray(users) ? users : []).filter((user) => (
+          user
+          && user.role !== "admin"
+          && user.is_admin !== true
+          && user.isAdmin !== true
+          && Number(user.is_admin) !== 1
+        ));
+        try {
+          createNotifications(recipients, {
+            type: "new-exam",
+            title: "Đề thi mới vừa được đăng",
+            message: `${exam.title} · ${exam.subjectName}`,
+            link: `/backup/pages/exam-detail.html?id=${encodeURIComponent(exam.id)}`,
+          });
+        } catch (error) {
+          notificationWarning = ` Đề đã được lưu nhưng không thể gửi thông báo: ${error.message}`;
+        }
         successMessage = `Đã tạo đề thi "${exam.title}".`;
       }
 
@@ -303,7 +323,7 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       renderList(getExamCatalog());
       renderDashboard();
       resetForm({ preserveUpload: Boolean(file) });
-      setMessage(formMessage, successMessage, true);
+      setMessage(formMessage, `${successMessage}${notificationWarning}`, !notificationWarning);
     } catch (error) {
       setMessage(formMessage, error.message);
     }

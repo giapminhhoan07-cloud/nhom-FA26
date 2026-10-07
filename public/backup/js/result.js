@@ -257,6 +257,8 @@ feedbackForm.addEventListener("submit", (event) => {
     attemptId: result.attemptId,
     examId: result.examId,
     examTitle: result.examTitle,
+    userId: currentUser?.id || "",
+    email: currentUser?.email || "",
     userName: currentUser?.name || currentUser?.email || "Người học",
     rating: Number(feedbackForm.elements.rating.value),
     comment: feedbackForm.elements.comment.value.trim(),

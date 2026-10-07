@@ -172,6 +172,11 @@ function renderAccount() {
   account.querySelector(".account-email").textContent = currentUser.email || "";
   account.querySelector(".account-role").textContent = isAdmin ? "Quản trị viên" : "Người dùng";
   header.append(account);
+  if (!isAdmin) {
+    import("./notifications.js")
+      .then(({ renderNotificationBell }) => renderNotificationBell(currentUser))
+      .catch((error) => console.error("Không thể tải chuông thông báo.", error));
+  }
 
   const trigger = account.querySelector(".account-trigger");
   const panel = account.querySelector(".account-panel");
