@@ -120,6 +120,10 @@
   box-shadow: none;
 }
 
+.admin-list-panel {
+  margin-left: -8px;
+}
+
 .admin-panel-heading {
   display: flex;
   align-items: flex-end;
@@ -339,6 +343,10 @@
 @media (max-width: 560px) {
   .admin-main {
     padding: 18px 16px 26px;
+  }
+
+  .admin-list-panel {
+    margin-left: 0;
   }
 
   .admin-panel-heading {
