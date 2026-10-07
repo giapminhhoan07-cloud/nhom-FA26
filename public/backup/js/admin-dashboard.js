@@ -77,7 +77,12 @@ function renderStats() {
     const when = new Date(submittedAt);
     return !Number.isNaN(when.getTime()) && when >= startOfDay;
   }).length;
-  const newFeedback = feedback.filter((item) => (item.status || "new") !== "processed").length;
+  const hasReply = (item) => {
+    const reply = item && (item.adminReply ?? item.reply ?? "");
+    const hasReplyContent = typeof reply === "string" ? reply.trim().length > 0 : Boolean(reply);
+    return hasReplyContent || item?.status === "processed" || item?.status === "resolved";
+  };
+  const newFeedback = feedback.filter((item) => !hasReply(item)).length;
   const stats = [
     { label: "Tổng số đề thi", value: totalExams, note: "Đề trong hệ thống" },
     { label: "Tổng số người dùng", value: totalUsers, note: "Tài khoản đã đăng ký" },
@@ -207,9 +212,14 @@ function renderRecentFeedback() {
     </thead>
     <tbody>
       ${feedback.map((item) => {
-        const status = item.status || "new";
-        const statusLabel = status === "processed" ? "Đã xử lý" : status === "processing" ? "Đang xử lý" : "Mới";
-        const statusClass = status === "processed" ? "success" : status === "processing" ? "warning" : "neutral";
+        const hasReply = (entry) => {
+          const reply = entry && (entry.adminReply ?? entry.reply ?? "");
+          const hasReplyContent = typeof reply === "string" ? reply.trim().length > 0 : Boolean(reply);
+          return hasReplyContent || entry?.status === "processed" || entry?.status === "resolved";
+        };
+        const status = hasReply(item) ? "processed" : (item.status === "processing" || item.status === "reviewing") ? item.status : "new";
+        const statusLabel = status === "processed" ? "Đã xử lý" : status === "processing" || status === "reviewing" ? "Đang xử lý" : "Chưa xử lý";
+        const statusClass = status === "processed" ? "success" : status === "processing" || status === "reviewing" ? "warning" : "neutral";
         return `
           <tr>
             <td>${escapeHtml(item.userName || "Người dùng")}</td>

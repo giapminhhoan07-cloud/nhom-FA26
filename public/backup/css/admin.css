@@ -330,7 +330,8 @@
 
 .admin-item-actions button,
 .admin-reset,
-.status-toggle {
+.status-toggle,
+.reply-feedback {
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -339,6 +340,52 @@
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.feedback-reply-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.feedback-reply-input {
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.feedback-reply-preview {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(22, 159, 154, 0.08);
+}
+
+.feedback-reply-preview strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--teal-dark);
+  font-size: 0.7rem;
+}
+
+.feedback-reply-preview p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.reply-feedback {
+  justify-self: flex-start;
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+  color: white;
 }
 
 .admin-item-actions .admin-delete {
