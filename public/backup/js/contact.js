@@ -223,9 +223,21 @@ contactForm.addEventListener("submit", (event) => {
   try {
     const feedback = JSON.parse(localStorage.getItem("studysphere_feedback") || "[]");
     if (!Array.isArray(feedback)) throw new Error("Dữ liệu phản hồi không hợp lệ.");
+    const currentUser = (() => {
+      for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
+        try {
+          const user = JSON.parse(localStorage.getItem(key) || "null");
+          if (user && typeof user === "object") return user;
+        } catch {
+          continue;
+        }
+      }
+      return null;
+    })();
     feedback.unshift({
       id: `contact-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       source: "contact",
+      userId: currentUser?.id || "",
       userName: nameInput.value.trim(),
       email: emailInput.value.trim(),
       type: topicInput.value,
