@@ -1,3 +1,5 @@
+import { createOfflineAnswer } from "./study-ai-offline.js";
+
 const historyLimit = 8;
 const suggestions = [
   { label: "💡 Giải thích câu này", prompt: "Giải thích câu hỏi hiện tại cho mình theo từng bước, đừng chỉ đưa đáp án." },
@@ -11,6 +13,7 @@ let contextKey = quizContext?.questionId || "";
 let conversation = [];
 let pending = false;
 let lastFailedMessage = "";
+let onlineMode = false;
 
 const stylesheet = document.createElement("link");
 stylesheet.rel = "stylesheet";
@@ -32,7 +35,7 @@ panel.setAttribute("aria-label", "Trợ lý học tập Study AI");
 panel.hidden = true;
 panel.innerHTML = `
   <header class="study-ai-header">
-    <div class="study-ai-heading"><span class="study-ai-avatar" aria-hidden="true">✨</span><div><strong>Study AI</strong><small>Trợ lý học tập</small></div></div>
+    <div class="study-ai-heading"><span class="study-ai-avatar" aria-hidden="true">✨</span><div><strong>Study AI</strong><small>Trợ lý học tập · <span class="study-ai-mode">Offline miễn phí</span></small></div></div>
     <button class="study-ai-close" type="button" aria-label="Đóng Study AI">×</button>
   </header>
   <div class="study-ai-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
@@ -52,6 +55,7 @@ const form = panel.querySelector(".study-ai-form");
 const input = panel.querySelector("#study-ai-input");
 const sendButton = panel.querySelector(".study-ai-send");
 const closeButton = panel.querySelector(".study-ai-close");
+const modeLabel = panel.querySelector(".study-ai-mode");
 
 function scrollToLatest() {
   messagesElement.scrollTop = messagesElement.scrollHeight;
@@ -96,7 +100,18 @@ function renderSuggestions() {
 }
 
 function addWelcomeMessage() {
-  addMessage("assistant", "Chào bạn! Mình là Study AI. Mình có thể giải thích câu hỏi, phân tích đáp án, hướng dẫn cách giải hoặc tạo ví dụ tương tự. Bạn muốn bắt đầu từ đâu?");
+  addMessage("assistant", "Chào bạn! Mình là Study AI. Khi chưa kết nối API, mình dùng chế độ offline miễn phí để giải thích dựa trên câu hỏi và đáp án có sẵn. Bạn muốn bắt đầu từ đâu?");
+}
+
+async function detectOnlineMode() {
+  try {
+    const response = await fetch("/api/study-ai", { credentials: "same-origin" });
+    const configuration = response.ok ? await response.json() : null;
+    onlineMode = configuration?.configured === true;
+  } catch {
+    onlineMode = false;
+  }
+  modeLabel.textContent = onlineMode ? "AI trực tuyến" : "Offline miễn phí";
 }
 
 function setPending(value) {
@@ -122,6 +137,16 @@ async function requestAnswer(message, { reuseLastUserMessage = false } = {}) {
   setPending(true);
 
   try {
+    if (!onlineMode) {
+      await new Promise((resolve) => window.setTimeout(resolve, 250));
+      const answer = createOfflineAnswer(prompt, quizContext, history);
+      loadingMessage.remove();
+      conversation.push({ role: "assistant", content: answer });
+      addMessage("assistant", answer);
+      lastFailedMessage = "";
+      return;
+    }
+
     const response = await fetch("/api/study-ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -208,3 +233,4 @@ document.addEventListener("studysphere:study-ai-open", (event) => {
 addWelcomeMessage();
 renderSuggestions();
 document.dispatchEvent(new CustomEvent("studysphere:study-ai-ready"));
+detectOnlineMode();

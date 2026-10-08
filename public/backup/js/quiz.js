@@ -115,6 +115,7 @@ function publishStudyAiContext(question) {
     context.correctAnswer = question.type === "short_answer"
       ? String(correctAnswer ?? "")
       : getAnswerLabel(correctAnswer, question);
+    context.explanation = question.explanation || "";
   }
   window.studysphereCurrentQuizContext = context;
   document.dispatchEvent(new CustomEvent("studysphere:quiz-context", { detail: context }));

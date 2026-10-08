@@ -59,6 +59,7 @@ function normalizeContext(value) {
     difficulty: text(value.difficulty, 80),
     question: text(value.question),
     options,
+    explanation: value.assessmentInProgress ? "" : text(value.explanation),
     userAnswer: text(String(value.userAnswer ?? ""), 500),
     correctAnswer: value.assessmentInProgress ? "" : text(String(value.correctAnswer ?? ""), 500),
     assessmentInProgress: value.assessmentInProgress === true,
@@ -109,8 +110,16 @@ function buildUserMessage(message, context) {
 }
 
 export default async function studyAiHandler(request, response) {
+  if (request.method === "GET") {
+    if (!isSameOrigin(request)) {
+      sendJson(response, 403, { error: "Yêu cầu không được phép." });
+      return;
+    }
+    sendJson(response, 200, { configured: Boolean(process.env.STUDY_AI_API_KEY) });
+    return;
+  }
   if (request.method !== "POST") {
-    response.setHeader?.("Allow", "POST");
+    response.setHeader?.("Allow", "GET, POST");
     sendJson(response, 405, { error: "Study AI chỉ hỗ trợ yêu cầu POST." });
     return;
   }
