@@ -10,6 +10,7 @@ import { literatureUpcomingTests } from "../../data/practice-tests-literature.js
 import { mathUpcomingTests } from "../../data/practice-tests-math.js";
 import { additionalQuestionsByTestId } from "./questionAdditions.js";
 import { physicsUpcomingTests } from "../../data/practice-tests-physics.js";
+import { scopedSampleTests } from "./scopedSampleTests.js";
 
 export const testGrades = [10, 11, 12];
 
@@ -233,7 +234,7 @@ const availableLiteratureTests = literatureUpcomingTests
   .filter((test) => Array.isArray(test.questions) && test.questions.length > 0)
   .map((test) => ({ ...test, status: "available" }));
 
-export const practiceTests = [...basePracticeTests, ...availableLiteratureTests].map((test) => ({
+export const practiceTests = [...basePracticeTests, ...availableLiteratureTests, ...scopedSampleTests].map((test) => ({
   ...test,
   questions: [...test.questions, ...(additionalQuestionsByTestId[test.id] || [])],
 }));
@@ -283,6 +284,6 @@ export const upcomingTests = [
       subjectId,
       subjectName,
       status: "upcoming",
-    })).filter((test) => !availableLiteratureTests.some((available) => available.id === test.id)),
+    })).filter((test) => !practiceTests.some((available) => available.id === test.id)),
   ),
 ];

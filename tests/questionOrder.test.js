@@ -14,7 +14,7 @@ test("shuffles question indices into a valid permutation", () => {
 });
 
 test("adds exactly five valid short-answer questions to each available test", () => {
-  assert.equal(practiceTests.length, 12);
+  assert.equal(practiceTests.length, 36);
   const testsWithShortAnswerAdditions = practiceTests.filter((practiceTest) =>
     Object.hasOwn(additionalQuestionsByTestId, practiceTest.id),
   );
