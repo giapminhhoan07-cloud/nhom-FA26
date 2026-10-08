@@ -88,18 +88,57 @@ const progressLabel = document.querySelector("#progress-label");
 const progressValue = document.querySelector("#progress-value");
 title.textContent = exam.title;
 
+function getAnswerLabel(answer, question) {
+  if (answer === null || answer === undefined || answer === "") return "Chưa chọn";
+  if (question.type === "short_answer") return String(answer);
+  const option = question.options?.[Number(answer)];
+  return option === undefined ? "Chưa chọn" : `${String.fromCharCode(65 + Number(answer))}. ${option}`;
+}
+
+function publishStudyAiContext(question) {
+  const isScoredAssessment = !scopePractice;
+  const context = {
+    questionId: `${exam.id}-${question.id || currentIndex}`,
+    subject: scopeDetails?.subjectName || standaloneTest?.subjectName || selectedExam?.subjectName || "",
+    grade: Number(scopeDetails?.grade || standaloneTest?.grade || selectedExam?.grade || 0) || null,
+    topic: question.topic || question.topics?.filter((topic) => topic !== "Ôn tập tổng hợp").join(", ") || "",
+    difficulty: question.difficulty || question.difficultyName || standaloneTest?.difficultyName || selectedExam?.difficultyName || "",
+    question: question.content ?? question.question ?? "",
+    options: question.options || [],
+    userAnswer: getAnswerLabel(answers[currentIndex], question),
+    assessmentInProgress: isScoredAssessment && !submitted,
+  };
+  if (!isScoredAssessment) {
+    const correctAnswer = question.type === "short_answer"
+      ? question.answer ?? question.correctAnswer
+      : question.correctAnswer;
+    context.correctAnswer = question.type === "short_answer"
+      ? String(correctAnswer ?? "")
+      : getAnswerLabel(correctAnswer, question);
+  }
+  window.studysphereCurrentQuizContext = context;
+  document.dispatchEvent(new CustomEvent("studysphere:quiz-context", { detail: context }));
+}
+
 function renderQuestion() {
   const question = questions[currentIndex];
+  publishStudyAiContext(question);
   progressLabel.textContent = `Câu ${currentIndex + 1} / ${questions.length}`;
   progressValue.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
   const answerMarkup = question.type === "short_answer"
     ? `<label class="short-answer-field">Nhập câu trả lời<input type="text" name="answer" value="${answers[currentIndex] || ""}" placeholder="Nhập đáp án ngắn"></label>`
     : question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("");
-  card.innerHTML = `<p class="question-number">${question.type === "short_answer" ? "Trả lời ngắn" : "Trắc nghiệm"} · Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}${question.difficultyName ? ` · ${question.difficultyName}` : ""}</p>${question.image_url ? `<img class="question-image" style="display:block;max-width:100%;max-height:360px;margin:0 0 24px;border-radius:8px;object-fit:contain" src="${question.image_url}" alt="Hình minh họa cho câu hỏi ${currentIndex + 1}">` : ""}<h1>${question.content}</h1><div class="answer-list">${answerMarkup}</div>`;
+  card.innerHTML = `<p class="question-number">${question.type === "short_answer" ? "Trả lời ngắn" : "Trắc nghiệm"} · Câu hỏi ${String(currentIndex + 1).padStart(2, "0")}${question.difficultyName ? ` · ${question.difficultyName}` : ""}</p>${question.image_url ? `<img class="question-image" style="display:block;max-width:100%;max-height:360px;margin:0 0 24px;border-radius:8px;object-fit:contain" src="${question.image_url}" alt="Hình minh họa cho câu hỏi ${currentIndex + 1}">` : ""}<h1>${question.content}</h1><div class="answer-list">${answerMarkup}</div><button class="button button-quiet study-ai-question-button" id="ask-study-ai" type="button">✨ Hỏi Study AI về câu này</button>`;
+  card.querySelector("#ask-study-ai").addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("studysphere:study-ai-open", {
+      detail: { prompt: "Giải thích câu hỏi hiện tại cho mình theo từng bước, đừng chỉ đưa đáp án." },
+    }));
+  });
   card.querySelectorAll("input").forEach((input) => {
     const updateAnswer = () => {
       answers[currentIndex] = question.type === "short_answer" ? input.value : Number(input.value);
       saveProgress();
+      if (question.type === "short_answer") publishStudyAiContext(question);
       if (question.type !== "short_answer") {
         renderQuestion();
         renderDots();
@@ -156,6 +195,10 @@ document.querySelector("#next-button").addEventListener("click", () => { if (cur
 dots.addEventListener("click", (event) => { const button = event.target.closest("[data-index]"); if (button) { currentIndex = Number(button.dataset.index); saveProgress(); renderQuestion(); renderDots(); } });
 document.querySelector("#submit-button").addEventListener("click", () => { if (window.confirm("Bạn chắc chắn muốn nộp bài?")) submitQuiz(); });
 window.addEventListener("pagehide", saveProgress);
+document.addEventListener("studysphere:study-ai-ready", () => {
+  if (!unavailableQuiz) publishStudyAiContext(questions[currentIndex]);
+}, { once: true });
+
 if (unavailableQuiz) {
   const returnHref = scopePractice
     ? "index.html?mode=scope"

@@ -26,6 +26,20 @@ Kho câu hỏi trực tuyến lấy từ `public/backup/tests/data/practice-test
 
 Tại lần kiểm kê hiện tại, có 36 bộ luyện tập với 250 câu hỏi cho cả 10 môn và lớp 10–12. Trong đó, 24 bộ/120 câu là dữ liệu mẫu tự biên soạn, bổ sung các tổ hợp môn-lớp còn trống; mỗi bộ được đánh dấu `isSample` và câu hỏi có môn, lớp, chủ đề, độ khó, đáp án, giải thích. Các bộ Ngữ văn mẫu hiện hữu cũng được gắn nhãn mẫu. Dữ liệu lớp 12 trước đó được giữ lại. Đây là dữ liệu mẫu để người học thử luồng lọc/luyện tập, không phải bản chép của các đề thi chính thức. Thư viện đề THPT và danh sách đề cương là các danh mục riêng; bản PDF không đồng nghĩa với một bài thi trực tuyến đã có câu hỏi/đáp án. Hiện dữ liệu chưa có ngày cập nhật đáng tin cậy nên giao diện không gắn nhãn “mới nhất” cho đề.
 
+## Study AI
+
+Study AI hiển thị trên các trang dành cho người học và nhận ngữ cảnh câu hỏi hiện tại trong lúc làm bài. Endpoint backend là `POST /api/study-ai`; endpoint chỉ chấp nhận same-origin, giới hạn đầu vào và tốc độ gửi, gọi dịch vụ tương thích OpenAI Chat Completions ở phía server. Khóa API không được đưa vào JavaScript hoặc HTML frontend.
+
+Biến môi trường:
+
+- `STUDY_AI_API_KEY` — bắt buộc; API key do nhà cung cấp AI cấp.
+- `STUDY_AI_API_URL` — tùy chọn; mặc định `https://api.openai.com/v1/chat/completions`.
+- `STUDY_AI_MODEL` — tùy chọn; mặc định `gpt-4o-mini`.
+
+Chạy local: lưu các biến cần thiết trong `.env.local` ở thư mục gốc (file này đã được Git ignore), rồi chạy `npm run dev`. Vite chuyển tiếp `POST /api/study-ai` đến cùng handler dùng trên Vercel. Không commit `.env.local` và không đặt API key với tiền tố `VITE_`.
+
+Trên Vercel, mở **Project → Settings → Environment Variables**, thêm `STUDY_AI_API_KEY` (và tùy chọn `STUDY_AI_API_URL`, `STUDY_AI_MODEL`) cho các môi trường cần dùng rồi deploy lại. Vercel tự triển khai `api/study-ai.js` thành serverless function. Nếu chưa cấu hình key, widget vẫn mở được nhưng API trả thông báo cấu hình còn thiếu.
+
 ## Công nghệ sử dụng
 
 - HTML

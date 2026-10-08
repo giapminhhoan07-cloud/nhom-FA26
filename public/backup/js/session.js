@@ -248,3 +248,7 @@ addContactNavigationLink();
 showAuthSuccessNotice();
 syncSidebarState();
 renderAccount();
+if (!isAdminRoute) {
+  import("./study-ai.js")
+    .catch((error) => console.error("Không thể tải Study AI.", error));
+}
