@@ -177,7 +177,7 @@ function showAuthSuccessNotice() {
   dismiss.addEventListener("click", () => notice.remove());
   notice.append(message, dismiss);
   document.body.append(notice);
-  if (noticeType === "login") window.setTimeout(() => notice.remove(), 3000);
+  window.setTimeout(() => notice.remove(), 3000);
 }
 
 addContactNavigationLink();
