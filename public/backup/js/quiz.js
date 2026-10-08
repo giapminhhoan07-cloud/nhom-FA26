@@ -1,5 +1,4 @@
 import { exams } from "../data/exams.js";
-import { questions as bundledQuestions } from "../data/questions.js";
 import { practiceTests } from "../tests/data/practice-tests.js";
 import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
 import { isQuestionAnswerCorrect } from "./questionAnswers.js";
@@ -7,16 +6,43 @@ import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
 const testId = params.get("test");
+const scopePractice = params.get("scope") === "1";
 const standaloneTest = practiceTests.find((test) => test.id === testId);
-let exam = standaloneTest || exams.find((item) => item.id === examId) || exams[0];
-const questionPool = (exam.questions || bundledQuestions).map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
-let questionOrder = createQuestionOrder(questionPool.length);
+const selectedExam = exams.find((item) => item.id === examId);
+let scopePayload = null;
+if (scopePractice) {
+  try {
+    const storedScope = JSON.parse(sessionStorage.getItem("studysphere_scope_quiz") || "null");
+    if (Array.isArray(storedScope?.questions) && storedScope.questions.length > 0 && storedScope.scope) {
+      scopePayload = storedScope;
+    }
+  } catch (error) {
+    console.error("Unable to read the selected practice scope.", error);
+  }
+}
+const scopeDetails = scopePayload?.scope || null;
+const scopeTitle = scopeDetails
+  ? `${scopeDetails.subjectName} lớp ${scopeDetails.grade} · ${scopeDetails.topics?.length ? scopeDetails.topics.join(" + ") : "Ôn tập tổng hợp"}`
+  : "";
+const scopeExamId = scopeDetails
+  ? `scope-${scopeDetails.subjectId}-${scopeDetails.grade}-${scopeDetails.topics?.length ? scopeDetails.topics.join("-") : "all"}`
+  : "";
+const exam = scopePractice
+  ? { id: scopeExamId || "invalid-scope", title: scopeTitle || "Ôn tập theo phạm vi", durationMinutes: 45, questions: scopePayload?.questions || [] }
+  : standaloneTest || selectedExam || { id: "unavailable", title: "Đề thi chưa sẵn sàng", durationMinutes: 45, questions: [] };
+const unavailableQuiz = scopePractice
+  ? !scopePayload
+  : !standaloneTest && (!selectedExam || !Array.isArray(selectedExam.questions) || selectedExam.questions.length === 0);
+const questionPool = (exam.questions || []).map((question) => ({ ...question, type: question.type || (question.answer !== undefined ? "short_answer" : "multiple_choice"), correctAnswer: question.correctAnswer ?? question.correct_answer }));
+let questionOrder = scopePractice
+  ? createQuestionOrder(questionPool.length)
+  : Array.from({ length: questionPool.length }, (_, index) => index);
 let questions = questionOrder.map((index) => questionPool[index]);
 let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = (Number(exam.durationMinutes) || 45) * 60;
 let submitted = false;
-const progressStorageKey = `studysphere_quiz_progress_${standaloneTest ? "test" : "exam"}_${exam.id}`;
+const progressStorageKey = `studysphere_quiz_progress_${scopePractice ? "scope" : standaloneTest ? "test" : "exam"}_${exam.id}`;
 
 function restoreProgress() {
   try {
@@ -94,8 +120,8 @@ async function submitQuiz() {
   const result = {
     attemptId: `attempt-${Date.now()}`,
     examId: exam.id,
-    examTitle: exam.title,
-    quizKind: standaloneTest ? "practice-test" : "exam",
+    examTitle: scopePractice ? scopeTitle : exam.title,
+    quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
     submittedAt: new Date().toISOString(),
     score: Number(((correctCount / questions.length) * 10).toFixed(2)),
     totalQuestions: questions.length,
@@ -103,6 +129,13 @@ async function submitQuiz() {
     wrongCount: answers.filter((answer, index) => answer !== null && answer !== "" && !isQuestionAnswerCorrect(answer, questions[index])).length,
     unansweredCount: answers.filter((answer) => answer === null || answer === "").length,
     answers,
+    ...(scopeDetails ? {
+      subjectId: scopeDetails.subjectId,
+      subjectName: scopeDetails.subjectName,
+      grade: scopeDetails.grade,
+      topics: scopeDetails.topics || [],
+      requestedCount: scopeDetails.requestedCount,
+    } : {}),
   };
 
   const saveLocalResult = () => {
@@ -110,7 +143,7 @@ async function submitQuiz() {
     history.unshift(result);
     localStorage.setItem("studysphere_history", JSON.stringify(history));
     localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
-    const resultPage = standaloneTest ? "../pages/result.html" : "result.html";
+    const resultPage = standaloneTest || scopePractice ? "../pages/result.html" : "result.html";
     window.location.href = `${resultPage}?attempt=${encodeURIComponent(result.attemptId)}`;
   };
 
@@ -123,4 +156,27 @@ document.querySelector("#next-button").addEventListener("click", () => { if (cur
 dots.addEventListener("click", (event) => { const button = event.target.closest("[data-index]"); if (button) { currentIndex = Number(button.dataset.index); saveProgress(); renderQuestion(); renderDots(); } });
 document.querySelector("#submit-button").addEventListener("click", () => { if (window.confirm("Bạn chắc chắn muốn nộp bài?")) submitQuiz(); });
 window.addEventListener("pagehide", saveProgress);
-renderQuestion(); renderDots(); updateTimer(); setInterval(updateTimer, 1000);
+if (unavailableQuiz) {
+  const returnHref = scopePractice
+    ? "index.html?mode=scope"
+    : standaloneTest
+      ? "../pages/exam-detail.html?test=" + encodeURIComponent(standaloneTest.id)
+      : selectedExam
+        ? `exam-detail.html?id=${encodeURIComponent(selectedExam.id)}`
+        : "exams.html";
+  const unavailableTitle = scopePractice ? "Không tìm thấy lượt luyện tập" : "Đề thi chưa sẵn sàng";
+  const unavailableMessage = scopePractice
+    ? "Phiên chọn phạm vi không còn hợp lệ. Hãy chọn lại môn, lớp và chủ đề."
+    : "Đề này chưa có bộ câu hỏi tương tác hoàn chỉnh nên chưa thể bắt đầu bài làm.";
+  document.title = `${unavailableTitle} | StudySphere`;
+  title.textContent = unavailableTitle;
+  card.innerHTML = `<h1>${unavailableTitle}</h1><p>${unavailableMessage}</p><a class="button button-primary" href="${returnHref}">${scopePractice ? "Quay lại chọn phạm vi" : "Quay lại chi tiết đề"}</a>`;
+  document.querySelectorAll("#previous-button, #next-button, #submit-button").forEach((button) => { button.disabled = true; });
+  timer.hidden = true;
+  dots.hidden = true;
+} else {
+  renderQuestion();
+  renderDots();
+  updateTimer();
+  setInterval(updateTimer, 1000);
+}

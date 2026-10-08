@@ -70,10 +70,19 @@ if (!stored) {
 if (stored) {
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
-const retryHref = result.quizKind === "practice-test"
-  ? `../tests/quiz.html?test=${encodeURIComponent(result.examId)}`
-  : `quiz.html?id=${encodeURIComponent(result.examId)}`;
-const libraryHref = result.quizKind === "practice-test" ? "../tests/" : "exams.html";
+const scopeParams = new URLSearchParams({ mode: "scope" });
+if (result.subjectId) scopeParams.set("subject", result.subjectId);
+if (result.grade) scopeParams.set("grade", String(result.grade));
+for (const topic of result.topics || []) scopeParams.append("topic", topic);
+const scopeReturnHref = `../tests/index.html?${scopeParams}`;
+const retryHref = result.quizKind === "scope-practice"
+  ? scopeReturnHref
+  : result.quizKind === "practice-test"
+    ? `../tests/quiz.html?test=${encodeURIComponent(result.examId)}`
+    : `quiz.html?id=${encodeURIComponent(result.examId)}`;
+const libraryHref = result.quizKind === "scope-practice"
+  ? scopeReturnHref
+  : result.quizKind === "practice-test" ? "../tests/" : "exams.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {

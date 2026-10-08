@@ -14,9 +14,13 @@ test("shuffles question indices into a valid permutation", () => {
 });
 
 test("adds exactly five valid short-answer questions to each available test", () => {
-  assert.equal(practiceTests.length, 4);
+  assert.equal(practiceTests.length, 12);
+  const testsWithShortAnswerAdditions = practiceTests.filter((practiceTest) =>
+    Object.hasOwn(additionalQuestionsByTestId, practiceTest.id),
+  );
+  assert.equal(testsWithShortAnswerAdditions.length, 4);
 
-  for (const practiceTest of practiceTests) {
+  for (const practiceTest of testsWithShortAnswerAdditions) {
     const additions = additionalQuestionsByTestId[practiceTest.id];
     assert.equal(additions.length, 5, `${practiceTest.id} should have five added questions`);
     assert.equal(practiceTest.questions.length, (practiceTest.id === "toan12-on-tap-01" ? 10 : 20) + 5);

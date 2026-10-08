@@ -229,7 +229,11 @@ const basePracticeTests = [
   },
 ];
 
-export const practiceTests = basePracticeTests.map((test) => ({
+const availableLiteratureTests = literatureUpcomingTests
+  .filter((test) => Array.isArray(test.questions) && test.questions.length > 0)
+  .map((test) => ({ ...test, status: "available" }));
+
+export const practiceTests = [...basePracticeTests, ...availableLiteratureTests].map((test) => ({
   ...test,
   questions: [...test.questions, ...(additionalQuestionsByTestId[test.id] || [])],
 }));
@@ -279,6 +283,6 @@ export const upcomingTests = [
       subjectId,
       subjectName,
       status: "upcoming",
-    })),
+    })).filter((test) => !availableLiteratureTests.some((available) => available.id === test.id)),
   ),
 ];

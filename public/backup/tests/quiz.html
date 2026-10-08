@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/pages.css">
   <link rel="stylesheet" href="../css/quiz.css">
-  <script>const params = new URLSearchParams(location.search); if (!params.has("test")) location.replace("./");</script>
+  <script>const params = new URLSearchParams(location.search); if (!params.has("test") && params.get("scope") !== "1") location.replace("./");</script>
   <script defer src="../js/session.js"></script>
   <script type="module" src="../js/quiz.js"></script>
 </head>
