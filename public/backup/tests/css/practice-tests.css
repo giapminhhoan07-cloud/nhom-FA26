@@ -1,12 +1,8 @@
 .practice-tests-section { padding-top: 42px; }
-.practice-mode-section { padding: 38px 0 0; }
-.practice-mode-heading, .scope-panel-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
-.practice-mode-heading h2, .scope-panel-intro h2, .ready-tests h2 { margin: 0; font-family: var(--font-heading); font-size: clamp(21px, 2.5vw, 29px); font-weight: 700; letter-spacing: -0.04em; }
-.practice-mode-heading .eyebrow, .ready-tests .eyebrow, .scope-panel-intro .eyebrow { margin-bottom: 8px; }
-.practice-mode-switch { display: inline-flex; flex: 0 0 auto; gap: 5px; padding: 5px; border: 1px solid var(--line); border-radius: 8px; background: white; }
-.practice-mode-switch button { min-height: 40px; padding: 0 15px; border: 0; border-radius: 5px; color: var(--ink-soft); background: transparent; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
-.practice-mode-switch button[aria-pressed="true"] { color: white; background: var(--teal-dark); }
-.practice-mode-switch button:focus-visible, .scope-topic-option:focus-within { outline: 2px solid var(--teal-dark); outline-offset: 2px; }
+.scope-panel-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.scope-panel-intro h2, .ready-tests h2 { margin: 0; font-family: var(--font-heading); font-size: clamp(21px, 2.5vw, 29px); font-weight: 700; letter-spacing: -0.04em; }
+.ready-tests .eyebrow, .scope-panel-intro .eyebrow { margin-bottom: 8px; }
+.scope-topic-option:focus-within { outline: 2px solid var(--teal-dark); outline-offset: 2px; }
 #scope-practice-panel[hidden], #full-exam-section[hidden], #scope-insufficient[hidden] { display: none !important; }
 .scope-practice-panel { margin-top: 25px; padding: clamp(20px, 4vw, 34px); border: 1px solid var(--line); border-radius: var(--radius); background: white; box-shadow: 0 8px 26px rgba(23, 59, 90, 0.045); }
 .scope-panel-intro { align-items: flex-start; margin-bottom: 25px; }
@@ -85,9 +81,7 @@
 .practice-test-empty p { margin-bottom: 18px; font-size: 14px; }
 @media (max-width: 900px) { .practice-test-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.practice-test-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }.grade-filter, .search-control { grid-column: 1 / -1; }.ready-test-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }.scope-topic-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 580px) {
-	.practice-mode-heading, .scope-panel-intro, .ready-tests { align-items: flex-start; flex-direction: column; }
-	.practice-mode-switch { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	.practice-mode-switch button { padding-inline: 8px; font-size: 12px; }
+	.scope-panel-intro, .ready-tests { align-items: flex-start; flex-direction: column; }
 	.scope-panel-intro { gap: 9px; }
 	.scope-controls { grid-template-columns: 1fr; gap: 13px; }
 	.scope-topic-field, .scope-availability { grid-column: auto; }

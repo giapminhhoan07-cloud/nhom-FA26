@@ -87,6 +87,8 @@ const dots = document.querySelector("#question-dots");
 const progressLabel = document.querySelector("#progress-label");
 const progressValue = document.querySelector("#progress-value");
 title.textContent = exam.title;
+const selectQuizLink = document.querySelector(".quiz-select-link");
+if (scopePractice && selectQuizLink) selectQuizLink.href = "scope.html";
 
 function getAnswerLabel(answer, question) {
   if (answer === null || answer === undefined || answer === "") return "Chưa chọn";
@@ -202,7 +204,7 @@ document.addEventListener("studysphere:study-ai-ready", () => {
 
 if (unavailableQuiz) {
   const returnHref = scopePractice
-    ? "index.html?mode=scope"
+    ? "scope.html"
     : standaloneTest
       ? "../pages/exam-detail.html?test=" + encodeURIComponent(standaloneTest.id)
       : selectedExam
