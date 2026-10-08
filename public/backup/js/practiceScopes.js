@@ -54,12 +54,12 @@ function normalizeQuestion(question, test) {
     options: Array.isArray(question.options) ? question.options : [],
     correctAnswer: question.correctAnswer ?? question.correct_answer ?? question.answer ?? null,
     explanation: question.explanation ?? "",
-    subject: test.subjectName,
+    subject: question.subject ?? test.subjectName,
     subjectId: test.subjectId,
-    grade: Number(test.grade),
+    grade: Number(question.grade ?? test.grade),
     topic: tags[0],
     topics: [...new Set(tags)],
-    difficulty: question.difficultyName ?? test.difficultyName ?? "Chưa phân loại",
+    difficulty: question.difficulty ?? question.difficultyName ?? test.difficultyName ?? "Chưa phân loại",
     sourceTestId: test.id,
   };
 }

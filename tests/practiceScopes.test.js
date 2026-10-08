@@ -13,12 +13,61 @@ import { exams } from "../public/backup/data/exams.js";
 import { practiceTests, upcomingTests } from "../public/backup/tests/data/practice-tests.js";
 
 test("scope bank contains only questions from available practice sets", () => {
-  assert.equal(practiceQuestionBank.length, 130);
-  assert.deepEqual(getQuestionSubjects().map((subject) => subject.id), ["toan", "ngu-van", "lich-su", "dia-li"]);
+  assert.equal(practiceQuestionBank.length, 250);
+  assert.deepEqual(getQuestionSubjects().map((subject) => subject.id), [
+    "toan", "ngu-van", "tieng-anh", "vat-ly", "hoa-hoc",
+    "sinh-hoc", "lich-su", "dia-li", "tin-hoc", "gdkp",
+  ]);
   assert.deepEqual(getScopeGrades(), [10, 11, 12]);
+  assert.equal(new Set(practiceQuestionBank.map((question) => question.id)).size, practiceQuestionBank.length);
   assert.ok(practiceQuestionBank.every((question) =>
-    question.id && question.question && question.subject && question.grade && question.topic
-    && question.topics.length && question.correctAnswer !== null,
+    question.id && question.question && question.subject && question.subjectId
+    && question.grade && question.topic && question.topics.length
+    && (question.type === "short_answer"
+      ? question.options.length === 0 && typeof question.answer === "string"
+      : question.options.length === 4)
+    && question.correctAnswer !== null
+    && question.explanation && question.difficulty,
+  ));
+});
+
+test("every listed subject has questions for grades 10, 11 and 12", () => {
+  const expectedGradeQuestionCounts = { 10: 55, 11: 55, 12: 140 };
+
+  for (const subject of getQuestionSubjects()) {
+    for (const grade of [10, 11, 12]) {
+      const questions = getScopeQuestions(subject.id, grade);
+      assert.ok(questions.length > 0, `${subject.name} grade ${grade} should have matching questions`);
+      assert.ok(getScopeTopics(subject.id, grade).length > 0);
+      assert.equal(
+        questions.every((question) => question.subjectId === subject.id && question.grade === grade),
+        true,
+      );
+    }
+  }
+
+  for (const [grade, expectedCount] of Object.entries(expectedGradeQuestionCounts)) {
+    assert.equal(practiceQuestionBank.filter((question) => question.grade === Number(grade)).length, expectedCount);
+  }
+});
+
+test("all newly added subject-grade sets are marked as sample data", () => {
+  const sampleTests = practiceTests.filter((practiceTest) => practiceTest.id.startsWith("sample-"));
+  assert.equal(sampleTests.length, 24);
+  assert.ok(sampleTests.every((practiceTest) =>
+    practiceTest.isSample
+    && practiceTest.questions.length === 5
+    && new Set(practiceTest.questions.map((question) => question.correctAnswer)).size > 1
+    && practiceTest.questions.every((question) =>
+      question.subjectId === practiceTest.subjectId
+      && question.subject === practiceTest.subjectName
+      && question.grade === practiceTest.grade
+      && question.topic
+      && question.difficulty
+      && Number.isInteger(question.correctAnswer)
+      && question.correctAnswer >= 0
+      && question.correctAnswer < question.options.length,
+    ),
   ));
 });
 
@@ -63,4 +112,15 @@ test("selects the requested number randomly without duplicates", () => {
   assert.equal(new Set(selection.map((question) => question.id)).size, 10);
   assert.deepEqual(selectRandomQuestions(pool, "all").length, pool.length);
   assert.deepEqual(selectRandomQuestions(pool, 10, () => 0).length, 10);
+});
+
+test("each subject-grade sample scope supports random unique question selection", () => {
+  for (const subject of getQuestionSubjects()) {
+    for (const grade of [10, 11, 12]) {
+      const pool = getScopeQuestions(subject.id, grade);
+      const selected = selectRandomQuestions(pool, Math.min(5, pool.length));
+      assert.equal(selected.length, Math.min(5, pool.length));
+      assert.equal(new Set(selected.map((question) => question.id)).size, selected.length);
+    }
+  }
 });
