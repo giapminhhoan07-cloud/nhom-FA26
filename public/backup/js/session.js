@@ -83,6 +83,68 @@ if (menuToggle && sharedNav) {
   });
 }
 
+function enhancePracticeNavigation() {
+  document.querySelectorAll(".main-nav a[href]").forEach((link) => {
+    if (link.textContent.trim() !== "Bài kiểm tra") return;
+    const destination = new URL(link.href);
+    if (!destination.pathname.endsWith("/tests/index.html")) return;
+
+    const isActive = link.classList.contains("active");
+    const currentMode = new URLSearchParams(window.location.search).get("mode") === "scope" ? "scope" : "exam";
+    const dropdown = document.createElement("div");
+    dropdown.className = "nav-dropdown";
+    const trigger = document.createElement("button");
+    trigger.className = `nav-dropdown-trigger${isActive ? " active" : ""}`;
+    trigger.type = "button";
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-controls", "practice-nav-menu");
+    trigger.textContent = "Ôn Luyện";
+    const indicator = document.createElement("span");
+    indicator.className = "nav-dropdown-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    indicator.textContent = "⌄";
+    trigger.append(indicator);
+
+    const menu = document.createElement("div");
+    menu.className = "nav-dropdown-menu";
+    menu.id = "practice-nav-menu";
+    [
+      { mode: "scope", label: "Ôn theo phạm vi" },
+      { mode: "exam", label: "Luyện đề thi" },
+    ].forEach(({ mode, label }) => {
+      const optionUrl = new URL(link.href);
+      optionUrl.searchParams.set("mode", mode);
+      const option = document.createElement("a");
+      option.href = optionUrl.href;
+      option.textContent = label;
+      if (isActive && mode === currentMode) {
+        option.classList.add("active");
+        option.setAttribute("aria-current", "page");
+      }
+      menu.append(option);
+    });
+
+    const setOpen = (isOpen) => {
+      dropdown.classList.toggle("open", isOpen);
+      trigger.setAttribute("aria-expanded", String(isOpen));
+    };
+    dropdown.addEventListener("mouseenter", () => setOpen(true));
+    dropdown.addEventListener("mouseleave", () => setOpen(false));
+    dropdown.addEventListener("focusin", () => setOpen(true));
+    dropdown.addEventListener("focusout", (event) => {
+      if (!dropdown.contains(event.relatedTarget)) setOpen(false);
+    });
+    trigger.addEventListener("click", () => setOpen(!dropdown.classList.contains("open")));
+    trigger.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      trigger.focus();
+    });
+    dropdown.append(trigger, menu);
+    link.replaceWith(dropdown);
+  });
+}
+
 function syncSidebarState() {
   const sidebarLinks = document.querySelectorAll(".admin-sidebar-nav [data-admin-section]");
   if (!sidebarLinks.length) return;
@@ -248,6 +310,7 @@ function showAuthSuccessNotice() {
 addContactNavigationLink();
 showAuthSuccessNotice();
 syncSidebarState();
+enhancePracticeNavigation();
 renderAccount();
 if (!isAdminRoute) {
   import("./study-ai.js")
