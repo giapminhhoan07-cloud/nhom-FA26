@@ -1,3 +1,9 @@
+import { literatureUpcomingTests } from "./practice-tests-literature.js";
+
+const literatureGrade12Practice = literatureUpcomingTests.find(
+  (test) => test.id === "ngu-van-12-doc-hieu-van-ban",
+);
+
 export const exams = [
   {
     "id": "toan-2025-minh-hoa",
@@ -36,14 +42,17 @@ export const exams = [
     "title": "Đề thi thử Ngữ văn - Sở GD&ĐT 2024",
     "subjectId": "ngu-van",
     "subjectName": "Ngữ văn",
+    "grade": 12,
     "year": 2024,
     "type": "thi-thu",
     "typeName": "Đề thi thử",
     "difficulty": "hard",
     "difficultyName": "Khá khó",
-    "durationMinutes": 120,
-    "questionCount": 2,
-    "description": "Luyện kỹ năng đọc hiểu và nghị luận theo chuyên đề.",
+    "durationMinutes": 15,
+    "questionCount": literatureGrade12Practice.questions.length,
+    "questions": literatureGrade12Practice.questions,
+    "topics": ["Đọc hiểu văn bản"],
+    "description": "Bài luyện tập Ngữ văn lớp 12 gồm câu hỏi đọc hiểu và đáp án giải thích.",
     "featured": true
   },
   {

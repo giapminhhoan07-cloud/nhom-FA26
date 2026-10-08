@@ -29,8 +29,40 @@
   </header>
   <main>
     <section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Luyện tập theo chương trình</p><h1>Kho đề kiểm tra</h1><p>Chọn lớp, môn học và bộ lọc phù hợp để tìm đề luyện tập.</p></div></section>
-    <section class="section practice-tests-section">
+    <section class="section practice-mode-section" aria-labelledby="practice-mode-title">
       <div class="container">
+        <div class="practice-mode-heading">
+          <div><p class="eyebrow"><span class="eyebrow-dot"></span> Chọn cách học</p><h2 id="practice-mode-title">Bạn muốn học theo cách nào?</h2></div>
+          <div class="practice-mode-switch" role="group" aria-label="Chọn hình thức luyện tập">
+            <button type="button" data-practice-mode="scope" aria-pressed="false">Ôn theo phạm vi</button>
+            <button type="button" data-practice-mode="exam" aria-pressed="true">Làm đề thi</button>
+          </div>
+        </div>
+        <section class="scope-practice-panel" id="scope-practice-panel" aria-labelledby="scope-practice-title" hidden>
+          <div class="scope-panel-intro"><div><p class="eyebrow">Ôn tập cá nhân</p><h2 id="scope-practice-title">Bạn muốn ôn tập phần nào?</h2></div><p>Chọn môn, lớp và một hoặc nhiều chủ đề. Hệ thống chỉ dùng câu hỏi đã có trong kho.</p></div>
+          <div class="scope-controls">
+            <label class="scope-control" for="scope-subject"><span>Môn học</span><select id="scope-subject"></select></label>
+            <label class="scope-control" for="scope-grade"><span>Lớp</span><select id="scope-grade"></select></label>
+            <fieldset class="scope-topic-field">
+              <legend>Chủ đề <span id="scope-selected-count">Tất cả</span></legend>
+              <div class="scope-topic-list" id="scope-topic-list"></div>
+              <p class="scope-topic-status" id="scope-topic-status" aria-live="polite"></p>
+            </fieldset>
+            <label class="scope-control scope-question-count" for="scope-question-count"><span>Số câu</span><select id="scope-question-count"><option value="10">10 câu</option><option value="20">20 câu</option><option value="30">30 câu</option><option value="40">40 câu</option><option value="all">Tất cả câu phù hợp</option></select></label>
+            <div class="scope-availability" aria-live="polite"><span id="scope-summary">Chọn phạm vi để xem câu hỏi.</span><strong id="scope-available-count">0 câu hỏi phù hợp</strong></div>
+          </div>
+          <div class="scope-actions"><p class="scope-error" id="scope-error" role="status" hidden></p><button class="button button-primary" id="scope-start-button" type="button">Bắt đầu luyện tập <span aria-hidden="true">→</span></button></div>
+          <div class="scope-insufficient" id="scope-insufficient" role="status" hidden><div><strong id="scope-insufficient-message"></strong><p>Bạn có thể làm số câu hiện có hoặc quay lại đổi phạm vi.</p></div><div><button class="button button-primary" id="scope-start-available" type="button">Làm các câu hiện có</button><button class="button button-quiet" id="scope-back-to-select" type="button">Quay lại chọn phạm vi</button></div></div>
+        </section>
+      </div>
+    </section>
+    <section class="section practice-tests-section" id="full-exam-section">
+      <div class="container">
+        <section class="ready-tests" aria-labelledby="ready-tests-title">
+          <div><p class="eyebrow">Có dữ liệu câu hỏi hoàn chỉnh</p><h2 id="ready-tests-title">Đề thi có thể làm ngay</h2><p>Chọn một đề có sẵn câu hỏi và cấu trúc hoàn chỉnh để giữ nguyên thứ tự, số câu và thời gian.</p></div>
+          <a class="button button-quiet" href="#practice-test-list">Xem các đề bên dưới <span aria-hidden="true">↓</span></a>
+        </section>
+        <div class="ready-test-list" id="ready-test-list" aria-label="Đề thi hoàn chỉnh có thể làm ngay"></div>
         <div class="practice-test-filters" aria-label="Bộ lọc đề kiểm tra">
           <fieldset class="grade-filter">
             <legend>Lớp học</legend>

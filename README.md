@@ -11,13 +11,20 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 
 - Kho đề thi theo từng môn/đề
 - Bài làm với thời gian đếm ngược
-- Xáo trộn thứ tự câu hỏi mỗi lượt làm bài; tiến độ giữ nguyên thứ tự khi tiếp tục bài đang làm
+- Ôn theo phạm vi: lọc câu theo môn/lớp/chủ đề, chọn số lượng và rút ngẫu nhiên không trùng; tiến độ giữ nguyên khi tiếp tục bài
+- Làm đề hoàn chỉnh giữ nguyên số lượng và thứ tự câu hỏi của đề
 - Mỗi bài kiểm tra hiện có thêm 5 câu trả lời ngắn
 - Tự động lưu lịch sử làm bài vào localStorage
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
 - Đánh dấu câu sai để ôn tập hiệu quả
 - Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
 - Trung tâm hỗ trợ với FAQ tìm kiếm theo từ khóa và biểu mẫu liên hệ phía giao diện
+
+## Dữ liệu đề thi và ôn tập theo phạm vi
+
+Kho câu hỏi trực tuyến lấy từ `public/backup/tests/data/practice-tests.js` và các câu bổ sung trong `public/backup/tests/data/questionAdditions.js`; 8 bộ Ngữ văn mẫu nằm trong `public/backup/data/practice-tests-literature.js`. Bộ lọc ôn tập chuẩn hóa dữ liệu và gắn các trường môn, lớp, chủ đề, đáp án, độ khó trong `public/backup/js/practiceScopes.js`. Khi thêm câu hỏi mới, có thể khai báo trực tiếp `topic` hoặc `topics`; nếu chưa khai báo, bộ chuẩn hóa dùng phân loại theo nội dung hiện có.
+
+Tại lần kiểm kê hiện tại, có 11 mục trong thư viện đề THPT và 12 bài kiểm tra trực tuyến với 130 câu hỏi: 4 bài/90 câu dữ liệu hiện hữu thuộc Toán, Địa lí, Lịch sử lớp 12; cùng 8 bộ Ngữ văn mẫu tự biên soạn/40 câu cho lớp 10–12. Các bộ Ngữ văn hiển thị rõ là nội dung mẫu, không phải đề thi chính thức; chúng dùng câu hỏi trắc nghiệm có thể chấm tự động. Những đề cương còn lại đang được biên soạn và không được đưa vào ngân hàng câu hỏi cho đến khi có dữ liệu. Thư viện đề THPT và danh sách đề cương là các danh mục riêng; bản PDF không đồng nghĩa với một bài thi trực tuyến đã có câu hỏi/đáp án. Hiện dữ liệu chưa có ngày cập nhật đáng tin cậy nên giao diện không gắn nhãn “mới nhất” cho đề.
 
 ## Công nghệ sử dụng
 

@@ -49,9 +49,12 @@ function renderCard(exam) {
     ? `quiz.html?id=${encodeURIComponent(exam.id)}`
     : `exam-detail.html?id=${encodeURIComponent(exam.id)}`;
   const linkLabel = exam.questions?.length ? `Bắt đầu làm bài: ${exam.title}` : `Xem ${exam.title}`;
-  const duration = Number(exam.durationMinutes) > 0 ? `◷ ${exam.durationMinutes} phút` : "◷ Xem trong PDF";
-  const questionCount = Number(exam.questionCount) > 0 ? `▤ ${exam.questionCount} câu` : "▤ PDF đề thi";
-  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>${duration}</span><span>${questionCount}</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
+  const duration = Number(exam.durationMinutes) > 0 ? `◷ ${exam.durationMinutes} phút` : "◷ Thời gian đang cập nhật";
+  const questionCount = exam.questions?.length
+    ? `▤ ${exam.questions.length} câu`
+    : exam.documentUrl ? "▤ Có file PDF" : "▤ Câu hỏi đang cập nhật";
+  const status = exam.questions?.length ? "Đã hoàn thành" : exam.documentUrl ? "Có file PDF" : "Đang cập nhật";
+  return `<article class="exam-card"><div class="exam-card-top"><span class="exam-subject">${exam.subjectName}</span><span class="exam-year">${exam.year}</span></div><span class="exam-readiness">${status}</span><h3>${exam.title}</h3><p>${exam.description || "Thông tin chi tiết sẽ được cập nhật."}</p><div class="exam-meta"><span>${duration}</span><span>${questionCount}</span></div><button class="favorite-button ${isFavorite ? "saved" : ""}" data-favorite="${exam.id}" type="button" aria-label="${isFavorite ? "Bỏ lưu" : "Lưu"} ${exam.title}">${isFavorite ? "♥" : "♡"}</button><a class="exam-card-link" href="${destination}" aria-label="${linkLabel}">↗</a></article>`;
 }
 
 function renderFilters() {

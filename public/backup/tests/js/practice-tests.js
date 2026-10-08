@@ -2,9 +2,17 @@ import {
   practiceTests,
   testDifficulties,
   testCatalogExamTypes,
+  testGrades,
   testSubjects,
   upcomingTests,
 } from "../data/practice-tests.js";
+import {
+  getQuestionSubjects,
+  getScopeQuestions,
+  getScopeTopics,
+  practiceQuestionBank,
+  selectRandomQuestions,
+} from "../../js/practiceScopes.js";
 
 const list = document.querySelector("#practice-test-list");
 const emptyState = document.querySelector("#practice-test-empty");
@@ -14,6 +22,24 @@ const subjectFilter = document.querySelector("#subject-filter");
 const searchInput = document.querySelector("#test-search");
 const typeFilter = document.querySelector("#type-filter");
 const difficultyFilter = document.querySelector("#difficulty-filter");
+const readyTestList = document.querySelector("#ready-test-list");
+const scopePanel = document.querySelector("#scope-practice-panel");
+const fullExamSection = document.querySelector("#full-exam-section");
+const scopeSubject = document.querySelector("#scope-subject");
+const scopeGrade = document.querySelector("#scope-grade");
+const scopeTopicList = document.querySelector("#scope-topic-list");
+const scopeSelectedCount = document.querySelector("#scope-selected-count");
+const scopeTopicStatus = document.querySelector("#scope-topic-status");
+const scopeQuestionCount = document.querySelector("#scope-question-count");
+const scopeSummary = document.querySelector("#scope-summary");
+const scopeAvailableCount = document.querySelector("#scope-available-count");
+const scopeStartButton = document.querySelector("#scope-start-button");
+const scopeError = document.querySelector("#scope-error");
+const scopeInsufficient = document.querySelector("#scope-insufficient");
+const scopeInsufficientMessage = document.querySelector("#scope-insufficient-message");
+const scopeStartAvailable = document.querySelector("#scope-start-available");
+const scopeBackToSelect = document.querySelector("#scope-back-to-select");
+const modeButtons = [...document.querySelectorAll("[data-practice-mode]")];
 const clearButtons = [
   document.querySelector("#clear-test-filters"),
   document.querySelector("#empty-clear-test-filters"),
@@ -21,8 +47,14 @@ const clearButtons = [
 const icons = Object.fromEntries(testSubjects.map((subject) => [subject.id, subject.icon]));
 const availableTests = practiceTests.map((test) => ({
   ...test,
+  subject: test.subjectName,
   grade: Number(test.grade) || 12,
-  questionCount: test.questions?.length || 0,
+  questions: practiceQuestionBank.filter((question) => question.sourceTestId === test.id),
+  topics: [...new Set(practiceQuestionBank
+    .filter((question) => question.sourceTestId === test.id)
+    .flatMap((question) => question.topics)
+    .filter((topic) => topic !== "Ôn tập tổng hợp"))],
+  questionCount: practiceQuestionBank.filter((question) => question.sourceTestId === test.id).length,
   status: "available",
 }));
 const allTests = [...availableTests, ...upcomingTests];
@@ -46,6 +78,131 @@ const getFavoriteIds = () => {
   }
 };
 let favoriteIds = getFavoriteIds();
+
+const requestedScopeSubject = pageParams.get("subject");
+const questionSubjects = getQuestionSubjects();
+const scopeState = {
+  subjectId: questionSubjects.some((subject) => subject.id === requestedScopeSubject)
+    ? requestedScopeSubject
+    : questionSubjects[0]?.id || testSubjects[0].id,
+  grade: testGrades.includes(Number(pageParams.get("grade"))) ? Number(pageParams.get("grade")) : 12,
+  selectedTopics: pageParams.getAll("topic"),
+};
+
+scopeSubject.innerHTML = testSubjects.map((subject) =>
+  `<option value="${subject.id}">${subject.name}</option>`,
+).join("");
+scopeSubject.value = scopeState.subjectId;
+scopeGrade.innerHTML = testGrades.map((grade) => `<option value="${grade}">Lớp ${grade}</option>`).join("");
+scopeGrade.value = String(scopeState.grade);
+
+function setPracticeMode(mode) {
+  const scopeMode = mode === "scope";
+  scopePanel.hidden = !scopeMode;
+  fullExamSection.hidden = scopeMode;
+  modeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.practiceMode === mode)));
+  if (scopeMode) renderScopeSelection();
+}
+
+function getSelectedScopeTopics() {
+  const allCheckbox = scopeTopicList.querySelector('[data-scope-all]');
+  if (!allCheckbox || allCheckbox.checked) return [];
+  return [...scopeTopicList.querySelectorAll("[data-scope-topic]:checked")].map((input) => input.value);
+}
+
+function renderScopeSelection() {
+  scopeState.subjectId = scopeSubject.value;
+  scopeState.grade = Number(scopeGrade.value);
+  const allQuestionPool = getScopeQuestions(scopeState.subjectId, scopeState.grade);
+  const topics = getScopeTopics(scopeState.subjectId, scopeState.grade)
+    .filter((topic) => topic !== "Ôn tập tổng hợp");
+  const matchingRequestedTopics = scopeState.selectedTopics.filter((topic) => topics.includes(topic));
+  const allSelected = matchingRequestedTopics.length === 0;
+
+  scopeTopicList.innerHTML = `
+    <label class="scope-topic-option scope-topic-all"><input type="checkbox" data-scope-all ${allSelected ? "checked" : ""}><span>Tất cả chủ đề</span></label>
+    ${topics.map((topic) => `<label class="scope-topic-option"><input type="checkbox" data-scope-topic value="${topic}" ${matchingRequestedTopics.includes(topic) ? "checked" : ""}><span>${topic}</span></label>`).join("")}
+  `;
+  scopeTopicStatus.textContent = topics.length
+    ? "Có thể chọn một hoặc nhiều chủ đề; chọn tất cả để ôn toàn bộ câu hỏi phù hợp."
+    : "Chưa có câu hỏi theo chủ đề này. Chọn môn/lớp khác hoặc quay lại khi dữ liệu được bổ sung.";
+
+  const selectedPool = allSelected ? allQuestionPool : getScopeQuestions(scopeState.subjectId, scopeState.grade, matchingRequestedTopics);
+  scopeState.selectedTopics = allSelected ? [] : matchingRequestedTopics;
+  scopeSelectedCount.textContent = allSelected ? "Tất cả" : `Đã chọn: ${matchingRequestedTopics.length}`;
+  scopeAvailableCount.textContent = `${selectedPool.length} câu hỏi phù hợp`;
+  scopeSummary.textContent = `${testSubjects.find((subject) => subject.id === scopeState.subjectId)?.name || ""} lớp ${scopeState.grade}${allSelected ? "" : ` · ${matchingRequestedTopics.join(" + ")}`}`;
+  scopeStartButton.disabled = selectedPool.length === 0;
+  scopeError.hidden = selectedPool.length > 0;
+  scopeError.textContent = selectedPool.length ? "" : "Phạm vi này chưa có câu hỏi. Vui lòng chọn phạm vi khác.";
+  scopeInsufficient.hidden = true;
+}
+
+function startScopePractice(useAvailableQuestions = false) {
+  const pool = getScopeQuestions(scopeState.subjectId, scopeState.grade, scopeState.selectedTopics);
+  const requestedCount = scopeQuestionCount.value === "all" ? pool.length : Number(scopeQuestionCount.value);
+  if (!pool.length) {
+    scopeError.textContent = "Phạm vi này chưa có câu hỏi. Vui lòng chọn phạm vi khác.";
+    scopeError.hidden = false;
+    return;
+  }
+  if (requestedCount > pool.length && !useAvailableQuestions) {
+    scopeInsufficientMessage.textContent = `Phạm vi này hiện chỉ có ${pool.length} câu hỏi. Bạn có muốn làm ${pool.length} câu không?`;
+    scopeInsufficient.hidden = false;
+    scopeStartAvailable.textContent = `Làm ${pool.length} câu`;
+    scopeInsufficient.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return;
+  }
+
+  const selectedQuestions = selectRandomQuestions(pool, useAvailableQuestions ? "all" : requestedCount);
+  const subject = testSubjects.find((item) => item.id === scopeState.subjectId);
+  const scope = {
+    subjectId: scopeState.subjectId,
+    subjectName: subject?.name || scopeState.subjectId,
+    grade: scopeState.grade,
+    topics: scopeState.selectedTopics,
+    requestedCount: scopeQuestionCount.value,
+  };
+  try {
+    sessionStorage.setItem("studysphere_scope_quiz", JSON.stringify({ questions: selectedQuestions, scope }));
+    const query = new URLSearchParams({ scope: "1" });
+    query.set("subject", scope.subjectId);
+    query.set("grade", String(scope.grade));
+    scope.topics.forEach((topic) => query.append("topic", topic));
+    window.location.href = `quiz.html?${query}`;
+  } catch (error) {
+    scopeError.textContent = `Không thể bắt đầu bài luyện tập: ${error.message}`;
+    scopeError.hidden = false;
+  }
+}
+
+modeButtons.forEach((button) => button.addEventListener("click", () => setPracticeMode(button.dataset.practiceMode)));
+scopeSubject.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
+scopeGrade.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
+scopeTopicList.addEventListener("change", (event) => {
+  const allCheckbox = scopeTopicList.querySelector("[data-scope-all]");
+  if (event.target.matches("[data-scope-all]")) {
+    scopeTopicList.querySelectorAll("[data-scope-topic]").forEach((input) => { input.checked = false; });
+    scopeState.selectedTopics = [];
+  } else if (event.target.matches("[data-scope-topic]")) {
+    allCheckbox.checked = !scopeTopicList.querySelector("[data-scope-topic]:checked");
+    scopeState.selectedTopics = getSelectedScopeTopics();
+  }
+  renderScopeSelection();
+});
+scopeQuestionCount.addEventListener("change", () => { scopeInsufficient.hidden = true; });
+scopeStartButton.addEventListener("click", () => startScopePractice());
+scopeStartAvailable.addEventListener("click", () => startScopePractice(true));
+scopeBackToSelect.addEventListener("click", () => { scopeInsufficient.hidden = true; scopeQuestionCount.focus(); });
+
+readyTestList.innerHTML = availableTests.map((test) => `
+  <article class="ready-test-card">
+    <span class="test-status is-available">Có thể làm</span>
+    <h3>${test.title}</h3>
+    <p>${test.subjectName} · Lớp ${test.grade} · ${test.questions.length} câu · ${test.durationMinutes} phút</p>
+    <a href="../pages/exam-detail.html?test=${encodeURIComponent(test.id)}">Xem chi tiết và làm đề <span aria-hidden="true">→</span></a>
+  </article>
+`).join("");
 
 subjectFilter.insertAdjacentHTML("beforeend", testSubjects.map((subject) =>
   `<option value="${subject.id}">${subject.name}</option>`,
@@ -120,7 +277,7 @@ function renderCard(test) {
       <article class="practice-test-card">
         ${subject}
         <div class="practice-test-card-actions">
-          <span class="test-status is-available">Có thể làm</span>
+          <span class="test-status is-available">${test.isSample ? "Bộ mẫu · Có thể làm" : "Có thể làm"}</span>
           <button class="test-favorite-button ${isSaved ? "is-saved" : ""}" type="button" data-test-favorite="${test.id}" aria-label="${isSaved ? "Bỏ lưu" : "Lưu"} ${test.title}" aria-pressed="${isSaved}">${isSaved ? "♥" : "♡"}</button>
         </div>
         <h2>${test.title}</h2>
@@ -169,6 +326,9 @@ document.querySelectorAll("[data-grade]").forEach((button) => {
       option.setAttribute("aria-pressed", String(isActive));
     });
     render();
+    renderScopeSelection();
+    const requestedMode = pageParams.get("mode") === "scope" ? "scope" : "exam";
+    setPracticeMode(requestedMode);
   });
 });
 
@@ -222,3 +382,5 @@ list.addEventListener("click", (event) => {
 });
 
 render();
+renderScopeSelection();
+setPracticeMode(pageParams.get("mode") === "scope" ? "scope" : "exam");
