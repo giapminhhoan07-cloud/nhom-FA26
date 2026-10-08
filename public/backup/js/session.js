@@ -90,7 +90,7 @@ function enhancePracticeNavigation() {
     if (!destination.pathname.endsWith("/tests/index.html")) return;
 
     const isActive = link.classList.contains("active");
-    const currentMode = new URLSearchParams(window.location.search).get("mode") === "scope" ? "scope" : "exam";
+    const currentMode = window.location.pathname.endsWith("/tests/scope.html") ? "scope" : "exam";
     const dropdown = document.createElement("div");
     dropdown.className = "nav-dropdown";
     const trigger = document.createElement("button");
@@ -113,7 +113,9 @@ function enhancePracticeNavigation() {
       { mode: "exam", label: "Luyện đề thi" },
     ].forEach(({ mode, label }) => {
       const optionUrl = new URL(link.href);
-      optionUrl.searchParams.set("mode", mode);
+      optionUrl.pathname = optionUrl.pathname.replace(/index\.html$/, mode === "scope" ? "scope.html" : "index.html");
+      optionUrl.search = "";
+      optionUrl.hash = "";
       const option = document.createElement("a");
       option.href = optionUrl.href;
       option.textContent = label;

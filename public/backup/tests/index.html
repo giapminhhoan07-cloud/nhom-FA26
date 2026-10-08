@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lọc và chọn đề kiểm tra theo lớp học, môn học và mức độ.">
-  <title>Kho đề kiểm tra | StudySphere</title>
+  <title>Luyện đề thi | StudySphere</title>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    if (mode) {
+      params.delete("mode");
+      const query = params.toString();
+      const destination = mode === "scope" ? "scope.html" : "index.html";
+      window.location.replace(`${destination}${query ? `?${query}` : ""}`);
+    }
+  </script>
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
@@ -28,34 +38,7 @@
     </div>
   </header>
   <main>
-    <section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Luyện tập theo chương trình</p><h1>Kho đề kiểm tra</h1><p>Chọn lớp, môn học và bộ lọc phù hợp để tìm đề luyện tập.</p></div></section>
-    <section class="section practice-mode-section" aria-labelledby="practice-mode-title">
-      <div class="container">
-        <div class="practice-mode-heading">
-          <div><p class="eyebrow"><span class="eyebrow-dot"></span> Chọn cách học</p><h2 id="practice-mode-title">Bạn muốn học theo cách nào?</h2></div>
-          <div class="practice-mode-switch" role="group" aria-label="Chọn hình thức luyện tập">
-            <button type="button" data-practice-mode="scope" aria-pressed="false">Ôn theo phạm vi</button>
-            <button type="button" data-practice-mode="exam" aria-pressed="true">Làm đề thi</button>
-          </div>
-        </div>
-        <section class="scope-practice-panel" id="scope-practice-panel" aria-labelledby="scope-practice-title" hidden>
-          <div class="scope-panel-intro"><div><p class="eyebrow">Ôn tập cá nhân</p><h2 id="scope-practice-title">Bạn muốn ôn tập phần nào?</h2></div><p>Chọn môn, lớp và một hoặc nhiều chủ đề. Hệ thống chỉ dùng câu hỏi đã có trong kho.</p></div>
-          <div class="scope-controls">
-            <label class="scope-control" for="scope-subject"><span>Môn học</span><select id="scope-subject"></select></label>
-            <label class="scope-control" for="scope-grade"><span>Lớp</span><select id="scope-grade"></select></label>
-            <fieldset class="scope-topic-field">
-              <legend>Chủ đề <span id="scope-selected-count">Tất cả</span></legend>
-              <div class="scope-topic-list" id="scope-topic-list"></div>
-              <p class="scope-topic-status" id="scope-topic-status" aria-live="polite"></p>
-            </fieldset>
-            <label class="scope-control scope-question-count" for="scope-question-count"><span>Số câu</span><select id="scope-question-count"><option value="10">10 câu</option><option value="20">20 câu</option><option value="30">30 câu</option><option value="40">40 câu</option><option value="all">Tất cả câu phù hợp</option></select></label>
-            <div class="scope-availability" aria-live="polite"><span id="scope-summary">Chọn phạm vi để xem câu hỏi.</span><strong id="scope-available-count">0 câu hỏi phù hợp</strong></div>
-          </div>
-          <div class="scope-actions"><p class="scope-error" id="scope-error" role="status" hidden></p><button class="button button-primary" id="scope-start-button" type="button">Bắt đầu luyện tập <span aria-hidden="true">→</span></button></div>
-          <div class="scope-insufficient" id="scope-insufficient" role="status" hidden><div><strong id="scope-insufficient-message"></strong><p>Bạn có thể làm số câu hiện có hoặc quay lại đổi phạm vi.</p></div><div><button class="button button-primary" id="scope-start-available" type="button">Làm các câu hiện có</button><button class="button button-quiet" id="scope-back-to-select" type="button">Quay lại chọn phạm vi</button></div></div>
-        </section>
-      </div>
-    </section>
+    <section class="page-intro"><div class="container"><p class="eyebrow"><span class="eyebrow-dot"></span> Luyện tập theo chương trình</p><h1>Luyện đề thi</h1><p>Chọn lớp, môn học và bộ lọc phù hợp để tìm đề luyện tập.</p></div></section>
     <section class="section practice-tests-section" id="full-exam-section">
       <div class="container">
         <section class="ready-tests" aria-labelledby="ready-tests-title">

@@ -70,11 +70,11 @@ if (!stored) {
 if (stored) {
 const { result, questions } = stored;
 const passed = Number(result.score) >= 5;
-const scopeParams = new URLSearchParams({ mode: "scope" });
+const scopeParams = new URLSearchParams();
 if (result.subjectId) scopeParams.set("subject", result.subjectId);
 if (result.grade) scopeParams.set("grade", String(result.grade));
 for (const topic of result.topics || []) scopeParams.append("topic", topic);
-const scopeReturnHref = `../tests/index.html?${scopeParams}`;
+const scopeReturnHref = `../tests/scope.html${scopeParams.size ? `?${scopeParams}` : ""}`;
 const retryHref = result.quizKind === "scope-practice"
   ? scopeReturnHref
   : result.quizKind === "practice-test"

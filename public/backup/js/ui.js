@@ -32,7 +32,7 @@ if (subjectGrid) {
       .filter((question) => question.subjectId === subject.id)
       .flatMap((question) => question.topics)
       .filter((topic) => topic !== "Ôn tập tổng hợp")).size;
-    return `<a class="subject-card ${subjectStyle}" href="tests/index.html?mode=scope&amp;subject=${encodeURIComponent(subject.id)}"><span class="subject-icon">${subject.icon}</span><span><strong>${subject.name}</strong><small>${questionCountsBySubject.get(subject.id)} câu · ${topicCount} phạm vi</small></span><span class="card-arrow">↗</span></a>`;
+    return `<a class="subject-card ${subjectStyle}" href="tests/scope.html?subject=${encodeURIComponent(subject.id)}"><span class="subject-icon">${subject.icon}</span><span><strong>${subject.name}</strong><small>${questionCountsBySubject.get(subject.id)} câu · ${topicCount} phạm vi</small></span><span class="card-arrow">↗</span></a>`;
   }).join("");
 }
 

@@ -24,7 +24,6 @@ const typeFilter = document.querySelector("#type-filter");
 const difficultyFilter = document.querySelector("#difficulty-filter");
 const readyTestList = document.querySelector("#ready-test-list");
 const scopePanel = document.querySelector("#scope-practice-panel");
-const fullExamSection = document.querySelector("#full-exam-section");
 const scopeSubject = document.querySelector("#scope-subject");
 const scopeGrade = document.querySelector("#scope-grade");
 const scopeTopicList = document.querySelector("#scope-topic-list");
@@ -39,7 +38,6 @@ const scopeInsufficient = document.querySelector("#scope-insufficient");
 const scopeInsufficientMessage = document.querySelector("#scope-insufficient-message");
 const scopeStartAvailable = document.querySelector("#scope-start-available");
 const scopeBackToSelect = document.querySelector("#scope-back-to-select");
-const modeButtons = [...document.querySelectorAll("[data-practice-mode]")];
 const clearButtons = [
   document.querySelector("#clear-test-filters"),
   document.querySelector("#empty-clear-test-filters"),
@@ -89,19 +87,13 @@ const scopeState = {
   selectedTopics: pageParams.getAll("topic"),
 };
 
-scopeSubject.innerHTML = testSubjects.map((subject) =>
-  `<option value="${subject.id}">${subject.name}</option>`,
-).join("");
-scopeSubject.value = scopeState.subjectId;
-scopeGrade.innerHTML = testGrades.map((grade) => `<option value="${grade}">Lớp ${grade}</option>`).join("");
-scopeGrade.value = String(scopeState.grade);
-
-function setPracticeMode(mode) {
-  const scopeMode = mode === "scope";
-  scopePanel.hidden = !scopeMode;
-  fullExamSection.hidden = scopeMode;
-  modeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.practiceMode === mode)));
-  if (scopeMode) renderScopeSelection();
+if (scopePanel) {
+  scopeSubject.innerHTML = testSubjects.map((subject) =>
+    `<option value="${subject.id}">${subject.name}</option>`,
+  ).join("");
+  scopeSubject.value = scopeState.subjectId;
+  scopeGrade.innerHTML = testGrades.map((grade) => `<option value="${grade}">Lớp ${grade}</option>`).join("");
+  scopeGrade.value = String(scopeState.grade);
 }
 
 function getSelectedScopeTopics() {
@@ -176,26 +168,27 @@ function startScopePractice(useAvailableQuestions = false) {
   }
 }
 
-modeButtons.forEach((button) => button.addEventListener("click", () => setPracticeMode(button.dataset.practiceMode)));
-scopeSubject.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
-scopeGrade.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
-scopeTopicList.addEventListener("change", (event) => {
-  const allCheckbox = scopeTopicList.querySelector("[data-scope-all]");
-  if (event.target.matches("[data-scope-all]")) {
-    scopeTopicList.querySelectorAll("[data-scope-topic]").forEach((input) => { input.checked = false; });
-    scopeState.selectedTopics = [];
-  } else if (event.target.matches("[data-scope-topic]")) {
-    allCheckbox.checked = !scopeTopicList.querySelector("[data-scope-topic]:checked");
-    scopeState.selectedTopics = getSelectedScopeTopics();
-  }
-  renderScopeSelection();
-});
-scopeQuestionCount.addEventListener("change", () => { scopeInsufficient.hidden = true; });
-scopeStartButton.addEventListener("click", () => startScopePractice());
-scopeStartAvailable.addEventListener("click", () => startScopePractice(true));
-scopeBackToSelect.addEventListener("click", () => { scopeInsufficient.hidden = true; scopeQuestionCount.focus(); });
+if (scopePanel) {
+  scopeSubject.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
+  scopeGrade.addEventListener("change", () => { scopeState.selectedTopics = []; renderScopeSelection(); });
+  scopeTopicList.addEventListener("change", (event) => {
+    const allCheckbox = scopeTopicList.querySelector("[data-scope-all]");
+    if (event.target.matches("[data-scope-all]")) {
+      scopeTopicList.querySelectorAll("[data-scope-topic]").forEach((input) => { input.checked = false; });
+      scopeState.selectedTopics = [];
+    } else if (event.target.matches("[data-scope-topic]")) {
+      allCheckbox.checked = !scopeTopicList.querySelector("[data-scope-topic]:checked");
+      scopeState.selectedTopics = getSelectedScopeTopics();
+    }
+    renderScopeSelection();
+  });
+  scopeQuestionCount.addEventListener("change", () => { scopeInsufficient.hidden = true; });
+  scopeStartButton.addEventListener("click", () => startScopePractice());
+  scopeStartAvailable.addEventListener("click", () => startScopePractice(true));
+  scopeBackToSelect.addEventListener("click", () => { scopeInsufficient.hidden = true; scopeQuestionCount.focus(); });
+}
 
-readyTestList.innerHTML = availableTests.map((test) => `
+if (readyTestList) readyTestList.innerHTML = availableTests.map((test) => `
   <article class="ready-test-card">
     <span class="test-status is-available">Có thể làm</span>
     <h3>${test.title}</h3>
@@ -204,19 +197,21 @@ readyTestList.innerHTML = availableTests.map((test) => `
   </article>
 `).join("");
 
-subjectFilter.insertAdjacentHTML("beforeend", testSubjects.map((subject) =>
-  `<option value="${subject.id}">${subject.name}</option>`,
-).join(""));
-subjectFilter.value = state.subject;
-searchInput.value = state.search;
-typeFilter.insertAdjacentHTML("beforeend", testCatalogExamTypes.map((type) =>
-  `<option value="${type.id}">${type.name}</option>`,
-).join(""));
-typeFilter.value = state.type;
-difficultyFilter.insertAdjacentHTML("beforeend", testDifficulties.map((difficulty) =>
-  `<option value="${difficulty.id}">${difficulty.name}</option>`,
-).join(""));
-difficultyFilter.value = state.difficulty;
+if (list) {
+  subjectFilter.insertAdjacentHTML("beforeend", testSubjects.map((subject) =>
+    `<option value="${subject.id}">${subject.name}</option>`,
+  ).join(""));
+  subjectFilter.value = state.subject;
+  searchInput.value = state.search;
+  typeFilter.insertAdjacentHTML("beforeend", testCatalogExamTypes.map((type) =>
+    `<option value="${type.id}">${type.name}</option>`,
+  ).join(""));
+  typeFilter.value = state.type;
+  difficultyFilter.insertAdjacentHTML("beforeend", testDifficulties.map((difficulty) =>
+    `<option value="${difficulty.id}">${difficulty.name}</option>`,
+  ).join(""));
+  difficultyFilter.value = state.difficulty;
+}
 
 document.querySelectorAll("[data-grade]").forEach((button) => {
   const isActive = button.dataset.grade === state.grade;
@@ -326,25 +321,23 @@ document.querySelectorAll("[data-grade]").forEach((button) => {
       option.setAttribute("aria-pressed", String(isActive));
     });
     render();
-    renderScopeSelection();
-    const requestedMode = pageParams.get("mode") === "scope" ? "scope" : "exam";
-    setPracticeMode(requestedMode);
+    if (scopePanel) renderScopeSelection();
   });
 });
 
-subjectFilter.addEventListener("change", () => {
+subjectFilter?.addEventListener("change", () => {
   state.subject = subjectFilter.value;
   render();
 });
-searchInput.addEventListener("input", () => {
+searchInput?.addEventListener("input", () => {
   state.search = searchInput.value;
   render();
 });
-typeFilter.addEventListener("change", () => {
+typeFilter?.addEventListener("change", () => {
   state.type = typeFilter.value;
   render();
 });
-difficultyFilter.addEventListener("change", () => {
+difficultyFilter?.addEventListener("change", () => {
   state.difficulty = difficultyFilter.value;
   render();
 });
@@ -355,10 +348,10 @@ function clearFilters() {
   state.search = "";
   state.type = "all";
   state.difficulty = "all";
-  subjectFilter.value = "all";
-  searchInput.value = "";
-  typeFilter.value = "all";
-  difficultyFilter.value = "all";
+  if (subjectFilter) subjectFilter.value = "all";
+  if (searchInput) searchInput.value = "";
+  if (typeFilter) typeFilter.value = "all";
+  if (difficultyFilter) difficultyFilter.value = "all";
   document.querySelectorAll("[data-grade]").forEach((button) => {
     const isActive = button.dataset.grade === "all";
     button.classList.toggle("is-active", isActive);
@@ -367,9 +360,9 @@ function clearFilters() {
   render();
 }
 
-clearButtons.forEach((button) => button.addEventListener("click", clearFilters));
+clearButtons.forEach((button) => button?.addEventListener("click", clearFilters));
 
-list.addEventListener("click", (event) => {
+list?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-test-favorite]");
   if (!button) return;
 
@@ -381,6 +374,5 @@ list.addEventListener("click", (event) => {
   render();
 });
 
-render();
-renderScopeSelection();
-setPracticeMode(pageParams.get("mode") === "scope" ? "scope" : "exam");
+if (list) render();
+if (scopePanel) renderScopeSelection();
