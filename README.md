@@ -28,7 +28,7 @@ Tại lần kiểm kê hiện tại, có 36 bộ luyện tập với 250 câu h�
 
 ## Study AI
 
-Study AI hiển thị trên các trang dành cho người học và nhận ngữ cảnh câu hỏi hiện tại trong lúc làm bài. Endpoint backend là `POST /api/study-ai`; endpoint chỉ chấp nhận same-origin, giới hạn đầu vào và tốc độ gửi, gọi dịch vụ tương thích OpenAI Chat Completions ở phía server. Khóa API không được đưa vào JavaScript hoặc HTML frontend.
+Study AI hiển thị trên các trang dành cho người học và nhận ngữ cảnh câu hỏi hiện tại trong lúc làm bài. Khi chưa cấu hình API key, trợ lý mặc định chạy bằng bộ quy tắc offline miễn phí ngay trên trình duyệt; nó giải thích theo lời giải có sẵn và không gọi dịch vụ trả phí. Chế độ offline có giới hạn, không phải mô hình sinh câu trả lời tổng quát. Khi người vận hành chủ động cấu hình API key, endpoint backend `POST /api/study-ai` mới gọi dịch vụ tương thích OpenAI Chat Completions ở phía server. `GET /api/study-ai` chỉ trả cờ cấu hình (không trả key). Endpoint chỉ chấp nhận same-origin, giới hạn đầu vào và tốc độ gửi. Khóa API không được đưa vào JavaScript hoặc HTML frontend.
 
 Biến môi trường:
 
@@ -36,9 +36,9 @@ Biến môi trường:
 - `STUDY_AI_API_URL` — tùy chọn; mặc định `https://api.openai.com/v1/chat/completions`.
 - `STUDY_AI_MODEL` — tùy chọn; mặc định `gpt-4o-mini`.
 
-Chạy local: lưu các biến cần thiết trong `.env.local` ở thư mục gốc (file này đã được Git ignore), rồi chạy `npm run dev`. Vite chuyển tiếp `POST /api/study-ai` đến cùng handler dùng trên Vercel. Không commit `.env.local` và không đặt API key với tiền tố `VITE_`.
+Chạy local miễn phí: không cần API key; chạy `npm run dev` và widget sẽ dùng bộ trợ lý offline. Muốn bật câu trả lời tạo sinh online, lưu biến môi trường trong `.env.local` ở thư mục gốc rồi khởi động lại dev server. Vite chuyển tiếp API đến cùng handler dùng trên Vercel. Không commit `.env.local` và không đặt API key với tiền tố `VITE_`.
 
-Trên Vercel, mở **Project → Settings → Environment Variables**, thêm `STUDY_AI_API_KEY` (và tùy chọn `STUDY_AI_API_URL`, `STUDY_AI_MODEL`) cho các môi trường cần dùng rồi deploy lại. Vercel tự triển khai `api/study-ai.js` thành serverless function. Nếu chưa cấu hình key, widget vẫn mở được nhưng API trả thông báo cấu hình còn thiếu.
+Trên Vercel, mở **Project → Settings → Environment Variables**, thêm `STUDY_AI_API_KEY` (và tùy chọn `STUDY_AI_API_URL`, `STUDY_AI_MODEL`) cho các môi trường cần dùng rồi deploy lại để bật online. Vercel tự triển khai `api/study-ai.js` thành serverless function. Nếu không khai báo key, widget vẫn hỗ trợ học ở chế độ offline và không phát sinh chi phí API.
 
 ## Công nghệ sử dụng
 
