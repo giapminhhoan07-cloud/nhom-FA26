@@ -174,11 +174,11 @@ async function requestAnswer(message, { reuseLastUserMessage = false } = {}) {
   }
 }
 
-function openPanel(prompt = "", { focusInput = true } = {}) {
+function openPanel(prompt = "") {
   panel.hidden = false;
   launcher.setAttribute("aria-expanded", "true");
   renderSuggestions();
-  if (focusInput) input.focus();
+  input.focus();
   if (prompt) requestAnswer(prompt);
 }
 
@@ -232,6 +232,5 @@ document.addEventListener("studysphere:study-ai-open", (event) => {
 
 addWelcomeMessage();
 renderSuggestions();
-openPanel("", { focusInput: false });
 document.dispatchEvent(new CustomEvent("studysphere:study-ai-ready"));
 detectOnlineMode();
