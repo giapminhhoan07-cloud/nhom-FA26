@@ -1,5 +1,5 @@
 import { exams } from "../backup/data/exams.js";
-import { shouldRedirectToAdminDashboard, shouldRequireLogin } from "./redirectPolicy.js";
+import { shouldRedirectToAdminDashboard, shouldRedirectToBackupHome, shouldRequireLogin } from "./redirectPolicy.js";
 
 const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
 const readStoredUser = () => {
@@ -25,10 +25,14 @@ if (shouldRedirectToAdminDashboard(window.location.pathname, currentUser, window
   window.location.replace("/backup/pages/admin-dashboard.html");
 }
 
+if (shouldRedirectToBackupHome(window.location.pathname, currentUser)) {
+  window.location.replace("/backup/index.html");
+}
+
 document.querySelector("#app").innerHTML = `
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand" href="/" aria-label="StudySphere - Trang chủ">
+        <a class="brand" href="/backup/index.html" aria-label="StudySphere - Trang chủ">
           <span class="brand-mark">S</span>
           <span>Study<span>Sphere</span></span>
         </a>
@@ -36,7 +40,7 @@ document.querySelector("#app").innerHTML = `
           <span></span><span></span><span></span>
         </button>
         <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
-          <a class="active" href="/">Trang chủ</a>
+          <a class="active" href="/backup/index.html">Trang chủ</a>
           <a href="/backup/tests/">Bài kiểm tra</a>
           <a href="/backup/pages/history.html">Lịch sử</a>
           <a href="/backup/pages/favorites.html">Đề đã lưu</a>
@@ -95,7 +99,7 @@ document.querySelector("#app").innerHTML = `
       <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/tests/">Đến kho đề kiểm tra <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
     </main>
 
-    <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="/"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="/backup/pages/about.html">Về StudySphere</a><a href="/backup/pages/contact.html">Liên hệ nhóm</a><span>© 2026 StudySphere</span></div></div></footer>
+    <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="/backup/index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="/backup/pages/about.html">Về StudySphere</a><a href="/backup/pages/contact.html">Liên hệ nhóm</a><span>© 2026 StudySphere</span></div></div></footer>
   `;
 
   await import("../backup/js/session.js");

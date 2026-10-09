@@ -48,3 +48,10 @@ export function shouldRedirectToAdminDashboard(pathname, user, search = '') {
 
   return homePaths.includes(trimmed) || trimmed.endsWith('/backup') || trimmed.endsWith('/public/backup');
 }
+
+export function shouldRedirectToBackupHome(pathname, user) {
+  if (!user || hasAdminRole(user)) return false;
+
+  const normalized = String(pathname ?? '/').split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  return normalized === '/' || normalized === '/index.html';
+}

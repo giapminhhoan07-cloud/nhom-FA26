@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { shouldRedirectToAdminDashboard, shouldRequireLogin } from '../src/redirectPolicy.js';
+import { shouldRedirectToAdminDashboard, shouldRedirectToBackupHome, shouldRequireLogin } from '../src/redirectPolicy.js';
 
 test('redirects admin from home page to admin dashboard', () => {
   const adminUser = { role: 'admin', name: 'Quản trị viên' };
@@ -21,6 +21,17 @@ test('does not redirect regular users or other pages', () => {
   assert.equal(shouldRedirectToAdminDashboard('/', guestUser), false);
   assert.equal(shouldRedirectToAdminDashboard('/', regularUser), false);
   assert.equal(shouldRedirectToAdminDashboard('/backup/pages/exams.html', adminUser), false);
+});
+
+test('redirects signed-in regular users from the root to the canonical home page', () => {
+  const regularUser = { role: 'user', name: 'Học viên' };
+  const adminUser = { role: 'admin', name: 'Quản trị viên' };
+  assert.equal(shouldRedirectToBackupHome('/', regularUser), true);
+  assert.equal(shouldRedirectToBackupHome('/index.html', regularUser), true);
+  assert.equal(shouldRedirectToBackupHome('/backup/index.html', regularUser), false);
+  assert.equal(shouldRedirectToBackupHome('/backup/pages/exams.html', regularUser), false);
+  assert.equal(shouldRedirectToBackupHome('/', null), false);
+  assert.equal(shouldRedirectToBackupHome('/', adminUser), false);
 });
 
 test('requires login on every page except auth page', () => {
