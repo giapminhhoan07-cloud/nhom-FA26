@@ -205,7 +205,7 @@ registerForm?.addEventListener("submit", async (event) => {
     const result = await submitAuth({ action: "register", name, email, password });
     writeStoredUser(result.user);
     sessionStorage.setItem(AUTH_NOTICE_KEY, "register");
-    window.location.href = "../index.html";
+    window.location.href = "/backup/index.html";
   } catch (error) {
     setMessage("register-message", error.message);
   }
@@ -235,9 +235,9 @@ loginForm?.addEventListener("submit", async (event) => {
       "admin-users": "admin-users.html",
       "admin-dashboard": "admin-dashboard.html#overview",
       "admin-feedback": "admin-feedback.html",
-      home: "../index.html",
+      home: "/backup/index.html",
     };
-    const defaultPath = result.user.role === "admin" ? "admin-dashboard.html" : "../index.html";
+    const defaultPath = result.user.role === "admin" ? "admin-dashboard.html" : "/backup/index.html";
     window.location.href = returnPaths[returnTarget] || defaultPath;
   } catch (error) {
     setMessage("login-message", error.message);
