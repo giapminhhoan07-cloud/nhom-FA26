@@ -139,7 +139,6 @@ async function requestAnswer(message, { reuseLastUserMessage = false } = {}) {
 
   try {
     if (!onlineMode) {
-      await new Promise((resolve) => window.setTimeout(resolve, 250));
       const answer = createOfflineAnswer(prompt, quizContext, history);
       loadingMessage.remove();
       conversation.push({ role: "assistant", content: answer });
