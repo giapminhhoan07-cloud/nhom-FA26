@@ -205,6 +205,19 @@ test("offline tutor expands simple linear equations when asked for more detail",
   assert.match(answer, /x = 3/);
 });
 
+test("offline tutor suggests a focused study plan for the current topic", () => {
+  const answer = createOfflineAnswer("Gợi ý cách ôn tập", {
+    subject: "Sinh học",
+    grade: 11,
+    topic: "Di truyền học",
+    question: "Câu hỏi luyện tập",
+  });
+
+  assert.match(answer, /phiên ôn tập 20 phút/);
+  assert.match(answer, /Di truyền học/);
+  assert.match(answer, /Ngày mai/);
+});
+
 test("offline tutor checks the option named in the question", () => {
   const answer = createOfflineAnswer("Tại sao đáp án B sai?", {
     question: "Câu hỏi mẫu",

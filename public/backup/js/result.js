@@ -143,6 +143,7 @@ function buildReviewMarkup(filter = "all") {
         <ul class="review-options">${optionsMarkup}</ul>
         ${answerFooter}
         <p class="review-explanation">${question.explanation}</p>
+        ${isWrong ? `<button class="button button-quiet study-ai-review-trigger" type="button" data-study-ai-question="${index}">Phân tích câu sai</button>` : ""}
       </article>
     `;
   }).join("");
@@ -171,7 +172,8 @@ card.innerHTML = `
   </div>
   <div class="detail-actions">
     <a class="button button-primary" href="${retryHref}">Làm lại bài</a>
-    <a class="button button-quiet" href="${libraryHref}">Về bài kiểm tra</a>
+    <a class="button button-quiet" href="${libraryHref}">${result.quizKind === "practice-test" ? "Về bài kiểm tra" : "Về kho đề"}</a>
+    <button class="button button-secondary study-plan-trigger" type="button">Gợi ý cách ôn tập</button>
   </div>
   <div class="detail-note">
     <strong>${passed ? "Bạn đã đạt yêu cầu" : "Cần ôn tập thêm"}</strong>
@@ -240,6 +242,82 @@ const feedbackForm = document.querySelector("#feedback-form");
 const feedbackMessage = document.querySelector("#feedback-message");
 const storedFeedback = readLocalData("studysphere_feedback", []);
 const existingFeedback = Array.isArray(storedFeedback) ? storedFeedback.find((item) => item.attemptId === result.attemptId) : null;
+
+function buildStudyAiContext(question, index) {
+  const selectedAnswer = result.answers?.[index];
+  const selectedIndex = Number.isInteger(selectedAnswer) ? Number(selectedAnswer) : null;
+  const correctAnswer = question.type === "short_answer"
+    ? String(question.answer ?? question.correctAnswer ?? "")
+    : Number.isInteger(question.correctAnswer)
+      ? `${getOptionLabel(question.correctAnswer)}. ${question.options?.[question.correctAnswer] || ""}`
+      : String(question.correctAnswer ?? "");
+  const userAnswer = question.type === "short_answer"
+    ? String(selectedAnswer ?? "Chưa trả lời")
+    : selectedIndex === null
+      ? "Chưa trả lời"
+      : `${getOptionLabel(selectedIndex)}. ${question.options?.[selectedIndex] || ""}`;
+
+  return {
+    questionId: `${result.attemptId}-${question.id || index}`,
+    subject: result.subjectName || result.subject || "",
+    grade: Number(result.grade) || null,
+    topic: Array.isArray(question.topics) ? question.topics.join(", ") : question.topic || "",
+    difficulty: question.difficultyName || question.difficulty || "",
+    question: String(question.content ?? question.question ?? ""),
+    options: Array.isArray(question.options) ? question.options.map(String) : [],
+    userAnswer,
+    correctAnswer,
+    explanation: String(question.explanation ?? ""),
+    assessmentInProgress: false,
+  };
+}
+
+function openStudyAi(context, prompt) {
+  const dispatch = () => {
+    window.studysphereCurrentQuizContext = context;
+    document.dispatchEvent(new CustomEvent("studysphere:quiz-context", { detail: context }));
+    document.dispatchEvent(new CustomEvent("studysphere:study-ai-open", { detail: { prompt } }));
+  };
+  if (document.querySelector(".study-ai-panel")) dispatch();
+  else document.addEventListener("studysphere:study-ai-ready", dispatch, { once: true });
+}
+
+reviewList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-study-ai-question]");
+  if (!button) return;
+  const index = Number(button.dataset.studyAiQuestion);
+  const question = questions[index];
+  if (!question || !Number.isInteger(index)) return;
+  openStudyAi(
+    buildStudyAiContext(question, index),
+    `Phân tích vì sao câu ${index + 1} mình làm sai, chỉ ra chỗ nhầm và hướng suy luận đúng.`,
+  );
+});
+
+document.querySelector(".study-plan-trigger").addEventListener("click", () => {
+  const weakQuestions = questions.flatMap((question, index) => {
+    const answer = result.answers?.[index];
+    return isQuestionAnswerCorrect(answer, question) ? [] : [{ question, index }];
+  });
+  const topicCounts = new Map();
+  weakQuestions.forEach(({ question }) => {
+    const topic = Array.isArray(question.topics) ? question.topics.join(", ") : question.topic || "Chủ đề chưa phân loại";
+    topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
+  });
+  const weakTopics = [...topicCounts]
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 5)
+    .map(([topic, count]) => `${topic} (${count} câu)`);
+  const topicSummary = weakTopics.join(", ") || "ôn xen kẽ các chủ đề trong đề";
+  const context = {
+    subject: result.subjectName || result.subject || "",
+    grade: Number(result.grade) || null,
+    topic: topicSummary,
+    question: `Kết quả bài ${result.examTitle}: ${result.score}/10, ${result.wrongCount} câu sai, ${result.unansweredCount} câu bỏ qua. Chủ đề cần củng cố: ${topicSummary}.`,
+    assessmentInProgress: false,
+  };
+  openStudyAi(context, "Gợi ý cách ôn tập dựa trên kết quả này và lập cho mình một kế hoạch học ngắn, cụ thể.");
+});
 
 function renderSelectedRating() {
   const selectedRating = Number(feedbackForm.elements.rating.value);

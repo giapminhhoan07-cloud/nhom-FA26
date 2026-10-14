@@ -12,6 +12,9 @@ const isWrongAnswerRequest = (message) =>
 const isExampleRequest = (message) =>
   /(ví dụ|tương tự|bài khác|câu khác)/i.test(message);
 
+const isStudyPlanRequest = (message) =>
+  /(cách học|cách ôn|lộ trình|kế hoạch ôn|gợi ý học|nên ôn|ôn tập thế nào)/i.test(message);
+
 const getAnswerLetter = (answer) => String(answer ?? "").match(/^\s*([A-F])(?:[.)]|\s|$)/i)?.[1]?.toUpperCase() || "";
 
 function getStudyLevel(context) {
@@ -92,6 +95,15 @@ export function createOfflineAnswer(message, context = null, history = []) {
   }
 
   const level = getStudyLevel(context);
+  const correctAnswer = String(context.correctAnswer ?? "").trim();
+  const explanation = String(context.explanation ?? "").trim();
+  const userAnswer = String(context.userAnswer ?? "").trim();
+  if (isStudyPlanRequest(normalizedPrompt)) {
+    const safetyNote = context.assessmentInProgress
+      ? " Khi đang làm bài thi, hãy áp dụng cách suy luận này mà không xem đáp án trước."
+      : "";
+    return `Với ${level}, bạn có thể thử phiên ôn tập 20 phút: dành 5 phút nhắc lại khái niệm chính, 10 phút tự giải 3 câu cùng dạng, rồi 5 phút ghi lại lỗi và lý do chọn nhầm. Tập trung vào ${context.topic || "phần kiến thức bạn còn chưa chắc"}. Ngày mai, làm lại một câu tương tự mà không xem lời giải.${safetyNote}`;
+  }
   if (context.assessmentInProgress) {
     return `Mình đang hỗ trợ ${level}. Vì bạn đang làm bài thi, mình không tiết lộ đáp án. Hãy xác định kiến thức cần dùng, thử loại những lựa chọn không phù hợp rồi tự tính/đối chiếu lại. Bạn gửi cách làm của bạn, mình có thể giúp kiểm tra hướng suy luận mà không bật mí đáp án.`;
   }
@@ -114,9 +126,6 @@ export function createOfflineAnswer(message, context = null, history = []) {
     return `Mình chưa tạo được câu mới tự động cho chủ đề ${context.topic || context.subject || "này"} khi chạy offline. Bạn thử tự đổi số liệu hoặc ngữ liệu trong câu hiện tại để tạo một câu tương tự, rồi gửi lại để mình kiểm tra nhé.`;
   }
 
-  const correctAnswer = String(context.correctAnswer ?? "").trim();
-  const explanation = String(context.explanation ?? "").trim();
-  const userAnswer = String(context.userAnswer ?? "").trim();
   if (isWrongAnswerRequest(normalizedPrompt) && correctAnswer) {
     if (!userAnswer || normalize(userAnswer) === normalize("Chưa chọn")) {
       return `Mình chưa thấy bạn chọn đáp án nào. Đáp án đúng là ${correctAnswer}.${explanation ? `\n\nGiải thích: ${explanation}` : ""}`;

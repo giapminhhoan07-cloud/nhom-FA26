@@ -286,6 +286,54 @@ function addContactNavigationLink() {
   mainNav.append(link);
 }
 
+function syncLearnerNavigation() {
+  const mainNav = document.querySelector(".main-nav");
+  if (!mainNav || isAdminRoute) return;
+
+  const items = [
+    { label: "Trang chủ", href: "/backup/index.html", key: "home" },
+    { label: "Bài kiểm tra", href: "/backup/tests/index.html", key: "practice" },
+    { label: "Kho đề thi", href: "/backup/pages/exams.html", key: "exams" },
+    { label: "Lịch sử", href: "/backup/pages/history.html", key: "history" },
+    { label: "Đề đã lưu", href: "/backup/pages/favorites.html", key: "favorites" },
+    { label: "Liên hệ", href: "/backup/pages/contact.html", key: "contact" },
+  ];
+  const order = new Map(items.map(({ label }, index) => [label, index]));
+
+  items.forEach((item) => {
+    let link = [...mainNav.querySelectorAll("a")].find((candidate) => candidate.textContent.trim() === item.label);
+    if (!link) {
+      link = document.createElement("a");
+      link.textContent = item.label;
+      mainNav.append(link);
+    }
+    link.href = item.href;
+    const pathname = window.location.pathname.replace(/\/+$/, "");
+    const active = item.key === "home"
+      ? isHomeRoute()
+      : item.key === "practice"
+        ? pathname.startsWith("/backup/tests/")
+          : item.key === "exams"
+            ? ["/backup/pages/exams.html", "/backup/pages/exam-detail.html"].includes(pathname)
+            : pathname === new URL(item.href, window.location.origin).pathname;
+    link.classList.toggle("active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+
+  [...mainNav.children]
+    .sort((first, second) => {
+      const getRank = (item) => {
+        const label = item.classList.contains("nav-dropdown")
+          ? "Bài kiểm tra"
+          : item.querySelector("a")?.textContent.trim() || item.textContent.trim();
+        return order.get(label) ?? items.length;
+      };
+      return getRank(first) - getRank(second);
+    })
+    .forEach((item) => mainNav.append(item));
+}
+
 function showAuthSuccessNotice() {
   const noticeKey = "studysphere_auth_success_notice";
   const noticeType = sessionStorage.getItem(noticeKey);
@@ -312,6 +360,7 @@ function showAuthSuccessNotice() {
 }
 
 addContactNavigationLink();
+syncLearnerNavigation();
 showAuthSuccessNotice();
 syncSidebarState();
 enhancePracticeNavigation();
