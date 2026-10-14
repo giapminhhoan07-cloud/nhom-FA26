@@ -232,6 +232,14 @@ card.innerHTML = `
   </div>
 `;
 
+document.querySelector(".study-plan-trigger").addEventListener("click", () => {
+  document.dispatchEvent(new CustomEvent("studysphere:study-ai-open", {
+    detail: {
+      prompt: `Hãy gợi ý kế hoạch ôn tập ngắn cho bài "${result.examTitle}". Điểm: ${result.score}/10; ${result.wrongCount} câu sai và ${result.unansweredCount} câu chưa làm. Nêu các bước cụ thể cần ôn.`,
+    },
+  }));
+});
+
 const reviewList = document.querySelector("#review-list");
 const filterButtons = document.querySelectorAll(".review-filter-button");
 const reviewModalOverlay = document.querySelector("#review-modal-overlay");
