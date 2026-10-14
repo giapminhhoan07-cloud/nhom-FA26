@@ -1,12 +1,15 @@
 import { exams } from "../data/exams.js";
 import { practiceTests, upcomingTests } from "../tests/data/practice-tests.js";
 import { practiceQuestionBank } from "./practiceScopes.js";
+import { apiClient } from "./apiClient.js";
+import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 const testId = params.get("test");
 const detail = document.querySelector("#exam-detail");
 const backLink = document.querySelector(".back-link");
+const currentUser = getCurrentUser();
 
 function renderPracticeTestDetail() {
 	const test = practiceTests.find((item) => item.id === testId)
@@ -61,14 +64,50 @@ function renderPracticeTestDetail() {
 if (testId) {
 	renderPracticeTestDetail();
 } else {
-const exam = exams.find((item) => item.id === id);
+let exam = exams.find((item) => String(item.id) === id);
+if (!exam && id) {
+	try {
+		const records = await apiClient.list("exams", { id });
+		const record = records.find((item) => String(item.id) === id);
+		if (record) {
+			exam = {
+				...record,
+				id: String(record.id),
+				title: String(record.title || "Đề thi chưa có tên"),
+				subjectId: record.subjectId || record.subject || "",
+				subjectName: record.subjectName || record.subject || "Môn học chưa cập nhật",
+				typeName: record.typeName || record.type || "Đề thi",
+				difficultyName: record.difficultyName || ({ easy: "Cơ bản", medium: "Trung bình", hard: "Khó" })[record.difficulty] || "Đang cập nhật",
+				durationMinutes: Number(record.durationMinutes ?? record.duration) || null,
+				questions: Array.isArray(record.questions) ? record.questions : [],
+			};
+		}
+	} catch {
+		// Keep the not-found state when the JSON-server is unavailable.
+	}
+}
 if (!exam) {
 	document.title = "Không tìm thấy đề | StudySphere";
 	detail.innerHTML = '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
 } else {
 const relatedPracticeTest = practiceTests.find((test) => test.id === exam.relatedPracticeTestId);
 const hasQuestions = Array.isArray(exam.questions) && exam.questions.length > 0;
-const hasDocument = Boolean(exam.documentUrl);
+let validDocumentUrl = "";
+if (typeof exam.documentUrl === "string" && exam.documentUrl.trim()) {
+	try {
+		const documentUrl = new URL(exam.documentUrl, window.location.href);
+		if (documentUrl.origin === window.location.origin && documentUrl.pathname.toLowerCase().endsWith(".pdf")) {
+			const response = await fetch(documentUrl, { method: "HEAD", cache: "no-store" });
+			if (response.ok && (!response.headers.get("content-type") || response.headers.get("content-type").includes("pdf"))) {
+				validDocumentUrl = documentUrl.href;
+			}
+		}
+	} catch {
+		validDocumentUrl = "";
+	}
+}
+exam.documentUrl = validDocumentUrl;
+const hasDocument = Boolean(validDocumentUrl);
 const grade = Number(exam.grade) || Number(exam.title.match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null;
 const documentPreview = hasDocument
   ? `<details class="exam-document"><summary><span class="exam-document-summary"><strong>${exam.title}</strong><small>Đề PDF · Nhấn để xem đề</small></span><span class="exam-document-toggle">Xem đề <span aria-hidden="true">↗</span></span></summary><iframe src="${exam.documentUrl}" title="${exam.title}"></iframe><div class="exam-document-actions"><a class="button button-primary" href="${exam.documentUrl}" target="_blank" rel="noreferrer">Mở tab mới</a><a class="button button-quiet" href="${exam.documentUrl}" download>⇩ Tải đề xuống</a></div></details>`
@@ -89,10 +128,10 @@ const noteMarkup = hasQuestions ? `<div class="detail-note"><strong>Trước khi
 detail.innerHTML = `<div class="detail-top"><span class="exam-subject">${exam.subjectName}</span><span class="detail-label">${exam.typeName}</span></div><h1>${exam.title}</h1><p class="detail-description">${exam.description || ""}</p>${detailStats}${actionMarkup}${documentPreview}${noteMarkup}`;
 const favoriteButton = document.querySelector("#favorite-detail");
 if (favoriteButton) {
-	let favorites = JSON.parse(localStorage.getItem("studysphere_favorites") || "[]");
-	const updateFavorite = () => { const saved = favorites.includes(exam.id); favoriteButton.textContent = saved ? "♥ Đã lưu" : "♡ Lưu đề"; favoriteButton.classList.toggle("saved", saved); };
+	let favorites = readUserCollection(currentUser, "favorites", "studysphere_favorites").map(String);
+	const updateFavorite = () => { const saved = favorites.includes(String(exam.id)); favoriteButton.textContent = saved ? "♥ Đã lưu" : "♡ Lưu đề"; favoriteButton.classList.toggle("saved", saved); };
 	updateFavorite();
-	favoriteButton.addEventListener("click", () => { const index = favorites.indexOf(exam.id); index >= 0 ? favorites.splice(index, 1) : favorites.push(exam.id); localStorage.setItem("studysphere_favorites", JSON.stringify(favorites)); updateFavorite(); });
+	favoriteButton.addEventListener("click", () => { const index = favorites.indexOf(String(exam.id)); index >= 0 ? favorites.splice(index, 1) : favorites.push(String(exam.id)); writeUserCollection(currentUser, "favorites", favorites); updateFavorite(); });
 }
 }
 }

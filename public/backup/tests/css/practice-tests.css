@@ -52,6 +52,9 @@
 .filter-reset { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: white; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; }
 .filter-reset:hover { border-color: var(--ink); background: #f4f8fd; }
 .practice-results-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 28px 0 16px; color: var(--ink-soft); font-size: 14px; }
+.catalog-api-status { margin: 14px 0 0; color: var(--teal-dark); font-size: 13px; }
+.catalog-api-status:empty { display: none; }
+.catalog-api-status.is-error { color: #9c4c38; }
 .practice-results-heading strong { color: var(--ink); font-size: 16px; font-weight: 600; }
 .practice-results-heading span { text-align: right; }
 .practice-test-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }

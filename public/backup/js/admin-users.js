@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient.js";
+
 const readJson = (key, fallback) => {
   try {
     return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
@@ -19,6 +21,7 @@ if (!isAdmin) {
   const message = document.querySelector("#admin-users-message");
   const statusKey = "studysphere_user_status";
   const metadataKey = "studysphere_user_metadata";
+  let apiUsers = [];
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -31,8 +34,10 @@ if (!isAdmin) {
   }
 
   function getUsers() {
-    const users = readJson("studysphere_users", []);
-    return Array.isArray(users) ? users : [];
+    const localUsers = readJson("studysphere_users", []);
+    const merged = new Map((Array.isArray(localUsers) ? localUsers : []).map((user) => [String(user.id || user.email), user]));
+    apiUsers.forEach((user) => merged.set(String(user.id || user.email), user));
+    return [...merged.values()];
   }
 
   function formatDate(value) {
@@ -52,7 +57,8 @@ if (!isAdmin) {
     emptyState.hidden = filtered.length > 0;
     usersList.innerHTML = filtered.map((user, index) => {
       const key = user.id || user.email;
-      const role = user.role === "admin" ? "admin" : "student";
+      const isUserAdmin = user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1;
+      const role = isUserAdmin ? "admin" : "student";
       const status = statuses[key] || user.status || "active";
       const isSelf = (currentUser.id && user.id === currentUser.id) || (currentUser.email && user.email === currentUser.email);
       const canToggleStatus = role !== "admin" && !isSelf;
@@ -64,18 +70,41 @@ if (!isAdmin) {
     }).join("");
   }
 
-  usersList.addEventListener("click", (event) => {
+  usersList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-user-key]");
     if (!button) return;
 
     const statuses = readJson(statusKey, {});
     statuses[button.dataset.userKey] = button.dataset.nextStatus;
     localStorage.setItem(statusKey, JSON.stringify(statuses));
-    message.textContent = button.dataset.nextStatus === "locked" ? "Đã khóa tài khoản." : "Đã mở khóa tài khoản.";
+    const targetUser = getUsers().find((user) => String(user.id || user.email) === button.dataset.userKey);
+    let synced = true;
+    if (targetUser?.id && !String(targetUser.id).startsWith("local-")) {
+      try {
+        await apiClient.update("users", targetUser.id, { status: button.dataset.nextStatus });
+      } catch {
+        synced = false;
+      }
+    }
+    message.textContent = button.dataset.nextStatus === "locked"
+      ? synced ? "Đã khóa tài khoản." : "Đã lưu trạng thái khóa trên thiết bị; JSON-server chưa đồng bộ."
+      : synced ? "Đã mở khóa tài khoản." : "Đã lưu trạng thái mở khóa trên thiết bị; JSON-server chưa đồng bộ.";
     message.classList.add("success");
     renderUsers();
   });
 
   searchInput.addEventListener("input", renderUsers);
-  renderUsers();
+  async function loadUsers() {
+    try {
+      const records = await apiClient.list("users");
+      apiUsers = Array.isArray(records) ? records : [];
+      message.textContent = `Đã tải ${apiUsers.length} tài khoản từ JSON-server.`;
+      message.classList.add("success");
+    } catch (error) {
+      message.textContent = `${error.message} Đang hiển thị tài khoản lưu trên thiết bị.`;
+      message.classList.remove("success");
+    }
+    renderUsers();
+  }
+  loadUsers();
 }

@@ -66,8 +66,13 @@
             <label for="difficulty-filter">Mức độ</label>
             <select id="difficulty-filter"><option value="all">Tất cả mức độ</option></select>
           </div>
+          <div class="filter-control">
+            <label for="duration-filter">Thời gian</label>
+            <select id="duration-filter"><option value="all">Mọi thời lượng</option><option value="under-30">Dưới 30 phút</option><option value="30-60">30–60 phút</option><option value="over-60">Trên 60 phút</option><option value="unknown">Chưa cập nhật</option></select>
+          </div>
           <button class="filter-reset" id="clear-test-filters" type="button">Xóa bộ lọc</button>
         </div>
+        <p class="catalog-api-status" id="catalog-api-status" role="status" aria-live="polite"></p>
         <div class="practice-results-heading">
           <strong id="practice-test-count" aria-live="polite">Đang tải đề...</strong>
           <span id="practice-test-scope"></span>

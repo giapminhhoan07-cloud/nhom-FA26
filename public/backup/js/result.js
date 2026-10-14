@@ -1,11 +1,16 @@
 import { isQuestionAnswered, isQuestionAnswerCorrect } from "./questionAnswers.js";
+import { apiClient } from "./apiClient.js";
+import { getCurrentUser, getUserDataKey, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
-const fallbackKey = `studysphere_result_${attemptId}`;
 const readLocalData = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
 };
-const fallbackStored = readLocalData(fallbackKey, null);
+const currentUser = getCurrentUser();
+const currentUserId = String(currentUser?.id || currentUser?.email || "");
+const fallbackStored = currentUser
+  ? readUserData(currentUser, `result_${attemptId}`, null, { legacyKey: `studysphere_result_${attemptId}` })
+  : readLocalData(`studysphere_guest_result_${attemptId}`, readLocalData(`studysphere_result_${attemptId}`, null));
 const card = document.querySelector("#result-card");
 
 function escapeHtml(value) {
@@ -42,24 +47,17 @@ function normalizeAttemptData(stored) {
 }
 
 let stored = normalizeAttemptData(fallbackStored);
+if (stored?.result?.userId && currentUserId && String(stored.result.userId) !== currentUserId) stored = null;
 
-const currentUser = readLocalData("studysphere_current_user", null);
-
-if (!stored && attemptId && currentUser?.id) {
+if (!stored && attemptId && currentUserId) {
   try {
-    const response = await fetch("../api/attempts.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "get_attempt_detail", user_id: currentUser.id, attempt_id: Number(attemptId) }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success) {
-        stored = normalizeAttemptData({ result: { attemptId: String(data.attempt.id), examId: data.attempt.exam_id, examTitle: data.attempt.exam_title, submittedAt: data.attempt.submitted_at, score: Number(data.attempt.score || 0), totalQuestions: Number(data.attempt.total_questions || 0), correctCount: Number(data.attempt.correct_count || 0), wrongCount: Number(data.attempt.wrong_count || 0), unansweredCount: Number(data.attempt.unanswered_count || 0), answers: data.answers || [] }, questions: data.questions || [] });
-      }
+    const attempts = await apiClient.list("attempts", { attemptId, userId: currentUserId });
+    const remoteAttempt = attempts.find((item) => String(item.attemptId || item.id) === attemptId && String(item.userId) === currentUserId);
+    if (remoteAttempt && Array.isArray(remoteAttempt.questions)) {
+      stored = normalizeAttemptData({ result: remoteAttempt, questions: remoteAttempt.questions });
     }
   } catch {
-    stored = null;
+    // Keep the local result page available when JSON-server is offline.
   }
 }
 
@@ -240,7 +238,9 @@ const reviewTrigger = document.querySelector(".review-trigger");
 const reviewModalClose = document.querySelector(".review-modal-close");
 const feedbackForm = document.querySelector("#feedback-form");
 const feedbackMessage = document.querySelector("#feedback-message");
-const storedFeedback = readLocalData("studysphere_feedback", []);
+const storedFeedback = currentUser
+  ? readUserCollection(currentUser, "feedback", "studysphere_feedback")
+  : readLocalData("studysphere_feedback", []);
 const existingFeedback = Array.isArray(storedFeedback) ? storedFeedback.find((item) => item.attemptId === result.attemptId) : null;
 
 function buildStudyAiContext(question, index) {
@@ -335,12 +335,14 @@ if (existingFeedback) {
   renderSelectedRating();
 }
 
-feedbackForm.addEventListener("submit", (event) => {
+feedbackForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!feedbackForm.reportValidity()) return;
-  const currentUser = readLocalData("studysphere_current_user", null);
-  const feedback = readLocalData("studysphere_feedback", []);
+  const feedback = currentUser
+    ? readUserCollection(currentUser, "feedback", "studysphere_feedback")
+    : readLocalData("studysphere_feedback", []);
   const entry = {
+    id: `rating-${encodeURIComponent(currentUser?.id || currentUser?.email || "guest")}-${result.attemptId}`,
     attemptId: result.attemptId,
     examId: result.examId,
     examTitle: result.examTitle,
@@ -351,10 +353,28 @@ feedbackForm.addEventListener("submit", (event) => {
     comment: feedbackForm.elements.comment.value.trim(),
     submittedAt: new Date().toISOString(),
   };
-  const updatedFeedback = Array.isArray(feedback) ? feedback.filter((item) => item.attemptId !== result.attemptId) : [];
+  const updatedFeedback = feedback.filter((item) => item.attemptId !== result.attemptId);
   updatedFeedback.unshift(entry);
-  localStorage.setItem("studysphere_feedback", JSON.stringify(updatedFeedback));
-  feedbackMessage.textContent = "Đã lưu đánh giá của bạn.";
+  if (currentUser) writeUserCollection(currentUser, "feedback", updatedFeedback);
+  const allFeedback = readLocalData("studysphere_feedback", []);
+  const updatedAllFeedback = (Array.isArray(allFeedback) ? allFeedback : [])
+    .filter((item) => item.attemptId !== result.attemptId || String(item.userId || "") !== String(entry.userId));
+  updatedAllFeedback.unshift(entry);
+  localStorage.setItem("studysphere_feedback", JSON.stringify(updatedAllFeedback));
+  let apiSynced = false;
+  if (currentUser) {
+    try {
+      const existing = await apiClient.list("feedback", { id: entry.id });
+      if (existing.length) await apiClient.update("feedback", entry.id, entry);
+      else await apiClient.create("feedback", entry);
+      apiSynced = true;
+    } catch {
+      apiSynced = false;
+    }
+  }
+  feedbackMessage.textContent = apiSynced
+    ? "Đã lưu và đồng bộ đánh giá của bạn."
+    : "Đã lưu đánh giá trên thiết bị; JSON-server hiện chưa đồng bộ.";
   feedbackForm.querySelector("button[type=submit]").textContent = "Cập nhật đánh giá";
 });
 

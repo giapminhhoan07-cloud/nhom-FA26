@@ -251,13 +251,8 @@ function renderAccount() {
     panel.hidden = !open;
     trigger.setAttribute("aria-expanded", String(open));
   });
-  account.querySelector(".account-logout").addEventListener("click", async () => {
+  account.querySelector(".account-logout").addEventListener("click", () => {
     CURRENT_USER_KEYS.forEach((key) => localStorage.removeItem(key));
-    try {
-      await fetch(getPagePath("../api/auth.php"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
-    } catch {
-      // Redirect even when the PHP server is unavailable.
-    }
     window.location.href = getAuthPath();
   });
   document.addEventListener("click", (event) => {

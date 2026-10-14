@@ -6,6 +6,9 @@ import {
   testSubjects,
   upcomingTests,
 } from "../data/practice-tests.js";
+import { apiClient } from "../../js/apiClient.js";
+import { filterPracticeTests } from "../../js/practiceTestFilters.js";
+import { getCurrentUser, readUserCollection, writeUserCollection } from "../../js/userData.js";
 import {
   getQuestionSubjects,
   getScopeQuestions,
@@ -22,6 +25,8 @@ const subjectFilter = document.querySelector("#subject-filter");
 const searchInput = document.querySelector("#test-search");
 const typeFilter = document.querySelector("#type-filter");
 const difficultyFilter = document.querySelector("#difficulty-filter");
+const durationFilter = document.querySelector("#duration-filter");
+const apiStatus = document.querySelector("#catalog-api-status");
 const readyTestList = document.querySelector("#ready-test-list");
 const scopePanel = document.querySelector("#scope-practice-panel");
 const scopeSubject = document.querySelector("#scope-subject");
@@ -55,7 +60,7 @@ const availableTests = practiceTests.map((test) => ({
   questionCount: practiceQuestionBank.filter((question) => question.sourceTestId === test.id).length,
   status: "available",
 }));
-const allTests = [...availableTests, ...upcomingTests];
+let allTests = [...availableTests, ...upcomingTests];
 const pageParams = new URLSearchParams(window.location.search);
 const requestedGrade = pageParams.get("grade");
 const requestedSubject = pageParams.get("subject");
@@ -67,15 +72,66 @@ const state = {
   search: pageParams.get("search") || "",
   type: testCatalogExamTypes.some((type) => type.id === requestedType) ? requestedType : "all",
   difficulty: testDifficulties.some((difficulty) => difficulty.id === requestedDifficulty) ? requestedDifficulty : "all",
+  duration: ["all", "under-30", "30-60", "over-60", "unknown"].includes(pageParams.get("duration")) ? pageParams.get("duration") : "all",
 };
-const getFavoriteIds = () => {
+const currentUser = getCurrentUser();
+let favoriteIds = readUserCollection(currentUser, "favorites", "studysphere_favorites");
+
+function mapApiExam(record) {
+  const subjectName = String(record.subjectName || record.subject || record.subjectId || "Môn học chưa cập nhật");
+  const subjectText = subjectName.toLocaleLowerCase("vi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+  const subject = testSubjects.find((item) => item.id === record.subjectId || item.name.toLocaleLowerCase("vi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d") === subjectText);
+  const difficultyMap = { easy: ["basic", "Cơ bản"], basic: ["basic", "Cơ bản"], medium: ["medium", "Trung bình"], hard: ["advanced", "Nâng cao"], advanced: ["advanced", "Nâng cao"], upper: ["upper", "Khá"] };
+  const [difficulty, difficultyName] = difficultyMap[String(record.difficulty || "").toLowerCase()] || ["unknown", "Độ khó chưa cập nhật"];
+  const grade = Number(record.grade) || Number(String(record.title || "").match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null;
+  const durationMinutes = Number(record.durationMinutes ?? record.duration) || null;
+  const questions = Array.isArray(record.questions) ? record.questions : [];
+  const typeName = String(record.typeName || record.type || "Đề từ JSON-server");
+
+  return {
+    id: String(record.id),
+    source: "json-server",
+    title: String(record.title || "Đề thi chưa có tên"),
+    description: String(record.description || ""),
+    grade,
+    subjectId: subject?.id || String(record.subjectId || subjectName),
+    subjectName: subject?.name || subjectName,
+    examType: String(record.examType || record.type || "catalog"),
+    examTypeName: typeName,
+    difficulty,
+    difficultyName,
+    durationMinutes,
+    questionCount: Number(record.questionCount) || (questions.length || null),
+    questions,
+    documentUrl: record.documentUrl || "",
+    status: "catalog",
+  };
+}
+
+async function loadApiCatalog() {
+  if (!apiStatus) return;
   try {
-    return JSON.parse(localStorage.getItem("studysphere_favorites") || "[]");
-  } catch {
-    return [];
+    const records = await apiClient.list("exams");
+    if (!Array.isArray(records)) throw new Error("Dữ liệu kho đề không đúng định dạng.");
+    const apiTests = records.filter((record) => record && record.id !== undefined).map(mapApiExam);
+    const merged = new Map([...availableTests, ...upcomingTests, ...apiTests].map((test) => [String(test.id), test]));
+    allTests = [...merged.values()];
+    apiStatus.textContent = `Đã tải ${apiTests.length} đề từ JSON-server.`;
+    apiStatus.classList.remove("is-error");
+    for (const test of apiTests) {
+      if (![...typeFilter.options].some((option) => option.value === test.examType)) {
+        typeFilter.add(new Option(test.examTypeName, test.examType));
+      }
+      if (![...subjectFilter.options].some((option) => option.value === test.subjectId)) {
+        subjectFilter.add(new Option(test.subjectName, test.subjectId));
+      }
+    }
+  } catch (error) {
+    apiStatus.textContent = `${error.message} Đang hiển thị bộ luyện tập có sẵn.`;
+    apiStatus.classList.add("is-error");
   }
-};
-let favoriteIds = getFavoriteIds();
+  render();
+}
 
 const requestedScopeSubject = pageParams.get("subject");
 const questionSubjects = getQuestionSubjects();
@@ -228,27 +284,26 @@ function getReturnUrl() {
 }
 
 function getFilteredTests() {
-  const query = state.search.trim().toLocaleLowerCase("vi");
-
-  return allTests.filter((test) => {
-    const matchesGrade = state.grade === "all" || test.grade === Number(state.grade);
-    const matchesSubject = state.subject === "all" || test.subjectId === state.subject;
-    const matchesType = state.type === "all" || test.examType === state.type;
-    const matchesDifficulty = state.difficulty === "all" || test.difficulty === state.difficulty;
-    const searchableText = [
-      test.title,
-      test.subjectName,
-      `Lớp ${test.grade}`,
-      test.examTypeName,
-    ].join(" ").toLocaleLowerCase("vi");
-
-    const matchesSearch = !query || query.split(/\s+/).every((term) => searchableText.includes(term));
-
-    return matchesGrade && matchesSubject && matchesType && matchesDifficulty && matchesSearch;
-  });
+  return filterPracticeTests(allTests, state);
 }
 
 function renderCard(test) {
+  if (test.source === "json-server") {
+    const detailHref = `../pages/exam-detail.html?id=${encodeURIComponent(test.id)}&return=${encodeURIComponent(getReturnUrl())}`;
+    const isSaved = favoriteIds.includes(test.id);
+    const duration = test.durationMinutes ? `${test.durationMinutes} phút` : "Thời gian đang cập nhật";
+    const questionCount = test.questionCount ? `${test.questionCount} câu` : "Câu hỏi đang cập nhật";
+    return `
+      <article class="practice-test-card is-upcoming">
+        <span class="practice-test-subject"><span class="practice-test-icon" aria-hidden="true">${escapeHtml(icons[test.subjectId] || "•")}</span><span>${escapeHtml(test.subjectName)} · ${test.grade ? `Lớp ${test.grade}` : "Lớp chưa cập nhật"}</span></span>
+        <div class="practice-test-card-actions"><span class="test-status">Từ JSON-server</span><button class="test-favorite-button ${isSaved ? "is-saved" : ""}" type="button" data-test-favorite="${escapeHtml(test.id)}" aria-label="${isSaved ? "Bỏ lưu" : "Lưu"} ${escapeHtml(test.title)}" aria-pressed="${isSaved}">${isSaved ? "♥" : "♡"}</button></div>
+        <h2>${escapeHtml(test.title)}</h2><p>${escapeHtml(test.description || "Thông tin chi tiết chưa được cập nhật.")}</p>
+        <div class="practice-test-meta"><span class="practice-test-meta-item">${escapeHtml(test.difficultyName)}</span><span class="practice-test-meta-item">${escapeHtml(duration)}</span><span class="practice-test-meta-item">${escapeHtml(questionCount)}</span></div>
+        <a class="practice-test-start" href="${detailHref}"><span>Xem chi tiết</span><span aria-hidden="true">→</span></a>
+      </article>
+    `;
+  }
+
   const questionCount = test.questionCount == null
     ? "Số câu đang cập nhật"
     : test.status === "upcoming" ? `${test.questionCount} câu dự kiến` : `${test.questionCount} câu`;
@@ -312,6 +367,12 @@ function render() {
   list.hidden = filteredTests.length === 0;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
 document.querySelectorAll("[data-grade]").forEach((button) => {
   button.addEventListener("click", () => {
     state.grade = button.dataset.grade;
@@ -341,6 +402,10 @@ difficultyFilter?.addEventListener("change", () => {
   state.difficulty = difficultyFilter.value;
   render();
 });
+durationFilter?.addEventListener("change", () => {
+  state.duration = durationFilter.value;
+  render();
+});
 
 function clearFilters() {
   state.grade = "all";
@@ -348,10 +413,12 @@ function clearFilters() {
   state.search = "";
   state.type = "all";
   state.difficulty = "all";
+  state.duration = "all";
   if (subjectFilter) subjectFilter.value = "all";
   if (searchInput) searchInput.value = "";
   if (typeFilter) typeFilter.value = "all";
   if (difficultyFilter) difficultyFilter.value = "all";
+  if (durationFilter) durationFilter.value = "all";
   document.querySelectorAll("[data-grade]").forEach((button) => {
     const isActive = button.dataset.grade === "all";
     button.classList.toggle("is-active", isActive);
@@ -370,9 +437,10 @@ list?.addEventListener("click", (event) => {
   const favoriteIndex = favoriteIds.indexOf(testId);
   if (favoriteIndex >= 0) favoriteIds.splice(favoriteIndex, 1);
   else favoriteIds.push(testId);
-  localStorage.setItem("studysphere_favorites", JSON.stringify(favoriteIds));
+  writeUserCollection(currentUser, "favorites", favoriteIds);
   render();
 });
 
 if (list) render();
 if (scopePanel) renderScopeSelection();
+if (list) loadApiCatalog();

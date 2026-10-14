@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/pages.css">
   <link rel="stylesheet" href="../css/profile.css">
-  <script defer src="../js/profile.js"></script>
+  <script type="module" src="../js/profile.js"></script>
   <script defer src="../js/session.js"></script>
 </head>
 <body class="profile-page">
@@ -31,6 +31,31 @@
           <p>Giữ thông tin, mục tiêu và nhịp học của bạn luôn rõ ràng trong một nơi.</p>
         </div>
         <div class="profile-avatar-large" id="profile-avatar" aria-hidden="true">U</div>
+      </div>
+    </section>
+
+    <section class="learning-dashboard" aria-labelledby="learning-dashboard-title">
+      <div class="container">
+        <header class="learning-dashboard-heading">
+          <div><span class="profile-kicker">Tiến độ cá nhân</span><h2 id="learning-dashboard-title">Tổng quan học tập</h2></div>
+          <a class="button button-secondary" href="../tests/index.html">Chọn đề luyện tập <span aria-hidden="true">→</span></a>
+        </header>
+        <p class="learning-api-status" id="learning-api-status" role="status" aria-live="polite"></p>
+        <div class="learning-stat-grid" id="learning-stats"></div>
+        <div class="learning-dashboard-grid">
+          <section class="learning-panel learning-progress-panel" aria-labelledby="learning-chart-title">
+            <div class="learning-panel-heading"><div><span class="profile-kicker">Kết quả theo thời gian</span><h3 id="learning-chart-title">Điểm qua các lần làm bài</h3></div></div>
+            <div class="learning-chart" id="learning-progress-chart"></div>
+          </section>
+          <section class="learning-panel learning-badges-panel" aria-labelledby="learning-badges-title">
+            <div class="learning-panel-heading"><div><span class="profile-kicker">Thành tích</span><h3 id="learning-badges-title">Huy hiệu của bạn</h3></div></div>
+            <div class="learning-badges" id="learning-badges"></div>
+          </section>
+        </div>
+        <section class="learning-panel learning-recent-panel" aria-labelledby="learning-recent-title">
+          <div class="learning-panel-heading"><div><span class="profile-kicker">Nhật ký</span><h3 id="learning-recent-title">Kết quả gần đây</h3></div><a href="history.html">Xem toàn bộ lịch sử <span aria-hidden="true">→</span></a></div>
+          <div class="learning-recent-list" id="learning-recent-list"></div>
+        </section>
       </div>
     </section>
 

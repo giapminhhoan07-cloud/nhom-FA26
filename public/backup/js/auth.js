@@ -1,4 +1,5 @@
 import { resetLocalPassword } from "./passwordRecovery.js";
+import { apiClient, ApiError } from "./apiClient.js";
 
 const tabs = document.querySelectorAll("[data-auth-tab]");
 const returnTarget = new URLSearchParams(window.location.search).get("return");
@@ -85,6 +86,10 @@ const normalizeUser = (user) => ({
   ...user,
   role: user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 ? "admin" : (user.role || "user"),
 });
+const toSessionUser = (user) => {
+  const { password, ...safeUser } = user;
+  return normalizeUser(safeUser);
+};
 
 const getLocalUsers = () => {
   try {
@@ -136,39 +141,68 @@ const submitAuth = async (payload) => {
     }
     if (hasLocalPasswordReset(payload.email)) {
       if (!localUser || localUser.password !== payload.password) throw new Error("Email hoặc mật khẩu không đúng.");
-      return { success: true, user: normalizeUser(localUser) };
+      return { success: true, user: toSessionUser(localUser) };
     }
   }
 
-  try {
-    const response = await fetch("../api/auth.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const result = await response.json();
-    if (response.ok && result.success && result.user) {
-      if (payload.action === "login" && payload.email === defaultAdmin.email) return { ...result, user: defaultAdmin };
-      return { ...result, user: normalizeUser(result.user) };
+  if (payload.action === "login" && payload.email === defaultAdmin.email) {
+    if (payload.password !== defaultAdmin.password) throw new Error("Email hoặc mật khẩu không đúng.");
+    return { success: true, user: toSessionUser(defaultAdmin) };
+  }
+
+  if (payload.action === "login") {
+    try {
+      const remoteUsers = await apiClient.list("users", { email: payload.email });
+      const remoteUser = remoteUsers.find((user) => user.email?.trim().toLowerCase() === payload.email);
+      const localUser = getLocalUsers().find((user) => user.email?.trim().toLowerCase() === payload.email);
+      const user = remoteUser?.password === payload.password
+        ? remoteUser
+        : localUser?.password === payload.password ? localUser : null;
+      if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
+      const userStatuses = readLocalMap(userStatusKey);
+      if (user.status === "locked" || userStatuses[user.id || user.email] === "locked") {
+        throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
+      }
+      return { success: true, user: toSessionUser(user) };
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 0) throw error;
     }
-  } catch {
-    // Vite local mode does not include the PHP API.
   }
 
   const users = getLocalUsers();
   if (payload.action === "register") {
     if (users.some((user) => user.email === payload.email)) throw new Error("Email này đã được đăng ký.");
+    try {
+      const remoteUsers = await apiClient.list("users", { email: payload.email });
+      if (remoteUsers.some((user) => user.email?.trim().toLowerCase() === payload.email)) {
+        throw new Error("Email này đã được đăng ký.");
+      }
+      const user = await apiClient.create("users", {
+        id: `user-${Date.now()}`,
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        role: "user",
+        xp: 0,
+        level: 1,
+        streak: 0,
+        createdAt: new Date().toISOString(),
+      });
+      return { success: true, user: toSessionUser(user) };
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 0) throw error;
+    }
     const user = { id: `local-${Date.now()}`, name: payload.name, email: payload.email, role: "user", password: payload.password };
     setLocalUsers([...users, user]);
     const userMetadata = readLocalMap(userMetadataKey);
     userMetadata[user.id] = { createdAt: new Date().toISOString() };
     localStorage.setItem(userMetadataKey, JSON.stringify(userMetadata));
-    return { success: true, user: normalizeUser(user) };
+    return { success: true, user: toSessionUser(user) };
   }
 
   const user = users.find((item) => item.email === payload.email && item.password === payload.password);
   if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
-  return { success: true, user: normalizeUser(user) };
+  return { success: true, user: toSessionUser(user) };
 };
 
 const registerForm = document.querySelector("#register-form");

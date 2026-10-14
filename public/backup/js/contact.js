@@ -1,5 +1,7 @@
 import { faqData, supportContact } from "../data/supportFaq.js";
 import { searchFaqs } from "./supportSearch.js";
+import { apiClient } from "./apiClient.js";
+import { getCurrentUser } from "./userData.js";
 
 const categoryList = document.querySelector("#faq-categories");
 const resultsContainer = document.querySelector("#faq-results");
@@ -198,7 +200,7 @@ contactForm.querySelectorAll("[aria-describedby]").forEach((input) => {
   input.dataset.errorId = input.getAttribute("aria-describedby");
 });
 
-contactForm.addEventListener("submit", (event) => {
+contactForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const nameInput = contactForm.elements.namedItem("name");
   const emailInput = contactForm.elements.namedItem("email");
@@ -220,39 +222,47 @@ contactForm.addEventListener("submit", (event) => {
     return;
   }
 
+  const currentUser = getCurrentUser();
+  const entry = {
+    id: `feedback-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
+    source: "contact",
+    userId: currentUser?.id || "",
+    userName: nameInput.value.trim(),
+    email: emailInput.value.trim(),
+    type: topicInput.value,
+    comment: messageInput.value.trim(),
+    submittedAt: new Date().toISOString(),
+    status: "new",
+  };
+  let localSaved = false;
   try {
     const feedback = JSON.parse(localStorage.getItem("studysphere_feedback") || "[]");
     if (!Array.isArray(feedback)) throw new Error("Dữ liệu phản hồi không hợp lệ.");
-    const currentUser = (() => {
-      for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
-        try {
-          const user = JSON.parse(localStorage.getItem(key) || "null");
-          if (user && typeof user === "object") return user;
-        } catch {
-          continue;
-        }
-      }
-      return null;
-    })();
-    feedback.unshift({
-      id: `contact-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      source: "contact",
-      userId: currentUser?.id || "",
-      userName: nameInput.value.trim(),
-      email: emailInput.value.trim(),
-      type: topicInput.value,
-      comment: messageInput.value.trim(),
-      submittedAt: new Date().toISOString(),
-      status: "new",
-    });
+    feedback.unshift(entry);
     localStorage.setItem("studysphere_feedback", JSON.stringify(feedback));
+    localSaved = true;
   } catch {
+    localSaved = false;
+  }
+
+  let apiSaved = false;
+  try {
+    await apiClient.create("feedback", entry);
+    apiSaved = true;
+  } catch {
+    apiSaved = false;
+  }
+
+  if (!localSaved && !apiSaved) {
     formNotice.textContent = "Không thể lưu yêu cầu trong trình duyệt này. Vui lòng gửi email trực tiếp đến địa chỉ hỗ trợ bên dưới.";
     formNotice.classList.add("is-error");
     formNotice.focus();
     return;
   }
 
+  formSuccess.querySelector("p").textContent = apiSaved
+    ? "Yêu cầu đã được đồng bộ lên JSON-server và hiển thị trong trang quản trị."
+    : "Yêu cầu đã được lưu trên trình duyệt này; JSON-server hiện chưa kết nối để đồng bộ.";
   contactForm.hidden = true;
   formSuccess.hidden = false;
   formSuccess.focus();

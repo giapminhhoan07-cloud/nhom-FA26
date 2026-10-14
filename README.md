@@ -14,7 +14,7 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 - Ôn theo phạm vi: lọc câu theo môn/lớp/chủ đề, chọn số lượng và rút ngẫu nhiên không trùng; tiến độ giữ nguyên khi tiếp tục bài
 - Làm đề hoàn chỉnh giữ nguyên số lượng và thứ tự câu hỏi của đề
 - Mỗi bài kiểm tra hiện có thêm 5 câu trả lời ngắn
-- Tự động lưu lịch sử làm bài vào localStorage
+- Đồng bộ lịch sử, tài khoản và kho đề qua JSON-server khi API hoạt động; giữ dữ liệu theo tài khoản trên thiết bị làm phương án dự phòng
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
 - Đánh dấu câu sai để ôn tập hiệu quả
 - Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
@@ -45,25 +45,31 @@ Trên Vercel, mở **Project → Settings → Environment Variables**, thêm `ST
 - HTML
 - CSS
 - JavaScript
-- LocalStorage để lưu dữ liệu người dùng
+- JSON-server làm Fake API tại `http://localhost:3000`
+- LocalStorage theo tài khoản để dự phòng khi API ngoại tuyến
 
 --------------------------------------------------------------------------------------------
 
 ## Cài đặt và chạy
 
-1. Clone repository:
+Chạy hai dịch vụ trong hai terminal riêng:
 
 ```bash
-git clone https://github.com/giapminhhoan07-cloud/nhom-FA26.git
+npm install
+npm run api
 ```
 
-2. Chạy trên máy local bằng XAMPP, Laragon hoặc trình duyệt trực tiếp.
+Terminal thứ hai chạy website:
 
-3. Nếu cần chạy PHP local backend, khởi động Apache/PHP trong môi trường của bạn.
+```bash
+npm run dev
+```
 
-## Lưu ý
+JSON-server giữ cổng `3000`; Vite chạy website ở `5173` và tự chọn cổng khác nếu cổng đó đang bận. Nếu JSON-server đã chạy ở cổng 3000, không khởi động thêm một tiến trình API khác. Các endpoint hiện dùng gồm `/users`, `/exams`, `/attempts`, `/userAchievements` và `/feedback`; dữ liệu gốc nằm trong `db.json` và không bị reset khi chạy lệnh.
 
-Dự án này đang sử dụng localStorage để lưu trạng thái người dùng, lịch sử làm bài và kết quả bài làm. Vì vậy dữ liệu sẽ được lưu trong trình duyệt của người dùng.
+Kiểm tra dự án bằng `npm test` và `npm run build`.
+
+JSON-server chỉ là Fake API dành cho demo local, không có xác thực/phân quyền an toàn và không nên mở công khai trên mạng. Mật khẩu lưu trong JSON-server là dữ liệu thử nghiệm. Website Vercel không thể truy cập API `localhost` trên máy của bạn; muốn đồng bộ trên môi trường deploy cần một API được host riêng và cấu hình `window.STUDYSPHERE_API_URL`. Khi API không khả dụng, ứng dụng giữ fallback trên trình duyệt hiện tại, không đồng bộ giữa các thiết bị.
 
 ## Trung tâm hỗ trợ
 
