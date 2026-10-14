@@ -172,6 +172,7 @@ card.innerHTML = `
   <div class="detail-actions">
     <a class="button button-primary" href="${retryHref}">Làm lại bài</a>
     <a class="button button-quiet" href="${libraryHref}">Về bài kiểm tra</a>
+    <button class="button button-secondary study-plan-trigger" type="button">Gợi ý cách ôn tập</button>
   </div>
   <div class="detail-note">
     <strong>${passed ? "Bạn đã đạt yêu cầu" : "Cần ôn tập thêm"}</strong>
@@ -229,6 +230,14 @@ card.innerHTML = `
     </div>
   </div>
 `;
+
+document.querySelector(".study-plan-trigger").addEventListener("click", () => {
+  document.dispatchEvent(new CustomEvent("studysphere:study-ai-open", {
+    detail: {
+      prompt: `Hãy gợi ý kế hoạch ôn tập ngắn cho bài "${result.examTitle}". Điểm: ${result.score}/10; ${result.wrongCount} câu sai và ${result.unansweredCount} câu chưa làm. Nêu các bước cụ thể cần ôn.`,
+    },
+  }));
+});
 
 const reviewList = document.querySelector("#review-list");
 const filterButtons = document.querySelectorAll(".review-filter-button");
