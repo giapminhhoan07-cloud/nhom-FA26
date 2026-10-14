@@ -204,7 +204,7 @@ if (unavailableQuiz) {
       ? "../pages/exam-detail.html?test=" + encodeURIComponent(standaloneTest.id)
       : selectedExam
         ? `exam-detail.html?id=${encodeURIComponent(selectedExam.id)}`
-        : "exams.html";
+        : "../tests/index.html";
   const unavailableTitle = scopePractice ? "Không tìm thấy lượt luyện tập" : "Đề thi chưa sẵn sàng";
   const unavailableMessage = scopePractice
     ? "Phiên chọn phạm vi không còn hợp lệ. Hãy chọn lại môn, lớp và chủ đề."

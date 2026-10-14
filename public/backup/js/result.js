@@ -82,7 +82,7 @@ const retryHref = result.quizKind === "scope-practice"
     : `quiz.html?id=${encodeURIComponent(result.examId)}`;
 const libraryHref = result.quizKind === "scope-practice"
   ? scopeReturnHref
-  : result.quizKind === "practice-test" ? "../tests/" : "exams.html";
+  : result.quizKind === "practice-test" ? "../tests/" : "../tests/index.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {
@@ -171,7 +171,7 @@ card.innerHTML = `
   </div>
   <div class="detail-actions">
     <a class="button button-primary" href="${retryHref}">Làm lại bài</a>
-    <a class="button button-quiet" href="${libraryHref}">${result.quizKind === "practice-test" ? "Về bài kiểm tra" : "Về kho đề"}</a>
+    <a class="button button-quiet" href="${libraryHref}">Về bài kiểm tra</a>
   </div>
   <div class="detail-note">
     <strong>${passed ? "Bạn đã đạt yêu cầu" : "Cần ôn tập thêm"}</strong>
