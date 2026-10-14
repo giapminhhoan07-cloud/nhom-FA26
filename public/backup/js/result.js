@@ -82,7 +82,7 @@ const retryHref = result.quizKind === "scope-practice"
     : `quiz.html?id=${encodeURIComponent(result.examId)}`;
 const libraryHref = result.quizKind === "scope-practice"
   ? scopeReturnHref
-  : result.quizKind === "practice-test" ? "../tests/" : "exams.html";
+  : result.quizKind === "practice-test" ? "../tests/" : "../tests/index.html";
 
 function buildReviewMarkup(filter = "all") {
   return questions.map((question, index) => {

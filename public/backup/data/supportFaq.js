@@ -41,12 +41,12 @@ export const faqData = [
     questions: [
       {
         question: "Làm thế nào để bắt đầu làm bài thi?",
-        answer: "Mở Bài kiểm tra hoặc Kho đề thi, chọn đề bạn muốn làm rồi nhấn nút bắt đầu bài thi.",
+        answer: "Mở Bài kiểm tra, chọn đề bạn muốn làm rồi nhấn nút bắt đầu bài thi.",
         keywords: ["bắt đầu", "làm bài", "quiz", "thi", "kiểm tra"],
       },
       {
         question: "Tôi có thể làm lại một đề thi không?",
-        answer: "Bạn có thể mở lại đề từ kho đề và bắt đầu một lượt làm mới.",
+        answer: "Bạn có thể mở lại đề trong Bài kiểm tra và bắt đầu một lượt làm mới.",
         keywords: ["làm lại", "thi lại", "làm lần nữa", "redo", "retry"],
       },
       {
@@ -103,12 +103,12 @@ export const faqData = [
       },
       {
         question: "Làm thế nào để tìm một đề thi?",
-        answer: "Mở Kho đề thi, dùng ô tìm kiếm hoặc các bộ lọc để thu hẹp danh sách đề.",
-        keywords: ["tìm kiếm", "search", "tên đề", "kho đề"],
+        answer: "Mở Bài kiểm tra để xem các đề có sẵn.",
+        keywords: ["tìm kiếm", "search", "tên đề", "bài kiểm tra"],
       },
       {
         question: "Tôi có thể tìm đề theo môn học không?",
-        answer: "Có. Trong Kho đề thi, chọn môn ở bộ lọc Môn học để xem các đề phù hợp.",
+        answer: "Có. Trong Bài kiểm tra, chọn môn phù hợp để bắt đầu luyện tập.",
         keywords: ["lọc môn", "môn", "subject"],
       },
       {

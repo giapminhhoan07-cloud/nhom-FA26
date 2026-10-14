@@ -64,7 +64,7 @@ if (testId) {
 const exam = exams.find((item) => item.id === id);
 if (!exam) {
 	document.title = "Không tìm thấy đề | StudySphere";
-	detail.innerHTML = '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="exams.html">Về kho đề thi</a>';
+	detail.innerHTML = '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
 } else {
 const relatedPracticeTest = practiceTests.find((test) => test.id === exam.relatedPracticeTestId);
 const hasQuestions = Array.isArray(exam.questions) && exam.questions.length > 0;

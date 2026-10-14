@@ -20,7 +20,7 @@ test('does not redirect regular users or other pages', () => {
   const adminUser = { role: 'admin', name: 'Quản trị viên' };
   assert.equal(shouldRedirectToAdminDashboard('/', guestUser), false);
   assert.equal(shouldRedirectToAdminDashboard('/', regularUser), false);
-  assert.equal(shouldRedirectToAdminDashboard('/backup/pages/exams.html', adminUser), false);
+  assert.equal(shouldRedirectToAdminDashboard('/backup/tests/index.html', adminUser), false);
 });
 
 test('redirects signed-in regular users from the root to the canonical home page', () => {
@@ -29,7 +29,7 @@ test('redirects signed-in regular users from the root to the canonical home page
   assert.equal(shouldRedirectToBackupHome('/', regularUser), true);
   assert.equal(shouldRedirectToBackupHome('/index.html', regularUser), true);
   assert.equal(shouldRedirectToBackupHome('/backup/index.html', regularUser), false);
-  assert.equal(shouldRedirectToBackupHome('/backup/pages/exams.html', regularUser), false);
+  assert.equal(shouldRedirectToBackupHome('/backup/tests/index.html', regularUser), false);
   assert.equal(shouldRedirectToBackupHome('/', null), false);
   assert.equal(shouldRedirectToBackupHome('/', adminUser), false);
 });

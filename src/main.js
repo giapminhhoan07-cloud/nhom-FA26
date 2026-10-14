@@ -58,8 +58,7 @@ document.querySelector("#app").innerHTML = `
             <h1>Học có chiến lược.<br><em>Thi thật tự tin.</em></h1>
             <p class="hero-description">Tìm đúng đề, luyện tập tập trung và nhìn thấy tiến bộ của bạn qua từng lần làm bài.</p>
             <div class="hero-actions">
-              <a class="button button-primary" href="/backup/tests/">Khám phá kho đề kiểm tra <span aria-hidden="true">→</span></a>
-              <a class="text-link" href="/backup/pages/exams.html">Kho đề thi <span aria-hidden="true">→</span></a>
+              <a class="button button-primary" href="/backup/tests/">Làm bài kiểm tra <span aria-hidden="true">→</span></a>
             </div>
             <div class="hero-proof">
               <div class="avatar-stack" aria-hidden="true"><span>AN</span><span>MK</span><span>TH</span><span>+</span></div>
@@ -96,7 +95,7 @@ document.querySelector("#app").innerHTML = `
         </div>
       </section>
 
-      <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/tests/">Đến kho đề kiểm tra <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
+      <section class="section featured-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">Được chọn cho bạn</p><h2>Đề thi nổi bật</h2></div><a class="text-link" href="/backup/tests/">Đến bài kiểm tra <span aria-hidden="true">→</span></a></div><div class="featured-grid" id="featured-exams"></div></div></section>
     </main>
 
     <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="/backup/index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div><div class="footer-links"><a href="/backup/pages/about.html">Về StudySphere</a><a href="/backup/pages/contact.html">Liên hệ nhóm</a><span>© 2026 StudySphere</span></div></div></footer>

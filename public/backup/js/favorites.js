@@ -11,9 +11,9 @@ const ids = (() => {
 const list = document.querySelector("#favorite-list");
 const emptyState = document.querySelector("#favorite-empty");
 const emptyLink = emptyState.querySelector("a");
-emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong kho đề kiểm tra để lưu lại.";
+emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong bài kiểm tra để lưu lại.";
 emptyLink.href = "../tests/index.html";
-emptyLink.textContent = "Đến kho đề kiểm tra";
+emptyLink.textContent = "Đến bài kiểm tra";
 
 const savedExams = exams.filter((exam) => ids.includes(exam.id));
 const savedTests = practiceTests
