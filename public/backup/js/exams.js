@@ -1,4 +1,5 @@
 import { exams } from "../data/exams.js";
+import { searchExams } from "./examSearch.js";
 
 let availableExams = [...exams];
 
@@ -31,11 +32,9 @@ const getFavorites = () => {
 const setFavorites = (favorites) => localStorage.setItem("studysphere_favorites", JSON.stringify(favorites));
 
 function getFilteredExams() {
-  const query = searchInput.value.trim().toLowerCase();
   const values = Object.fromEntries(filterIds.map((id) => [id, document.querySelector(`#${id}`).value]));
-  return availableExams.filter((exam) => {
-    const matchesQuery = !query || `${exam.title} ${exam.subjectName} ${exam.typeName}`.toLowerCase().includes(query);
-    return matchesQuery && (values["subject-filter"] === "all" || exam.subjectId === values["subject-filter"])
+  return searchExams(availableExams, searchInput.value).filter((exam) => {
+    return (values["subject-filter"] === "all" || exam.subjectId === values["subject-filter"])
       && (values["year-filter"] === "all" || String(exam.year) === values["year-filter"])
       && (values["type-filter"] === "all" || exam.type === values["type-filter"])
       && (values["difficulty-filter"] === "all" || exam.difficulty === values["difficulty-filter"]);

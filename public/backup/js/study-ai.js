@@ -4,6 +4,7 @@ const historyLimit = 8;
 const suggestions = [
   { label: "💡 Giải thích câu này", prompt: "Giải thích câu hỏi hiện tại cho mình theo từng bước, đừng chỉ đưa đáp án." },
   { label: "Tại sao đáp án B sai?", prompt: "Tại sao đáp án B sai? Giải thích ngắn gọn và chỉ cách suy nghĩ đúng." },
+  { label: "Gợi ý cách ôn tập", prompt: "Gợi ý cách ôn tập cho chủ đề hiện tại bằng một kế hoạch ngắn, cụ thể." },
   { label: "Giải bài này dễ hiểu hơn", prompt: "Hướng dẫn mình giải câu hiện tại bằng cách đơn giản, từng bước." },
   { label: "Cho mình một ví dụ tương tự", prompt: "Cho mình một ví dụ tương tự, độ khó tương đương để mình tự thử nhé." },
 ];
@@ -138,7 +139,6 @@ async function requestAnswer(message, { reuseLastUserMessage = false } = {}) {
 
   try {
     if (!onlineMode) {
-      await new Promise((resolve) => window.setTimeout(resolve, 250));
       const answer = createOfflineAnswer(prompt, quizContext, history);
       loadingMessage.remove();
       conversation.push({ role: "assistant", content: answer });
