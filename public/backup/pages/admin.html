@@ -90,6 +90,7 @@
             </label>
           </div>
 
+          <p class="admin-message" id="admin-api-status" aria-live="polite"></p>
           <p class="admin-message" id="list-message" aria-live="polite"></p>
           <div class="admin-exam-list" id="admin-exam-list"></div>
         </section>
@@ -111,6 +112,7 @@
               <label class="admin-field">Môn học<select id="exam-subject" name="subject_id"><option value="toan">Toán</option><option value="ngu-van">Ngữ văn</option><option value="tieng-anh">Tiếng Anh</option><option value="vat-ly">Vật lý</option><option value="dia-li">Địa lí</option><option value="lich-su">Lịch sử</option></select></label>
               <label class="admin-field">Năm<input id="exam-year" name="year" type="number" min="2000" max="2100" value="2026" required></label>
             </div>
+            <label class="admin-field">Khối lớp<select id="exam-grade" name="grade"><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12" selected>Lớp 12</option></select></label>
             <div class="admin-form-grid">
               <label class="admin-field">Loại đề<select id="exam-type" name="exam_type"><option value="minh-hoa">Đề minh họa</option><option value="khao-sat">Đề khảo sát</option><option value="thi-thu">Đề thi thử</option><option value="on-tap">Đề ôn tập</option><option value="thpt">Tốt nghiệp THPT</option></select></label>
               <label class="admin-field">Mức độ<select id="exam-difficulty" name="difficulty"><option value="easy">Cơ bản</option><option value="medium" selected>Trung bình</option><option value="hard">Khá khó</option></select></label>

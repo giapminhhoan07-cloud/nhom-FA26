@@ -1,15 +1,13 @@
+import { apiClient } from "./apiClient.js";
+import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
+
 const list = document.querySelector("#history-list");
 const count = document.querySelector("#history-count");
 const search = document.querySelector("#history-search");
 const status = document.querySelector("#history-status");
-
-function getCurrentUser() {
-  try {
-    return JSON.parse(localStorage.getItem("studysphere_current_user") || "null");
-  } catch {
-    return null;
-  }
-}
+const apiStatus = document.querySelector("#history-api-status");
+const currentUser = getCurrentUser();
+let allHistory = [];
 
 function formatDate(value) {
 	return new Date(value).toLocaleString("vi-VN", {
@@ -47,7 +45,7 @@ function renderHistory(items) {
 		const passed = score >= 5;
 		return `<article class="history-item ${passed ? "is-passed" : "is-failed"}">
 			<div class="history-item-marker" aria-hidden="true">${passed ? "✓" : "!"}</div>
-			<div class="history-item-main"><span class="history-subject">${passed ? "Tiếp tục phát huy" : "Cần luyện thêm"}</span><h3>${examTitle}</h3><p>${formatDate(submittedAt)} <span aria-hidden="true">·</span> ${correctCount}/${totalQuestions} câu đúng</p></div>
+		<div class="history-item-main"><span class="history-subject">${passed ? "Tiếp tục phát huy" : "Cần luyện thêm"}</span><h3>${escapeHtml(examTitle)}</h3><p>${formatDate(submittedAt)} <span aria-hidden="true">·</span> ${correctCount}/${totalQuestions} câu đúng</p></div>
 			<div class="history-score"><strong>${Number(score).toFixed(1)}</strong><span>/10 điểm</span></div>
 			<span class="history-status ${passed ? "passed" : "failed"}">${passed ? "Đạt" : "Chưa đạt"}</span>
 			<a class="button button-quiet history-review" href="result.html?attempt=${encodeURIComponent(attemptId)}">Xem lại <span aria-hidden="true">↗</span></a>
@@ -55,17 +53,31 @@ function renderHistory(items) {
 	}).join("");
 }
 
-async function loadHistory() {
-	let history = [];
-	try {
-		const stored = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
-		history = Array.isArray(stored) ? stored : [];
-	} catch {
-		localStorage.removeItem("studysphere_history");
-	}
-	renderHistory(history);
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
 }
 
-search.addEventListener("input", () => loadHistory());
-status.addEventListener("change", () => loadHistory());
+async function loadHistory() {
+	allHistory = readUserCollection(currentUser, "history", "studysphere_history");
+	if (currentUser) {
+		try {
+			const userId = String(currentUser.id || currentUser.email || "");
+			const remoteHistory = await apiClient.list("attempts", { userId });
+			const merged = new Map([...allHistory, ...remoteHistory]
+				.filter((item) => String(item.userId || userId) === userId)
+				.map((item) => [String(item.attemptId || item.id), item]));
+			allHistory = [...merged.values()].sort((first, second) => new Date(second.submittedAt || second.submitted_at || 0) - new Date(first.submittedAt || first.submitted_at || 0));
+			writeUserCollection(currentUser, "history", allHistory);
+			if (apiStatus) apiStatus.textContent = `Đã đồng bộ ${remoteHistory.length} kết quả từ JSON-server.`;
+		} catch (error) {
+			if (apiStatus) apiStatus.textContent = `${error.message} Đang hiển thị lịch sử lưu trên thiết bị.`;
+		}
+	}
+	renderHistory(allHistory);
+}
+
+search.addEventListener("input", () => renderHistory(allHistory));
+status.addEventListener("change", () => renderHistory(allHistory));
 loadHistory();

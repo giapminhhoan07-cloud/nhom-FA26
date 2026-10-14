@@ -2,13 +2,37 @@ import { exams } from "../data/exams.js";
 import { practiceTests } from "../tests/data/practice-tests.js";
 import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
 import { isQuestionAnswerCorrect } from "./questionAnswers.js";
+import { apiClient } from "./apiClient.js";
+import { recordGamificationCompletion } from "./gamification.js";
+import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
 const testId = params.get("test");
 const scopePractice = params.get("scope") === "1";
 const standaloneTest = practiceTests.find((test) => test.id === testId);
-const selectedExam = exams.find((item) => item.id === examId);
+let selectedExam = exams.find((item) => String(item.id) === examId);
+if (!selectedExam && examId) {
+  try {
+    const records = await apiClient.list("exams", { id: examId });
+    const record = records.find((item) => String(item.id) === examId);
+    if (record && Array.isArray(record.questions) && record.questions.length) {
+      selectedExam = {
+        ...record,
+        id: String(record.id),
+        title: String(record.title || "Đề thi"),
+        subjectId: record.subjectId || record.subject || "",
+        subjectName: record.subjectName || record.subject || "",
+        durationMinutes: Number(record.durationMinutes ?? record.duration) || 45,
+        questions: record.questions,
+      };
+    }
+  } catch {
+    // Static and saved practice tests remain available when JSON-server is offline.
+  }
+}
+const currentUser = getCurrentUser();
+const currentUserId = String(currentUser?.id || currentUser?.email || "");
 let scopePayload = null;
 if (scopePractice) {
   try {
@@ -42,7 +66,7 @@ let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = (Number(exam.durationMinutes) || 45) * 60;
 let submitted = false;
-const progressStorageKey = `studysphere_quiz_progress_${scopePractice ? "scope" : standaloneTest ? "test" : "exam"}_${exam.id}`;
+const progressStorageKey = `studysphere_quiz_progress_${encodeURIComponent(currentUserId || "guest")}_${scopePractice ? "scope" : standaloneTest ? "test" : "exam"}_${exam.id}`;
 
 function restoreProgress() {
   try {
@@ -155,7 +179,8 @@ async function submitQuiz() {
 
   const correctCount = answers.reduce((total, answer, index) => total + (isQuestionAnswerCorrect(answer, questions[index]) ? 1 : 0), 0);
   const result = {
-    attemptId: `attempt-${Date.now()}`,
+    attemptId: `attempt-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
+    userId: currentUserId || null,
     examId: exam.id,
     examTitle: scopePractice ? scopeTitle : exam.title,
     quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
@@ -175,16 +200,60 @@ async function submitQuiz() {
     } : {}),
   };
 
-  const saveLocalResult = () => {
-    const history = JSON.parse(localStorage.getItem("studysphere_history") || "[]");
+  const saveLocalResult = async () => {
+    const historyKey = currentUser ? "studysphere_history" : "studysphere_guest_history";
+    const history = currentUser
+      ? readUserCollection(currentUser, "history", historyKey)
+      : JSON.parse(localStorage.getItem(historyKey) || "[]");
     history.unshift(result);
-    localStorage.setItem("studysphere_history", JSON.stringify(history));
-    localStorage.setItem(`studysphere_result_${result.attemptId}`, JSON.stringify({ result, questions }));
+    if (currentUser) writeUserCollection(currentUser, "history", history);
+    else localStorage.setItem(historyKey, JSON.stringify(history));
+    const resultKey = currentUser
+      ? getUserDataKey(currentUser, `result_${result.attemptId}`)
+      : `studysphere_guest_result_${result.attemptId}`;
+    localStorage.setItem(resultKey, JSON.stringify({ result, questions }));
+
+    if (currentUser) {
+      try {
+        await apiClient.create("attempts", { id: result.attemptId, attemptId: result.attemptId, ...result, questions });
+      } catch {
+        // Keep the completed attempt in this account's local history.
+      }
+
+      try {
+        const award = recordGamificationCompletion(currentUser, result);
+        if (award.awarded) {
+          const updatedUser = { ...currentUser, xp: award.state.xp, level: award.state.level, streak: award.state.streak };
+          for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
+            localStorage.setItem(key, JSON.stringify(updatedUser));
+          }
+          if (currentUser.id && !String(currentUser.id).startsWith("local-")) {
+            await apiClient.update("users", currentUser.id, {
+              xp: award.state.xp,
+              level: award.state.level,
+              streak: award.state.streak,
+              lastStudyDate: award.state.lastStudyDate,
+            });
+          }
+          for (const badgeId of award.newBadges) {
+            await apiClient.create("userAchievements", {
+              id: `${currentUserId}-${badgeId}`,
+              userId: currentUserId,
+              achievementId: badgeId,
+              earnedAt: new Date().toISOString(),
+            });
+          }
+        }
+      } catch {
+        // The local gamification record remains authoritative when API sync fails.
+      }
+    }
+
     const resultPage = standaloneTest || scopePractice ? "../pages/result.html" : "result.html";
     window.location.href = `${resultPage}?attempt=${encodeURIComponent(result.attemptId)}`;
   };
 
-  saveLocalResult();
+  await saveLocalResult();
 }
 function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) { submitQuiz(); return; } remainingSeconds -= 1; saveProgress(); }
 

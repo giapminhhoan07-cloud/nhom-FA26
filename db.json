@@ -1,4 +1,4 @@
-﻿{
+{
   "users": [
     {
       "id": "1",
@@ -21,5 +21,6 @@
   "attempts": [],
   "achievements": [],
   "userAchievements": [],
-  "studySessions": []
+  "studySessions": [],
+  "feedback": []
 }

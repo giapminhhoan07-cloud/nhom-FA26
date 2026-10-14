@@ -1,4 +1,7 @@
 import { exams as seedExams } from "../data/exams.js";
+import { apiClient } from "./apiClient.js";
+
+const apiData = { exams: [], users: [], attempts: [], feedback: [] };
 
 const readJson = (key, fallback) => {
   try {
@@ -23,7 +26,7 @@ const getCustomExams = () => {
 };
 
 const getExamCatalog = () => {
-  const merged = [...seedExams, ...getCustomExams()];
+  const merged = [...seedExams, ...getCustomExams(), ...apiData.exams];
   const seen = new Map();
   merged.forEach((exam) => {
     if (exam && exam.id) seen.set(exam.id, exam);
@@ -33,17 +36,29 @@ const getExamCatalog = () => {
 
 const getFeedback = () => {
   const feedback = readJson("studysphere_feedback", []);
-  return Array.isArray(feedback) ? feedback : [];
+  const merged = new Map((Array.isArray(feedback) ? feedback : []).map((item) => [String(item.id || item.attemptId), item]));
+  apiData.feedback.forEach((item) => merged.set(String(item.id || item.attemptId), item));
+  return [...merged.values()];
 };
 
 const getUsers = () => {
-  const users = readJson("studysphere_users", []);
-  return Array.isArray(users) ? users : [];
+  const localUsers = readJson("studysphere_users", []);
+  const merged = new Map((Array.isArray(localUsers) ? localUsers : []).map((user) => [String(user.id || user.email), user]));
+  apiData.users.forEach((user) => merged.set(String(user.id || user.email), user));
+  return [...merged.values()];
 };
 
 const getAttempts = () => {
   const attempts = readJson("studysphere_history", []);
-  return Array.isArray(attempts) ? attempts : [];
+  const collected = [...(Array.isArray(attempts) ? attempts : []), ...apiData.attempts];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key?.startsWith("studysphere_user_") || !key.endsWith("_history")) continue;
+    const scopedAttempts = readJson(key, []);
+    if (Array.isArray(scopedAttempts)) collected.push(...scopedAttempts);
+  }
+  const unique = new Map(collected.map((attempt) => [String(attempt.attemptId || attempt.id || `${attempt.userId}-${attempt.submittedAt || attempt.submitted_at}`), attempt]));
+  return [...unique.values()];
 };
 
 const formatDate = (value) => {
@@ -238,3 +253,23 @@ renderStats();
 renderChart();
 renderFeaturedTable();
 renderRecentFeedback();
+
+async function loadApiDashboardData() {
+  const status = document.querySelector("#admin-dashboard-api-status");
+  const resources = ["exams", "users", "attempts", "feedback"];
+  const responses = await Promise.allSettled(resources.map((resource) => apiClient.list(resource)));
+  let failed = false;
+  responses.forEach((response, index) => {
+    const key = resources[index];
+    if (response.status === "fulfilled" && Array.isArray(response.value)) apiData[key] = response.value;
+    else failed = true;
+  });
+  if (status) status.textContent = failed
+    ? "Một số dữ liệu JSON-server chưa tải được; dashboard đang kết hợp với dữ liệu đã lưu trên thiết bị."
+    : `Đã đồng bộ ${apiData.exams.length} đề, ${apiData.users.length} tài khoản, ${apiData.attempts.length} lượt làm và ${apiData.feedback.length} phản hồi từ JSON-server.`;
+  renderStats();
+  renderChart();
+  renderFeaturedTable();
+}
+
+loadApiDashboardData();

@@ -33,11 +33,20 @@
 .history-score span { color: var(--ink-soft); font-family: var(--font-body); font-size: 0.7rem; }
 .history-status { padding: 5px 10px; border-radius: 20px; color: #24784f; background: #dff3e7; font-family: var(--font-body); font-size: 0.68rem; font-weight: 800; white-space: nowrap; }
 .history-status.failed { color: #bd5845; background: #fae8e3; }
+.history-api-status { margin: 14px 0; color: var(--ink-soft); font-size: 13px; }
 .history-review { min-height: 36px; padding: 0 13px; font-family: var(--font-body); white-space: nowrap; font-size: 0.7rem; }
 @media (max-width: 760px) { .history-board { padding: 22px 17px; }.history-toolbar { grid-template-columns: 1fr; }.history-item { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; }.history-score { grid-column: 2; }.history-status { grid-column: 3; grid-row: 1; }.history-review { grid-column: 1 / -1; width: 100%; }.history-heading { align-items: flex-start; flex-direction: column; }.history-hero { padding: 58px 0 52px; } }
 
 .page-intro { padding: 52px 0 44px; }
 .page-intro + .section { padding-top: 42px; }
+#catalog-status { max-width: 620px; margin: 5px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+#catalog-status.is-error { color: #9c4c38; }
+.library-results { min-width: 0; }
+.pdf-exam-card { min-width: 0; }
+.pdf-exam-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+.pdf-exam-actions .button { min-width: 0; min-height: 42px; justify-content: center; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+.pdf-exam-card .favorite-button { z-index: 1; }
 @media (max-width: 760px) {
 	.page-intro { padding: 42px 0 36px; }
 }
+@media (max-width: 420px) { .pdf-exam-actions { grid-template-columns: 1fr; }.pdf-exam-actions .button { width: 100%; } }

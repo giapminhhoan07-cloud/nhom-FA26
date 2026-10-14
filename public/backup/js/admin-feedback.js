@@ -1,4 +1,7 @@
 import { createNotifications } from "./notifications.js";
+import { apiClient } from "./apiClient.js";
+
+let apiFeedback = [];
 
 const readJson = (key, fallback) => {
   try {
@@ -19,7 +22,9 @@ const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character
 
 const getFeedback = () => {
   const feedback = readJson("studysphere_feedback", []);
-  return Array.isArray(feedback) ? feedback : [];
+  const merged = new Map((Array.isArray(feedback) ? feedback : []).map((item) => [String(item.id || item.attemptId), item]));
+  apiFeedback.forEach((item) => merged.set(String(item.id || item.attemptId), item));
+  return [...merged.values()];
 };
 
 const formatDate = (value) => {
@@ -131,7 +136,7 @@ function renderList() {
   }).join("");
 }
 
-function submitReply(id, rawReply) {
+async function submitReply(id, rawReply) {
   const trimmedReply = String(rawReply ?? "").trim();
   if (!trimmedReply) {
     document.querySelector("#feedback-message").textContent = "Vui lòng nhập câu trả lời trước khi gửi.";
@@ -154,6 +159,16 @@ function submitReply(id, rawReply) {
         : item;
     });
     localStorage.setItem("studysphere_feedback", JSON.stringify(updated));
+    let apiSynced = true;
+    const updatedItem = updated.find((item) => String(item.id || item.attemptId) === String(id));
+    if (apiFeedback.some((item) => String(item.id || item.attemptId) === String(id))) {
+      try {
+        await apiClient.update("feedback", id, updatedItem);
+        apiFeedback = apiFeedback.map((item) => String(item.id || item.attemptId) === String(id) ? updatedItem : item);
+      } catch {
+        apiSynced = false;
+      }
+    }
     let notificationMessage = "";
     try {
       const notificationCount = createNotifications(
@@ -173,7 +188,9 @@ function submitReply(id, rawReply) {
       notificationMessage = `Đã lưu phản hồi nhưng không thể lưu thông báo: ${error.message}`;
       document.querySelector("#feedback-message").classList.remove("success");
     }
-    document.querySelector("#feedback-message").textContent = notificationMessage;
+    document.querySelector("#feedback-message").textContent = apiSynced
+      ? notificationMessage
+      : `${notificationMessage} JSON-server chưa đồng bộ thay đổi này.`;
     renderSummary();
     renderList();
   } catch {
@@ -202,3 +219,18 @@ document.querySelector("#feedback-list").addEventListener("keydown", (event) => 
 
 renderSummary();
 renderList();
+
+async function loadApiFeedback() {
+  const status = document.querySelector("#feedback-api-status");
+  try {
+    const records = await apiClient.list("feedback");
+    apiFeedback = Array.isArray(records) ? records : [];
+    if (status) status.textContent = `Đã tải ${apiFeedback.length} phản hồi từ JSON-server.`;
+  } catch (error) {
+    if (status) status.textContent = `${error.message} Đang hiển thị phản hồi lưu trên thiết bị.`;
+  }
+  renderSummary();
+  renderList();
+}
+
+loadApiFeedback();

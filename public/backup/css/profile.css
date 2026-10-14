@@ -27,3 +27,44 @@
 .field-hint { display: block; margin-top: 6px; color: var(--ink-soft); font-size: 0.65rem; font-weight: 400; }.profile-check { display: flex; align-items: flex-start; gap: 11px; margin: 4px 0 28px; cursor: pointer; font-size: 0.78rem; }.profile-check input { width: 17px; height: 17px; margin: 1px 0 0; accent-color: var(--teal); }.profile-check strong, .profile-check small { display: block; }.profile-check small { margin-top: 3px; color: var(--ink-soft); font-size: 0.68rem; }.profile-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }.profile-form-footer .form-message { margin: 0; }.profile-form-footer .button { min-width: 150px; }
 @media (max-width: 760px) { .profile-hero { padding: 58px 0 50px; }.profile-avatar-large { width: 82px; height: 82px; font-size: 2.2rem; }.profile-layout { grid-template-columns: 1fr; }.profile-summary { display: grid; grid-template-columns: 58px 1fr; column-gap: 16px; align-items: center; }.summary-avatar { grid-row: span 3; margin: 0; }.summary-kicker { align-self: end; margin: 0; }.profile-summary h2 { align-self: start; }.profile-summary > p:not(.summary-kicker) { align-self: start; }.summary-divider, .summary-stat, .summary-link { grid-column: 1 / -1; }.summary-divider { margin: 20px 0 15px; }.summary-link { margin-top: 20px; }.profile-content { padding: 24px 20px; } }
 @media (max-width: 520px) { .profile-hero-inner { align-items: flex-start; }.profile-avatar-large { flex: 0 0 68px; width: 68px; height: 68px; border-width: 6px; font-size: 1.8rem; }.form-grid { grid-template-columns: 1fr; gap: 0; }.profile-heading { align-items: flex-start; flex-direction: column; }.profile-form-footer { align-items: stretch; flex-direction: column; }.profile-form-footer .button { width: 100%; } }
+.learning-dashboard { padding: 54px 0 0; }
+.learning-dashboard-heading, .learning-panel-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.learning-dashboard-heading { margin-bottom: 18px; }
+.learning-dashboard-heading h2 { margin: 6px 0 0; font-family: var(--font-body); font-size: 1.8rem; letter-spacing: 0; }
+.learning-dashboard-heading .button { min-height: 42px; }
+.learning-api-status { min-height: 18px; margin: 0 0 12px; color: var(--ink-soft); font-size: 12px; }
+.learning-api-status:empty { display: none; }
+.learning-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
+.learning-stat { min-width: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.learning-stat span, .learning-stat small { display: block; color: var(--ink-soft); font-size: 12px; }
+.learning-stat strong { display: block; margin: 9px 0 3px; color: #286fa8; font-family: var(--font-display); font-size: 30px; line-height: 1.1; }
+.learning-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, 0.8fr); align-items: stretch; gap: 14px; margin-top: 14px; }
+.learning-panel { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.learning-panel-heading { align-items: center; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+.learning-panel-heading h3 { margin: 5px 0 0; font-family: var(--font-body); font-size: 1.15rem; letter-spacing: 0; }
+.learning-panel-heading > a { color: #286fa8; font-size: 12px; font-weight: 700; text-decoration: none; }
+.learning-chart { min-height: 210px; padding-top: 13px; }
+.learning-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.learning-chart-empty, .learning-recent-empty, .learning-badges-empty { display: grid; min-height: 160px; align-content: center; justify-items: center; gap: 6px; color: var(--ink-soft); text-align: center; font-size: 13px; }
+.learning-chart-empty strong, .learning-recent-empty strong, .learning-badges-empty strong { color: var(--ink); font-size: 14px; }
+.learning-chart-grid { stroke: #e5edf3; stroke-width: 1; }
+.learning-chart-axis { fill: var(--ink-soft); font: 11px var(--font-body); }
+.learning-chart-line { fill: none; stroke: #438fc6; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+.learning-chart-point { fill: #fff; stroke: #438fc6; stroke-width: 3; }
+.learning-badges { display: grid; gap: 10px; padding-top: 15px; }
+.learning-badge { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 11px; padding: 10px; border: 1px solid var(--line); border-radius: 7px; }
+.learning-badge-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #286fa8; background: #e6f2fa; font-size: 16px; }
+.learning-badge strong, .learning-badge small { display: block; }
+.learning-badge strong { color: var(--ink); font-size: 12px; }
+.learning-badge small { margin-top: 3px; color: var(--ink-soft); font-size: 11px; line-height: 1.4; }
+.learning-badge.is-locked { opacity: 0.54; }
+.learning-recent-panel { margin-top: 14px; }
+.learning-recent-list { display: grid; }
+.learning-recent-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.learning-recent-item:last-child { border-bottom: 0; }
+.learning-recent-item strong, .learning-recent-item small { display: block; }
+.learning-recent-item strong { overflow-wrap: anywhere; color: var(--ink); font-size: 13px; }
+.learning-recent-item small { margin-top: 4px; color: var(--ink-soft); font-size: 11px; }
+.learning-recent-score { color: #286fa8; font-family: var(--font-display); font-size: 21px; white-space: nowrap; }
+@media (max-width: 760px) { .learning-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.learning-dashboard-grid { grid-template-columns: 1fr; }.learning-dashboard { padding-top: 36px; }.learning-panel { padding: 19px; } }
+@media (max-width: 520px) { .learning-dashboard-heading { align-items: flex-start; flex-direction: column; }.learning-dashboard-heading .button { width: 100%; }.learning-stat { padding: 14px; }.learning-stat strong { font-size: 24px; }.learning-panel-heading { align-items: flex-start; flex-direction: column; gap: 8px; } }

@@ -1,5 +1,6 @@
 import { exams as seedExams } from "../data/exams.js";
 import { createNotifications } from "./notifications.js";
+import { apiClient, ApiError } from "./apiClient.js";
 
 const currentUser = (() => {
   try { return JSON.parse(localStorage.getItem("studysphere_current_user") || "null"); } catch { return null; }
@@ -41,7 +42,8 @@ if (!isAdmin) {
     thpt: "Tốt nghiệp THPT",
   };
   const difficultyNames = { easy: "Cơ bản", medium: "Trung bình", hard: "Khá khó" };
-  const state = { editingId: null, pendingUpload: null };
+  const state = { editingId: null, editingSource: "local", pendingUpload: null, apiExams: [], apiAttempts: [], apiFeedback: [] };
+  const apiStatus = document.querySelector("#admin-api-status");
 
   if (!window.showDirectoryPicker) saveToFolderButton.hidden = true;
 
@@ -77,7 +79,11 @@ if (!isAdmin) {
   }
 
   function getExamCatalog() {
-    const merged = [...seedExams, ...getCustomExams()];
+    const merged = [
+      ...seedExams.map((exam) => ({ ...exam, _source: "static" })),
+      ...getCustomExams().map((exam) => ({ ...exam, _source: "local" })),
+      ...state.apiExams.map((exam) => ({ ...exam, _source: "json-server" })),
+    ];
     const seen = new Map();
     merged.forEach((exam) => {
       if (exam && exam.id) seen.set(exam.id, exam);
@@ -95,13 +101,14 @@ if (!isAdmin) {
     const feedbackCount = document.querySelector("#admin-feedback-count");
     if (!statGrid || !feedbackList || !feedbackCount) return;
 
-    const history = readLocalData("studysphere_history", []);
-    const feedback = readLocalData("studysphere_feedback", []);
-    const attempts = Array.isArray(history) ? history : [];
+    const history = getAllAttempts();
+    const localFeedback = readLocalData("studysphere_feedback", []);
+    const feedback = [...new Map([...(Array.isArray(localFeedback) ? localFeedback : []), ...state.apiFeedback].map((item) => [String(item.id || item.attemptId), item])).values()];
+    const attempts = history;
     const reviews = Array.isArray(feedback) ? feedback : [];
     const scores = attempts.map((attempt) => Number(attempt.score)).filter(Number.isFinite);
-    const averageScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1) : "0.0";
-    const averageRating = reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
+    const averageScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1) : "Chưa có";
+    const averageRating = reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "Chưa có";
     const stats = [
       { label: "Tổng số đề thi", value: getExamCatalog().length },
       { label: "Lượt làm bài", value: attempts.length },
@@ -120,8 +127,21 @@ if (!isAdmin) {
     }).join("") : '<p class="admin-feedback-empty">Chưa có đánh giá nào. Phản hồi sẽ xuất hiện tại đây sau khi người học hoàn thành bài kiểm tra.</p>';
   }
 
+  function getAllAttempts() {
+    const legacy = readLocalData("studysphere_history", []);
+    const attempts = [...(Array.isArray(legacy) ? legacy : []), ...state.apiAttempts];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key?.startsWith("studysphere_user_") || !key.endsWith("_history")) continue;
+      const scoped = readLocalData(key, []);
+      if (Array.isArray(scoped)) attempts.push(...scoped);
+    }
+    return [...new Map(attempts.map((attempt) => [String(attempt.attemptId || attempt.id), attempt])).values()];
+  }
+
   function buildExportSource(items) {
-    return `export const exams = ${JSON.stringify(items, null, 2)};\n`;
+    const exportItems = items.map(({ _source, ...exam }) => exam);
+    return `export const exams = ${JSON.stringify(exportItems, null, 2)};\n`;
   }
 
   function getFormPayload() {
@@ -141,13 +161,14 @@ if (!isAdmin) {
     if (file && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) throw new Error("File đã chọn không phải PDF.");
 
     const catalog = getExamCatalog();
-    const sameIdExists = catalog.some((exam) => exam.id === id && exam.id !== state.editingId);
+    const sameIdExists = catalog.some((exam) => String(exam.id) === id && String(exam.id) !== String(state.editingId));
     if (sameIdExists) throw new Error("Mã đề đã tồn tại trong kho dữ liệu.");
 
     const existingExam = catalog.find((exam) => exam.id === state.editingId) || null;
     const exam = {
       id,
       title,
+      grade: Number(data.get("grade")) || 12,
       subjectId,
       subjectName: subjectNames[subjectId] || subjectId,
       year: Number(data.get("year") || new Date().getFullYear()),
@@ -158,7 +179,8 @@ if (!isAdmin) {
       durationMinutes: Number(data.get("duration_minutes") || 60),
       questionCount: Number(existingExam?.questionCount || 0),
       description: String(data.get("description") || "").trim(),
-      documentUrl: existingExam?.documentUrl || `../documents/${id}.pdf`,
+      documentUrl: existingExam?.documentUrl || "",
+      ...(Array.isArray(existingExam?.questions) ? { questions: existingExam.questions } : {}),
       featured: data.get("featured") === "on",
     };
     return { exam, file };
@@ -167,7 +189,9 @@ if (!isAdmin) {
   function resetForm({ preserveUpload = false } = {}) {
     form.reset();
     state.editingId = null;
+    state.editingSource = "local";
     if (!preserveUpload) state.pendingUpload = null;
+    fileInput.required = true;
     document.querySelector("#exam-action").value = "create";
     document.querySelector("#form-title").textContent = "Tạo đề thi mới";
     document.querySelector("#exam-id").readOnly = false;
@@ -193,16 +217,17 @@ if (!isAdmin) {
     list.innerHTML = filtered.map((exam) => {
       const duration = Number(exam.durationMinutes) > 0 ? `${exam.durationMinutes} phút` : "Xem trong PDF";
       const examType = exam.typeName || typeNames[exam.type] || exam.type || "Đề thi";
+      const sourceLabel = exam._source === "json-server" ? "JSON-server" : exam._source === "static" ? "Dữ liệu sẵn có" : "Trên thiết bị";
       return `
         <article class="admin-exam-item">
           <div>
-            <span>${escapeHtml(exam.subjectName || subjectNames[exam.subjectId] || "Môn học")} · ${escapeHtml(exam.year || new Date().getFullYear())}</span>
+            <span>${escapeHtml(exam.subjectName || subjectNames[exam.subjectId] || "Môn học")} · Lớp ${escapeHtml(exam.grade || "?")} · ${escapeHtml(exam.year || new Date().getFullYear())} · ${sourceLabel}</span>
             <h3>${escapeHtml(exam.title)}</h3>
             <small>${escapeHtml(examType)} · ${escapeHtml(duration)}</small>
           </div>
           <div class="admin-item-actions">
             <button type="button" data-action="edit" data-id="${escapeHtml(exam.id)}">Sửa</button>
-            <button type="button" class="admin-delete" data-action="delete" data-id="${escapeHtml(exam.id)}">Xóa</button>
+            <button type="button" class="admin-delete" data-action="delete" data-id="${escapeHtml(exam.id)}" ${exam._source === "static" ? "disabled title=\"Đề dữ liệu sẵn có không thể xóa\"" : ""}>Xóa</button>
           </div>
         </article>
       `;
@@ -227,12 +252,15 @@ if (!isAdmin) {
 
   function fillForm(exam) {
     state.editingId = exam.id;
+    state.editingSource = exam._source || "local";
+    fileInput.required = false;
     form.querySelector("#exam-action").value = "edit";
     document.querySelector("#form-title").textContent = "Chỉnh sửa đề thi";
     document.querySelector("#exam-id").value = exam.id;
     document.querySelector("#exam-id").readOnly = true;
     document.querySelector("#exam-title").value = exam.title || "";
     document.querySelector("#exam-subject").value = exam.subjectId || "toan";
+    document.querySelector("#exam-grade").value = String(exam.grade || 12);
     document.querySelector("#exam-year").value = exam.year || new Date().getFullYear();
     document.querySelector("#exam-type").value = exam.type || "minh-hoa";
     document.querySelector("#exam-difficulty").value = exam.difficulty || "medium";
@@ -244,10 +272,10 @@ if (!isAdmin) {
     document.querySelector("#exam-title").focus();
   }
 
-  list.addEventListener("click", (event) => {
+  list.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
-    const exam = getExamCatalog().find((item) => item.id === button.dataset.id);
+    const exam = getExamCatalog().find((item) => String(item.id) === button.dataset.id);
     if (!exam) return;
 
     if (button.dataset.action === "edit") {
@@ -258,38 +286,59 @@ if (!isAdmin) {
     if (button.dataset.action === "delete") {
       const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa đề thi "${exam.title}"?
 
-Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của StudySphere.`);
+Thao tác này chỉ xóa bản ghi đề thi; không xóa file PDF đã lưu.`);
       if (!confirmed) return;
-      const customExams = getCustomExams().filter((item) => item.id !== exam.id);
-      persistCustomExams(customExams);
-      renderList(getExamCatalog());
-      renderDashboard();
-      if (state.editingId === exam.id) resetForm();
-      setMessage(listMessage, `Đã xóa đề thi "${exam.title}".`, true);
+      try {
+        if (exam._source === "json-server") {
+          await apiClient.request(`exams/${encodeURIComponent(exam.id)}`, { method: "DELETE" });
+          state.apiExams = state.apiExams.filter((item) => String(item.id) !== String(exam.id));
+        } else {
+          const customExams = getCustomExams().filter((item) => String(item.id) !== String(exam.id));
+          persistCustomExams(customExams);
+        }
+        renderList(getExamCatalog());
+        renderDashboard();
+        if (String(state.editingId) === String(exam.id)) resetForm();
+        setMessage(listMessage, `Đã xóa đề thi "${exam.title}".`, true);
+      } catch (error) {
+        setMessage(listMessage, `Không xóa được đề: ${error.message}`);
+      }
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!form.reportValidity()) return;
 
     try {
       const { exam, file } = getFormPayload();
       const customExams = getCustomExams();
-      const existingIndex = customExams.findIndex((item) => item.id === state.editingId);
       let successMessage;
       let notificationWarning = "";
+      let savedSource = state.editingSource;
 
       if (state.editingId) {
-        const updatedList = customExams.map((item) => (item.id === state.editingId ? exam : item));
-        if (existingIndex < 0) {
-          updatedList.push(exam);
+        if (state.editingSource === "json-server") {
+          const updatedExam = await apiClient.update("exams", state.editingId, exam);
+          state.apiExams = state.apiExams.map((item) => String(item.id) === String(state.editingId) ? { ...updatedExam, _source: "json-server" } : item);
+        } else {
+          const updatedList = customExams.map((item) => String(item.id) === String(state.editingId) ? exam : item);
+          if (!updatedList.some((item) => String(item.id) === String(state.editingId))) updatedList.push(exam);
+          persistCustomExams(updatedList);
         }
-        persistCustomExams(updatedList);
         successMessage = `Đã lưu thay đổi cho "${exam.title}".`;
       } else {
-        customExams.push(exam);
-        persistCustomExams(customExams);
+        try {
+          const createdExam = await apiClient.create("exams", exam);
+          state.apiExams.push({ ...createdExam, _source: "json-server" });
+          savedSource = "json-server";
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.status !== 0) throw error;
+          customExams.push(exam);
+          persistCustomExams(customExams);
+          savedSource = "local";
+          notificationWarning = " JSON-server chưa chạy; đề đã được lưu trên thiết bị.";
+        }
         const users = readLocalData("studysphere_users", []);
         const recipients = (Array.isArray(users) ? users : []).filter((user) => (
           user
@@ -311,11 +360,11 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
         successMessage = `Đã tạo đề thi "${exam.title}".`;
       }
 
-      state.pendingUpload = file ? { exam, file } : null;
+      state.pendingUpload = file ? { exam, file, source: savedSource } : null;
       if (file) {
         const exportItems = getExamCatalog();
         exportSource.value = buildExportSource(exportItems);
-        exportNote.textContent = "Đã lưu bản ghi nội dung. Bạn có thể tiếp tục lưu file PDF và cập nhật data/exams.js trong thư mục công việc nếu cần.";
+        exportNote.textContent = "JSON-server chỉ lưu thông tin đề. Để xuất bản PDF, chọn thư mục public/backup của dự án và lưu tệp thật; đường dẫn PDF chỉ được ghi sau khi lưu thành công.";
         exportPanel.hidden = false;
         copyExportButton.disabled = false;
         downloadExportButton.disabled = false;
@@ -353,11 +402,25 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
       const pdfWriter = await pdfHandle.createWritable();
       await pdfWriter.write(state.pendingUpload.file);
       await pdfWriter.close();
+      const pending = state.pendingUpload;
+      const updatedExam = { ...pending.exam, documentUrl: `../documents/${pending.exam.id}.pdf` };
+      if (pending.source === "json-server") {
+        const savedExam = await apiClient.update("exams", updatedExam.id, updatedExam);
+        state.apiExams = state.apiExams.map((item) => String(item.id) === String(savedExam.id) ? { ...savedExam, _source: "json-server" } : item);
+      } else {
+        const localExams = getCustomExams();
+        const updatedLocalExams = localExams.map((item) => String(item.id) === String(updatedExam.id) ? updatedExam : item);
+        if (!updatedLocalExams.some((item) => String(item.id) === String(updatedExam.id))) updatedLocalExams.push(updatedExam);
+        persistCustomExams(updatedLocalExams);
+      }
+      exportSource.value = buildExportSource(getExamCatalog());
       const dataHandle = await dataDir.getFileHandle("exams.js", { create: true });
       const dataWriter = await dataHandle.createWritable();
-      await dataWriter.write(buildExportSource(getExamCatalog()));
+      await dataWriter.write(exportSource.value);
       await dataWriter.close();
-      setMessage(formMessage, "Đã lưu PDF và dữ liệu đề vào thư mục được chọn.", true);
+      state.pendingUpload = null;
+      renderList(getExamCatalog());
+      setMessage(formMessage, "Đã lưu PDF thật và cập nhật đường dẫn trong catalog.", true);
     } catch (error) {
       if (error.name !== "AbortError") setMessage(formMessage, `Không lưu được vào thư mục: ${error.message}`);
     }
@@ -391,9 +454,32 @@ Hành động này chỉ xóa bản ghi trong dữ liệu cục bộ của Study
   subjectFilter?.addEventListener("change", applyFilters);
   statusFilter?.addEventListener("change", applyFilters);
 
+  async function loadApiExams() {
+    const results = await Promise.allSettled([apiClient.list("exams"), apiClient.list("attempts"), apiClient.list("feedback")]);
+    const failures = [];
+    if (results[0].status === "fulfilled" && Array.isArray(results[0].value)) {
+      state.apiExams = results[0].value.map((exam) => ({ ...exam, _source: "json-server" }));
+    } else failures.push(results[0].reason?.message || "Không tải được đề thi");
+    if (results[1].status === "fulfilled" && Array.isArray(results[1].value)) state.apiAttempts = results[1].value;
+    else failures.push(results[1].reason?.message || "Không tải được lượt làm");
+    if (results[2].status === "fulfilled" && Array.isArray(results[2].value)) state.apiFeedback = results[2].value;
+    else failures.push(results[2].reason?.message || "Không tải được phản hồi");
+    if (apiStatus) {
+      apiStatus.textContent = failures.length
+        ? `${failures.join("; ")} Đang hiển thị dữ liệu lưu trên thiết bị.`
+        : `Đã tải ${state.apiExams.length} đề, ${state.apiAttempts.length} lượt làm và ${state.apiFeedback.length} phản hồi từ JSON-server.`;
+      apiStatus.classList.toggle("success", !failures.length);
+      apiStatus.classList.toggle("error", Boolean(failures.length));
+    }
+    applyFilters();
+    renderDashboard();
+    exportSource.value = buildExportSource(getExamCatalog());
+  }
+
   renderDashboard();
   renderList(getExamCatalog());
   resetForm();
   exportSource.value = buildExportSource(getExamCatalog());
   document.querySelector("#exam-year").value = new Date().getFullYear();
+  loadApiExams();
 }
