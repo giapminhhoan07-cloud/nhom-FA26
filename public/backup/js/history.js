@@ -1,13 +1,24 @@
 import { apiClient } from "./apiClient.js";
-import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
+import { getCurrentUser, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
+import { getStudyRecommendations } from "./studyRecommendations.js";
 
 const list = document.querySelector("#history-list");
 const count = document.querySelector("#history-count");
 const search = document.querySelector("#history-search");
 const status = document.querySelector("#history-status");
 const apiStatus = document.querySelector("#history-api-status");
+const recommendationStatus = document.querySelector("#study-recommendations-status");
+const recommendationList = document.querySelector("#study-recommendation-list");
 const currentUser = getCurrentUser();
 let allHistory = [];
+
+function readLocalData(key, fallback) {
+	try {
+		return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+	} catch {
+		return fallback;
+	}
+}
 
 function formatDate(value) {
 	return new Date(value).toLocaleString("vi-VN", {
@@ -59,8 +70,51 @@ function escapeHtml(value) {
   })[character]);
 }
 
+function loadAttemptDetails() {
+	return allHistory.map((entry) => {
+		if (Array.isArray(entry.questions)) return entry;
+
+		const attemptId = String(entry.attemptId || entry.id || "");
+		if (!attemptId) return null;
+		return currentUser
+			? readUserData(currentUser, `result_${attemptId}`, null, { legacyKey: `studysphere_result_${attemptId}` })
+			: readLocalData(`studysphere_guest_result_${attemptId}`, readLocalData(`studysphere_result_${attemptId}`, null));
+	}).filter((entry) => entry && Array.isArray(entry.questions));
+}
+
+function renderRecommendations() {
+	const analysis = getStudyRecommendations(loadAttemptDetails());
+	if (analysis.status === "insufficient") {
+		recommendationStatus.textContent = !allHistory.length
+			? "Chưa có đủ dữ liệu lịch sử để xác định phần cần ôn. Hãy làm thêm một vài bài kiểm tra để hệ thống có dữ liệu về môn học, chủ đề và câu trả lời của bạn."
+			: analysis.analyzedAttempts === 0
+				? "Lịch sử hiện có chưa lưu đủ câu hỏi và câu trả lời chi tiết để phân tích. Hãy làm thêm bài luyện tập trên StudySphere để hệ thống ghi nhận kết quả theo chủ đề."
+				: `Đã phân tích ${analysis.analyzedQuestions} câu trong ${analysis.analyzedAttempts} lần làm; cần tối thiểu 3 câu hỏi có kết quả trả lời đã lưu để gợi ý sát hơn. Hãy tiếp tục làm bài nhé.`;
+		recommendationList.replaceChildren();
+		return;
+	}
+
+	recommendationStatus.textContent = `Gợi ý được tạo từ ${analysis.analyzedQuestions} câu hỏi trong ${analysis.analyzedAttempts} lần làm đã lưu. Hệ thống dùng các câu sai/bỏ trống và chủ đề có sẵn, không dùng mô hình AI để phân tích.`;
+	if (!analysis.recommendations.length) {
+		recommendationList.innerHTML = '<p class="study-recommendations-empty">Chưa tìm thấy bài ôn có sẵn khớp với môn/lớp trong lịch sử. Bạn có thể xem toàn bộ <a href="../tests/index.html">bài kiểm tra</a>.</p>';
+		return;
+	}
+
+	recommendationList.innerHTML = analysis.recommendations.map((item) => `
+		<article class="study-recommendation-card">
+			<span class="study-recommendation-label">${item.isWeakness ? "Ưu tiên củng cố" : "Luyện tập duy trì"}</span>
+			<h3>${escapeHtml(item.title)}</h3>
+			<p class="study-recommendation-reason">${escapeHtml(item.reason)}</p>
+			<p class="study-recommendation-meta">${item.questionCount} câu có sẵn</p>
+			<a class="button button-primary" href="${escapeHtml(item.href)}">Bắt đầu ôn tập <span aria-hidden="true">→</span></a>
+		</article>
+	`).join("");
+}
+
 async function loadHistory() {
-	allHistory = readUserCollection(currentUser, "history", "studysphere_history");
+	allHistory = currentUser
+		? readUserCollection(currentUser, "history", "studysphere_history")
+		: readLocalData("studysphere_guest_history", []);
 	if (currentUser) {
 		try {
 			const userId = String(currentUser.id || currentUser.email || "");
@@ -75,6 +129,7 @@ async function loadHistory() {
 			if (apiStatus) apiStatus.textContent = `${error.message} Đang hiển thị lịch sử lưu trên thiết bị.`;
 		}
 	}
+	renderRecommendations();
 	renderHistory(allHistory);
 }
 

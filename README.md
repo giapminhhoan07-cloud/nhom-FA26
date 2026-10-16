@@ -16,6 +16,7 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 - Mỗi bài kiểm tra hiện có thêm 5 câu trả lời ngắn
 - Đồng bộ lịch sử, tài khoản và kho đề qua JSON-server khi API hoạt động; giữ dữ liệu theo tài khoản trên thiết bị làm phương án dự phòng
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
+- Gợi ý nội dung ôn theo môn, lớp và chủ đề dựa trên câu sai/bỏ trống trong lịch sử đã lưu; hiển thị lý do và chỉ liên kết tới câu hỏi hiện có trong kho
 - Bảng xếp hạng XP theo 7 ngày gần nhất hoặc toàn thời gian để khuyến khích học đều
 - Đánh dấu câu sai để ôn tập hiệu quả
 - Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
@@ -24,6 +25,8 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 ## Dữ liệu đề thi và ôn tập theo phạm vi
 
 Kho câu hỏi trực tuyến lấy từ `public/backup/tests/data/practice-tests.js` và các câu bổ sung trong `public/backup/tests/data/questionAdditions.js`; 8 bộ Ngữ văn mẫu nằm trong `public/backup/data/practice-tests-literature.js`, còn các bộ mẫu bù những tổ hợp môn/lớp còn thiếu nằm trong `public/backup/tests/data/scopedSampleTests.js`. Bộ lọc ôn tập chuẩn hóa dữ liệu và gắn các trường môn, lớp, chủ đề, đáp án, độ khó trong `public/backup/js/practiceScopes.js`. Khi thêm câu hỏi mới, có thể khai báo trực tiếp `topic` hoặc `topics`; nếu chưa khai báo, bộ chuẩn hóa dùng phân loại theo nội dung hiện có.
+
+Trang lịch sử tổng hợp kết quả câu hỏi từ các lần làm đã lưu và đề xuất ôn tập theo quy tắc JavaScript trong `public/backup/js/studyRecommendations.js`. Hệ thống nêu số câu sai/bỏ trống và chỉ đề xuất phạm vi có câu hỏi thật trong kho. Cần tối thiểu 3 câu hỏi có kết quả trả lời đã lưu để phân tích; nếu chưa đủ dữ liệu, trang sẽ hướng dẫn học sinh làm thêm bài. Đây là gợi ý theo luật, không phải phân tích của mô hình AI.
 
 Tại lần kiểm kê hiện tại, có 36 bộ luyện tập với 250 câu hỏi cho cả 10 môn và lớp 10–12. Trong đó, 24 bộ/120 câu là dữ liệu mẫu tự biên soạn, bổ sung các tổ hợp môn-lớp còn trống; mỗi bộ được đánh dấu `isSample` và câu hỏi có môn, lớp, chủ đề, độ khó, đáp án, giải thích. Các bộ Ngữ văn mẫu hiện hữu cũng được gắn nhãn mẫu. Dữ liệu lớp 12 trước đó được giữ lại. Đây là dữ liệu mẫu để người học thử luồng lọc/luyện tập, không phải bản chép của các đề thi chính thức. Thư viện đề THPT và danh sách đề cương là các danh mục riêng; bản PDF không đồng nghĩa với một bài thi trực tuyến đã có câu hỏi/đáp án. Hiện dữ liệu chưa có ngày cập nhật đáng tin cậy nên giao diện không gắn nhãn “mới nhất” cho đề.
 
