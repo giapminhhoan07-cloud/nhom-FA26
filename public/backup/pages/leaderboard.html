@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Xem bảng xếp hạng XP học tập trên StudySphere và cùng bạn bè giữ nhịp ôn luyện.">
+  <title>Bảng xếp hạng | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+  <link rel="stylesheet" href="../css/leaderboard.css">
+  <script type="module" src="../js/leaderboard-page.js"></script>
+  <script defer src="../js/session.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu"><span></span><span></span><span></span></button>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính"><a href="../index.html">Trang chủ</a><a href="../tests/index.html">Bài kiểm tra</a><a href="history.html">Lịch sử</a><a class="active" aria-current="page" href="leaderboard.html">Xếp hạng</a><a href="favorites.html">Đề đã lưu</a></nav>
+    </div>
+  </header>
+  <main>
+    <section class="leaderboard-hero">
+      <div class="container leaderboard-hero-inner">
+        <div><p class="eyebrow"><span class="eyebrow-dot"></span> Cùng nhau tiến bộ</p><h1>Mỗi ngày một bước.<br><em>Mỗi tuần một đỉnh cao.</em></h1><p>Ghi nhận nỗ lực luyện tập, cổ vũ nhau tiến bộ và xem ai đang giữ nhịp học đều nhất.</p></div>
+        <div class="leaderboard-hero-mark" aria-hidden="true"><span>✦</span><strong>XP</strong><small>Học đều · tiến bộ</small></div>
+      </div>
+    </section>
+    <section class="leaderboard-section">
+      <div class="container">
+        <div class="leaderboard-board">
+          <div class="leaderboard-heading">
+            <div><span class="leaderboard-kicker">Nỗ lực được ghi nhận</span><h2>Bảng xếp hạng</h2></div>
+            <span class="leaderboard-count" id="leaderboard-count">Đang tải...</span>
+          </div>
+          <div class="leaderboard-toolbar" role="group" aria-label="Chọn khoảng thời gian xếp hạng">
+            <button class="leaderboard-period is-selected" type="button" data-ranking-period="week" aria-pressed="true">7 ngày qua</button>
+            <button class="leaderboard-period" type="button" data-ranking-period="all" aria-pressed="false">Toàn thời gian</button>
+          </div>
+          <p class="leaderboard-status" id="leaderboard-status" role="status" aria-live="polite"></p>
+          <div class="leaderboard-podium" id="leaderboard-podium" aria-label="Ba học sinh dẫn đầu"></div>
+          <div class="leaderboard-list" id="leaderboard-list" aria-label="Thứ hạng học sinh"></div>
+          <p class="leaderboard-your-rank" id="leaderboard-your-rank" aria-live="polite"></p>
+        </div>
+        <div class="leaderboard-note"><span aria-hidden="true">✦</span><p><strong>Thi đua vui, học là chính.</strong> Mỗi bài hoàn thành đóng góp 50 XP; bảng tuần giúp những cố gắng mới nhất luôn có cơ hội được ghi nhận.</p></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><div><a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p></div></div></footer>
+</body>
+</html>
