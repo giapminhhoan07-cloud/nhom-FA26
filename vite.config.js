@@ -6,8 +6,8 @@ function localStudyAiApi() {
     name: "studysphere-local-study-ai-api",
     configureServer(server) {
       const env = loadEnv(server.config.mode, process.cwd(), "");
-      for (const key of ["STUDY_AI_API_KEY", "STUDY_AI_API_URL", "STUDY_AI_MODEL"]) {
-        if (!process.env[key] && env[key]) process.env[key] = env[key];
+      if (!process.env.GEMINI_API_KEY && env.GEMINI_API_KEY) {
+        process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
       }
 
       server.middlewares.use("/api/study-ai", async (request, response) => {
@@ -23,7 +23,7 @@ function localStudyAiApi() {
           if (size > 18_000) {
             response.statusCode = 413;
             response.setHeader("Content-Type", "application/json; charset=utf-8");
-            response.end(JSON.stringify({ error: "Nội dung gửi lên quá dài." }));
+            response.end(JSON.stringify({ success: false, message: "Nội dung gửi lên quá dài." }));
             return;
           }
           chunks.push(chunk);
@@ -35,7 +35,7 @@ function localStudyAiApi() {
         } catch {
           response.statusCode = 400;
           response.setHeader("Content-Type", "application/json; charset=utf-8");
-          response.end(JSON.stringify({ error: "Nội dung gửi lên không phải JSON hợp lệ." }));
+          response.end(JSON.stringify({ success: false, message: "Nội dung gửi lên không phải JSON hợp lệ." }));
           return;
         }
 

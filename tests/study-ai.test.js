@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-
+import { ApiError } from "@google/genai";
 import studyAiHandler, { studyAiApiInternals } from "../api/study-ai.js";
 import { createOfflineAnswer, studyAiOfflineInternals } from "../public/backup/js/study-ai-offline.js";
 
@@ -77,54 +77,63 @@ test("Study AI handler rejects unsupported methods and cross-origin requests", a
   assert.equal(originResponse.statusCode, 403);
 });
 
-test("Study AI status endpoint reveals only whether the server API is configured", async () => {
-  const originalKey = process.env.STUDY_AI_API_KEY;
-  delete process.env.STUDY_AI_API_KEY;
+test("Study AI status endpoint identifies Gemini without exposing its key", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
 
   try {
     const response = createResponse();
     await studyAiHandler({ method: "GET", headers: sameOriginHeaders }, response);
     assert.equal(response.statusCode, 200);
-    assert.deepEqual(response.body, { configured: false });
+    assert.deepEqual(response.body, { success: true, configured: false, provider: "gemini" });
   } finally {
-    if (originalKey === undefined) delete process.env.STUDY_AI_API_KEY;
-    else process.env.STUDY_AI_API_KEY = originalKey;
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
   }
 });
 
-test("Study AI handler validates request body and reports missing server configuration", async () => {
-  const originalKey = process.env.STUDY_AI_API_KEY;
-  delete process.env.STUDY_AI_API_KEY;
+test("Study AI handler validates request body before contacting Gemini", async () => {
+  const invalidResponse = createResponse();
+  await studyAiHandler({ method: "POST", headers: sameOriginHeaders, body: {} }, invalidResponse);
+  assert.equal(invalidResponse.statusCode, 400);
+  assert.deepEqual(invalidResponse.body, { success: false, message: "Hãy nhập câu hỏi trước khi gửi." });
+});
+
+test("Study AI requires a server-side Gemini API key", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
 
   try {
-    const invalidResponse = createResponse();
-    await studyAiHandler({ method: "POST", headers: sameOriginHeaders, body: {} }, invalidResponse);
-    assert.equal(invalidResponse.statusCode, 400);
-
-    const configResponse = createResponse();
+    const response = createResponse();
     await studyAiHandler({
       method: "POST",
       headers: sameOriginHeaders,
-      body: { message: "Giải thích câu này", context: { grade: 10 } },
-    }, configResponse);
-    assert.equal(configResponse.statusCode, 503);
-    assert.match(configResponse.body.error, /chưa được cấu hình API/);
+      body: { message: "Giải thích 2 + 2" },
+    }, response);
+
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.body.success, false);
+    assert.match(response.body.message, /GEMINI_API_KEY/);
   } finally {
-    if (originalKey === undefined) delete process.env.STUDY_AI_API_KEY;
-    else process.env.STUDY_AI_API_KEY = originalKey;
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
   }
 });
 
-test("Study AI handler calls the provider server-side and returns only the answer", async () => {
-  const originalKey = process.env.STUDY_AI_API_KEY;
-  const originalFetch = globalThis.fetch;
-  process.env.STUDY_AI_API_KEY = "test-server-key";
-  let providerRequest;
-  globalThis.fetch = async (url, options) => {
-    providerRequest = { url, options };
+test("Study AI calls Gemini server-side and returns its answer in the public response shape", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalCreateClient = studyAiApiInternals.createClient;
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  let modelRequest;
+  studyAiApiInternals.createClient = (key) => {
+    assert.equal(key, "test-gemini-key");
     return {
-      ok: true,
-      json: async () => ({ choices: [{ message: { content: "Ta chuyển vế rồi chia hai vế cho hệ số của x." } }] }),
+      models: {
+        generateContent: async (request) => {
+          modelRequest = request;
+          return { text: "Ta cộng hai số lại được 4." };
+        },
+      },
     };
   };
 
@@ -133,17 +142,194 @@ test("Study AI handler calls the provider server-side and returns only the answe
     await studyAiHandler({
       method: "POST",
       headers: sameOriginHeaders,
-      body: { message: "Gợi ý cách giải", context: { subject: "Toán", grade: 10 } },
+      body: {
+        message: "Gợi ý cách giải",
+        context: "Bài toán cộng số tự nhiên",
+        history: [
+          { role: "user", content: "Mình đang học phép cộng." },
+          { role: "assistant", content: "Mình sẽ giải thích nhé." },
+        ],
+      },
     }, response);
 
     assert.equal(response.statusCode, 200);
-    assert.equal(response.body.answer, "Ta chuyển vế rồi chia hai vế cho hệ số của x.");
-    assert.match(providerRequest.options.headers.Authorization, /^Bearer test-server-key$/);
-    assert.equal(JSON.stringify(response.body).includes("test-server-key"), false);
+    assert.deepEqual(response.body, { success: true, message: "Ta cộng hai số lại được 4." });
+    assert.equal(modelRequest.model, "gemini-flash-latest");
+    assert.match(modelRequest.config.systemInstruction, /học sinh cấp 2/);
+    assert.deepEqual(modelRequest.contents.slice(0, 2).map((item) => item.role), ["user", "model"]);
+    assert.equal(modelRequest.contents.at(-1).role, "user");
+    assert.match(modelRequest.contents.at(-1).parts[0].text, /Bài toán cộng số tự nhiên/);
+    assert.equal(JSON.stringify(response.body).includes("test-gemini-key"), false);
   } finally {
-    globalThis.fetch = originalFetch;
-    if (originalKey === undefined) delete process.env.STUDY_AI_API_KEY;
-    else process.env.STUDY_AI_API_KEY = originalKey;
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+    studyAiApiInternals.createClient = originalCreateClient;
+  }
+});
+
+test("Study AI reports Gemini connectivity failures without leaking provider details", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalCreateClient = studyAiApiInternals.createClient;
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  studyAiApiInternals.createClient = () => ({
+    models: { generateContent: async () => { throw new TypeError("fetch failed"); } },
+  });
+
+  try {
+    const response = createResponse();
+    await studyAiHandler({
+      method: "POST",
+      headers: sameOriginHeaders,
+      body: { message: "Giải thích phương trình bậc nhất" },
+    }, response);
+
+    assert.equal(response.statusCode, 502);
+    assert.deepEqual(response.body, {
+      success: false,
+      message: "Không thể kết nối với Study AI. Hãy kiểm tra kết nối mạng và thử lại.",
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+    studyAiApiInternals.createClient = originalCreateClient;
+  }
+});
+
+test("Study AI switches to the supported Gemini Flash model when the alias returns 404", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalCreateClient = studyAiApiInternals.createClient;
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  const models = [];
+  studyAiApiInternals.createClient = () => ({
+    models: {
+      generateContent: async ({ model }) => {
+        models.push(model);
+        if (model === "gemini-flash-latest") {
+          throw new ApiError({ status: 404, message: JSON.stringify({ error: { message: "Model not found" } }) });
+        }
+        return { text: "Xin chào! Mình có thể giúp gì cho bạn?" };
+      },
+    },
+  });
+
+  try {
+    const response = createResponse();
+    await studyAiHandler({
+      method: "POST",
+      headers: sameOriginHeaders,
+      body: { message: "Xin chào" },
+    }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body, { success: true, message: "Xin chào! Mình có thể giúp gì cho bạn?" });
+    assert.deepEqual(models, ["gemini-flash-latest", "gemini-3.8-flash"]);
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+    studyAiApiInternals.createClient = originalCreateClient;
+  }
+});
+
+test("Study AI retries 503 three times with 1, 2 and 4 second delays before switching models", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalCreateClient = studyAiApiInternals.createClient;
+  const originalWait = studyAiApiInternals.wait;
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  const requestedModels = [];
+  const delays = [];
+  studyAiApiInternals.createClient = () => ({
+    models: {
+      generateContent: async ({ model }) => {
+        requestedModels.push(model);
+        if (model === "gemini-flash-latest") {
+          throw new ApiError({
+            status: 503,
+            message: JSON.stringify({
+              error: {
+                message: "Service unavailable",
+                details: [{ reason: "MODEL_CAPACITY" }],
+              },
+            }),
+          });
+        }
+        return { text: "Xin chào! Mình sẵn sàng giúp bạn học." };
+      },
+    },
+  });
+  studyAiApiInternals.wait = async (milliseconds) => delays.push(milliseconds);
+  const originalConsoleError = console.error;
+  const errorLogs = [];
+  console.error = (...args) => errorLogs.push(args);
+
+  try {
+    const response = createResponse();
+    await studyAiHandler({
+      method: "POST",
+      headers: sameOriginHeaders,
+      body: { message: "Xin chào" },
+    }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body, { success: true, message: "Xin chào! Mình sẵn sàng giúp bạn học." });
+    assert.deepEqual(delays, [1_000, 2_000, 4_000]);
+    assert.deepEqual(requestedModels, [
+      "gemini-flash-latest",
+      "gemini-flash-latest",
+      "gemini-flash-latest",
+      "gemini-flash-latest",
+      "gemini-3.8-flash",
+    ]);
+    const loggedDetails = JSON.stringify(errorLogs);
+    assert.match(loggedDetails, /gemini-flash-latest/);
+    assert.match(loggedDetails, /503/);
+    assert.match(loggedDetails, /Service unavailable/);
+    assert.match(loggedDetails, /MODEL_CAPACITY/);
+    assert.doesNotMatch(loggedDetails, /test-gemini-key/);
+  } finally {
+    console.error = originalConsoleError;
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+    studyAiApiInternals.createClient = originalCreateClient;
+    studyAiApiInternals.wait = originalWait;
+  }
+});
+
+test("Study AI returns a diagnosable outage after at most three 503 retries per supported model", async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalCreateClient = studyAiApiInternals.createClient;
+  const originalWait = studyAiApiInternals.wait;
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  const requestedModels = [];
+  const delays = [];
+  studyAiApiInternals.createClient = () => ({
+    models: {
+      generateContent: async ({ model }) => {
+        requestedModels.push(model);
+        throw new ApiError({ status: 503, message: "Service unavailable" });
+      },
+    },
+  });
+  studyAiApiInternals.wait = async (milliseconds) => delays.push(milliseconds);
+
+  try {
+    const response = createResponse();
+    await studyAiHandler({
+      method: "POST",
+      headers: sameOriginHeaders,
+      body: { message: "Xin chào" },
+    }, response);
+
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.body.success, false);
+    assert.match(response.body.message, /tạm thời không khả dụng/);
+    assert.deepEqual(delays, [1_000, 2_000, 4_000, 1_000, 2_000, 4_000]);
+    assert.equal(requestedModels.filter((model) => model === "gemini-flash-latest").length, 4);
+    assert.equal(requestedModels.filter((model) => model === "gemini-3.8-flash").length, 4);
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+    studyAiApiInternals.createClient = originalCreateClient;
+    studyAiApiInternals.wait = originalWait;
   }
 });
 

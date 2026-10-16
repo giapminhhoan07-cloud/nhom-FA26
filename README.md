@@ -32,17 +32,23 @@ Tại lần kiểm kê hiện tại, có 36 bộ luyện tập với 250 câu h�
 
 ## Study AI
 
-Study AI hiển thị trên các trang dành cho người học và nhận ngữ cảnh câu hỏi hiện tại trong lúc làm bài. Khi chưa cấu hình API key, trợ lý mặc định chạy bằng bộ quy tắc offline miễn phí ngay trên trình duyệt; nó giải thích theo lời giải có sẵn và không gọi dịch vụ trả phí. Chế độ offline có giới hạn, không phải mô hình sinh câu trả lời tổng quát. Khi người vận hành chủ động cấu hình API key, endpoint backend `POST /api/study-ai` mới gọi dịch vụ tương thích OpenAI Chat Completions ở phía server. `GET /api/study-ai` chỉ trả cờ cấu hình (không trả key). Endpoint chỉ chấp nhận same-origin, giới hạn đầu vào và tốc độ gửi. Khóa API không được đưa vào JavaScript hoặc HTML frontend.
+Study AI hiển thị trên trang chủ và các trang dành cho người học; trong lúc làm bài, widget nhận ngữ cảnh câu hỏi hiện tại. Trình duyệt chỉ gọi same-origin `POST /api/study-ai`; backend gọi Gemini API bằng khóa được giữ trong môi trường server. Khóa không được gửi tới frontend. API giới hạn kích thước yêu cầu và tốc độ gửi, đồng thời giữ nguyên các biện pháp bảo vệ câu trả lời trong bài đánh giá có tính điểm.
 
-Biến môi trường:
+Backend dùng SDK chính thức `@google/genai` và model alias hiện tại `gemini-flash-latest`, theo ví dụ Gemini API của Google. Model được cố định ở server để biến cấu hình cũ không làm endpoint gọi nhầm model đã ngừng hỗ trợ. Package `@google/genai` được cài trong dependencies. Chỉ cần thêm khóa Gemini vào `.env.local` ở thư mục gốc (không ghi đè các biến hiện có):
 
-- `STUDY_AI_API_KEY` — bắt buộc; API key do nhà cung cấp AI cấp.
-- `STUDY_AI_API_URL` — tùy chọn; mặc định `https://api.openai.com/v1/chat/completions`.
-- `STUDY_AI_MODEL` — tùy chọn; mặc định `gpt-4o-mini`.
+```dotenv
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-Chạy local miễn phí: không cần API key; chạy `npm run dev` và widget sẽ dùng bộ trợ lý offline. Muốn bật câu trả lời tạo sinh online, lưu biến môi trường trong `.env.local` ở thư mục gốc rồi khởi động lại dev server. Vite chuyển tiếp API đến cùng handler dùng trên Vercel. Không commit `.env.local` và không đặt API key với tiền tố `VITE_`.
+Không khai báo `GEMINI_MODEL`; backend chủ động dùng model alias hiện hành.
 
-Trên Vercel, mở **Project → Settings → Environment Variables**, thêm `STUDY_AI_API_KEY` (và tùy chọn `STUDY_AI_API_URL`, `STUDY_AI_MODEL`) cho các môi trường cần dùng rồi deploy lại để bật online. Vercel tự triển khai `api/study-ai.js` thành serverless function. Nếu không khai báo key, widget vẫn hỗ trợ học ở chế độ offline và không phát sinh chi phí API.
+`.env.local` đã được Git ignore. Không đặt khóa trong mã frontend hoặc chia sẻ khóa công khai. Sau khi lưu khóa, khởi động lại Vite:
+
+```powershell
+npm run dev
+```
+
+Mở `http://localhost:5173/`, chọn **✨ Study AI** và thử hỏi “Giải thích cho mình 2 + 2 bằng cách dễ hiểu.” Các câu trả lời có ngữ cảnh từ bài quiz/result vẫn dùng chung endpoint. Nếu chưa khai báo khóa hoặc Gemini từ chối yêu cầu, chat hiển thị lỗi dễ hiểu và backend chỉ ghi mã trạng thái để chẩn đoán, không trả khóa ra trình duyệt.
 
 ## Công nghệ sử dụng
 
