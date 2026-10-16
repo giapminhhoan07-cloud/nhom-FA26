@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Demo Student",
+      "xp": 0,
+      "level": 1,
+      "streak": 0
+    }
+  ],
+  "exams": [
+    {
+      "id": "1",
+      "title": "De thi thu Toan",
+      "grade": 12,
+      "subject": "Toan",
+      "difficulty": "medium",
+      "duration": 90
+    }
+  ],
+  "attempts": [],
+  "achievements": [],
+  "userAchievements": [],
+  "studySessions": [],
+  "feedback": []
+}
