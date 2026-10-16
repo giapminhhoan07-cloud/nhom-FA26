@@ -11,6 +11,7 @@ import {
 } from "../public/backup/js/practiceScopes.js";
 import { exams } from "../public/backup/data/exams.js";
 import { practiceTests, upcomingTests } from "../public/backup/tests/data/practice-tests.js";
+import { buildStudyRecommendations } from "../public/backup/js/studyRecommendations.js";
 
 test("scope bank contains only questions from available practice sets", () => {
   assert.equal(practiceQuestionBank.length, 250);
@@ -112,6 +113,39 @@ test("selects the requested number randomly without duplicates", () => {
   assert.equal(new Set(selection.map((question) => question.id)).size, 10);
   assert.deepEqual(selectRandomQuestions(pool, "all").length, pool.length);
   assert.deepEqual(selectRandomQuestions(pool, 10, () => 0).length, 10);
+});
+
+test("study recommendations prioritize topics with repeated wrong answers", () => {
+  const attempts = [
+    {
+      result: { examId: "sample-toan-12", subjectId: "toan", grade: 12, answers: [0, 1, 1] },
+      questions: [
+        { id: "topic-algebra-1", topic: "Đại số", type: "multiple_choice", correctAnswer: 1 },
+        { id: "topic-algebra-2", topic: "Đại số", type: "multiple_choice", correctAnswer: 0 },
+        { id: "topic-geometry", topic: "Hình học", type: "multiple_choice", correctAnswer: 1 },
+      ],
+    },
+  ];
+
+  assert.deepEqual(buildStudyRecommendations(attempts), [
+    { subjectId: "toan", subjectName: "Toán", grade: 12, topic: "Đại số", wrongCount: 2 },
+  ]);
+});
+
+test("study recommendations ignore attempts without question details or usable scope", () => {
+  assert.deepEqual(buildStudyRecommendations([
+    { result: { answers: [0] }, questions: [{ type: "multiple_choice", correctAnswer: 1 }] },
+    { result: { subjectId: "toan", grade: 12, answers: [0] } },
+  ]), []);
+});
+
+test("study recommendations do not count unanswered questions as wrong answers", () => {
+  const recommendations = buildStudyRecommendations([{
+    result: { subjectId: "toan", grade: 12, answers: [null] },
+    questions: [{ type: "multiple_choice", topic: "Đại số", correctAnswer: 1 }],
+  }]);
+
+  assert.deepEqual(recommendations, []);
 });
 
 test("each subject-grade sample scope supports random unique question selection", () => {

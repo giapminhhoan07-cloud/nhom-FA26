@@ -1,13 +1,49 @@
 import { apiClient } from "./apiClient.js";
-import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
+import { getCurrentUser, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
+import { buildStudyRecommendations } from "./studyRecommendations.js";
 
 const list = document.querySelector("#history-list");
 const count = document.querySelector("#history-count");
 const search = document.querySelector("#history-search");
 const status = document.querySelector("#history-status");
 const apiStatus = document.querySelector("#history-api-status");
+const recommendationsElement = document.querySelector("#study-recommendations");
+const recommendationsList = document.querySelector("#study-recommendations-list");
 const currentUser = getCurrentUser();
 let allHistory = [];
+
+function readAttemptDetails(item) {
+	const attemptId = String(item.attemptId || item.id || "");
+	let stored = item.questions ? { result: item, questions: item.questions } : null;
+	if (!stored && currentUser && attemptId) {
+		stored = readUserData(currentUser, `result_${attemptId}`, null, { legacyKey: `studysphere_result_${attemptId}` });
+	}
+	if (!stored && !currentUser && attemptId) {
+		try {
+			stored = JSON.parse(localStorage.getItem(`studysphere_guest_result_${attemptId}`) || "null");
+		} catch {
+			stored = null;
+		}
+	}
+	if (!Array.isArray(stored?.questions)) return null;
+	const result = stored.result || stored;
+	return { ...stored, result: { ...result, ...item, answers: result.answers || item.answers } };
+}
+
+function renderRecommendations() {
+	const recommendations = buildStudyRecommendations(allHistory.map(readAttemptDetails).filter(Boolean));
+	recommendationsElement.hidden = recommendations.length === 0;
+	recommendationsList.innerHTML = recommendations.map((recommendation) => {
+		const query = new URLSearchParams({ subject: recommendation.subjectId, grade: String(recommendation.grade) });
+		if (recommendation.topic !== "Ôn tập tổng hợp") query.set("topic", recommendation.topic);
+		const examQuery = new URLSearchParams({ subject: recommendation.subjectId, grade: String(recommendation.grade) });
+		const wrongLabel = recommendation.wrongCount === 1 ? "1 câu sai" : `${recommendation.wrongCount} câu sai`;
+		return `<article class="study-recommendation">
+			<div><span>${escapeHtml(recommendation.subjectName)} · Lớp ${recommendation.grade}</span><h3>${escapeHtml(recommendation.topic)}</h3><p>${wrongLabel} trong lịch sử làm bài</p></div>
+			<div class="study-recommendation-actions"><a class="button button-primary" href="../tests/scope.html?${query}">Luyện chủ đề <span aria-hidden="true">→</span></a><a href="../tests/index.html?${examQuery}">Xem đề môn học</a></div>
+		</article>`;
+	}).join("");
+}
 
 function formatDate(value) {
 	return new Date(value).toLocaleString("vi-VN", {
@@ -75,6 +111,7 @@ async function loadHistory() {
 			if (apiStatus) apiStatus.textContent = `${error.message} Đang hiển thị lịch sử lưu trên thiết bị.`;
 		}
 	}
+	renderRecommendations();
 	renderHistory(allHistory);
 }
 
