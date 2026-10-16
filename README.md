@@ -16,6 +16,7 @@ StudySphere là một ứng dụng web luyện thi trực tuyến giúp người
 - Mỗi bài kiểm tra hiện có thêm 5 câu trả lời ngắn
 - Đồng bộ lịch sử, tài khoản và kho đề qua JSON-server khi API hoạt động; giữ dữ liệu theo tài khoản trên thiết bị làm phương án dự phòng
 - Xem lại bài làm chi tiết: đúng/sai/bỏ qua
+- Bảng xếp hạng XP theo 7 ngày gần nhất hoặc toàn thời gian để khuyến khích học đều
 - Đánh dấu câu sai để ôn tập hiệu quả
 - Giao diện thân thiện, dễ sử dụng trên máy tính và điện thoại
 - Trung tâm hỗ trợ với FAQ tìm kiếm theo từ khóa và biểu mẫu liên hệ phía giao diện
@@ -66,6 +67,8 @@ npm run dev
 ```
 
 JSON-server giữ cổng `3000`; Vite chạy website ở `5173` và tự chọn cổng khác nếu cổng đó đang bận. Nếu JSON-server đã chạy ở cổng 3000, không khởi động thêm một tiến trình API khác. Các endpoint hiện dùng gồm `/users`, `/exams`, `/attempts`, `/userAchievements` và `/feedback`; dữ liệu gốc nằm trong `db.json` và không bị reset khi chạy lệnh.
+
+Bảng xếp hạng tại `public/backup/pages/leaderboard.html` cần JSON-server dùng chung để tải học sinh và kết quả làm bài. Mỗi lần hoàn thành bài luyện tập tính 50 XP trong mục 7 ngày; mục toàn thời gian dùng XP đã lưu trên tài khoản. Tài khoản quản trị và tài khoản bị khóa không xuất hiện.
 
 Kiểm tra dự án bằng `npm test` và `npm run build`.
 

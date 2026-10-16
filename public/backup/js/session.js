@@ -290,6 +290,7 @@ function syncLearnerNavigation() {
     { label: "Bài kiểm tra", href: "/backup/tests/index.html", key: "practice" },
     { label: "Kho đề thi", href: "/backup/pages/exams.html", key: "exams" },
     { label: "Lịch sử", href: "/backup/pages/history.html", key: "history" },
+    { label: "Xếp hạng", href: "/backup/pages/leaderboard.html", key: "leaderboard" },
     { label: "Đề đã lưu", href: "/backup/pages/favorites.html", key: "favorites" },
     { label: "Liên hệ", href: "/backup/pages/contact.html", key: "contact" },
   ];
@@ -310,6 +311,8 @@ function syncLearnerNavigation() {
         ? pathname.startsWith("/backup/tests/")
           : item.key === "exams"
             ? ["/backup/pages/exams.html", "/backup/pages/exam-detail.html"].includes(pathname)
+            : item.key === "leaderboard"
+              ? pathname === "/backup/pages/leaderboard.html"
             : pathname === new URL(item.href, window.location.origin).pathname;
     link.classList.toggle("active", active);
     if (active) link.setAttribute("aria-current", "page");
