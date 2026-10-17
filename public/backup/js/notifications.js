@@ -200,6 +200,7 @@ export function renderNotificationBell(user) {
   const panel = menu.querySelector(".notification-panel");
   const count = menu.querySelector(".notification-count");
   const list = menu.querySelector(".notification-list");
+  let expandedNotificationId = "";
 
   const refreshNotifications = async () => {
     try {
@@ -218,13 +219,20 @@ export function renderNotificationBell(user) {
     trigger.setAttribute("aria-label", unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo");
 
     list.innerHTML = notifications.length
-      ? notifications.map((notification) => `
-        <button class="notification-item${notification.read ? "" : " is-unread"}" type="button" data-notification-id="${escapeHtml(notification.id)}" data-notification-link="${escapeHtml(notification.link)}">
-          <span class="notification-item-title">${escapeHtml(notification.title)}</span>
-          <span class="notification-item-message">${escapeHtml(notification.message)}</span>
-          <span class="notification-item-date">${escapeHtml(formatDate(notification.createdAt))}</span>
-        </button>
-      `).join("")
+      ? notifications.map((notification) => {
+        const isExpanded = notification.id === expandedNotificationId;
+        const safeLink = getSafeNotificationLink(notification.link);
+        const actionLabel = notification.type === "study-recommendation" ? "Làm đề ngay" : "Xem chi tiết";
+        return `
+        <article class="notification-item${notification.read ? "" : " is-unread"}${isExpanded ? " is-expanded" : ""}">
+          <button class="notification-item-toggle" type="button" data-notification-id="${escapeHtml(notification.id)}" aria-expanded="${isExpanded}">
+            <span class="notification-item-title">${escapeHtml(notification.title)}</span>
+            <span class="notification-item-message">${escapeHtml(notification.message)}</span>
+            <span class="notification-item-date">${escapeHtml(formatDate(notification.createdAt))}</span>
+          </button>
+          ${isExpanded && safeLink ? `<a class="notification-item-action" href="${escapeHtml(safeLink)}">${actionLabel} <span aria-hidden="true">→</span></a>` : ""}
+        </article>
+      `; }).join("")
       : '<p class="notification-empty">Bạn chưa có thông báo nào.</p>';
   };
 
@@ -249,20 +257,21 @@ export function renderNotificationBell(user) {
   });
 
   list.addEventListener("click", async (event) => {
-    const item = event.target.closest(".notification-item");
-    if (!item) return;
+    const toggle = event.target.closest(".notification-item-toggle");
+    if (!toggle) return;
 
     try {
-      const notification = getNotificationsForUser(user).find((entry) => entry.id === item.dataset.notificationId);
+      const notification = getNotificationsForUser(user).find((entry) => entry.id === toggle.dataset.notificationId);
       if (notification?.remote && !notification.read) {
         await apiClient.update("notifications", notification.id, { read: true });
       }
-      markNotificationRead(item.dataset.notificationId, user);
+      if (notification && !notification.read) markNotificationRead(toggle.dataset.notificationId, user);
+      expandedNotificationId = expandedNotificationId === toggle.dataset.notificationId
+        ? ""
+        : toggle.dataset.notificationId;
       renderList();
-      const link = getSafeNotificationLink(item.dataset.notificationLink);
-      if (link) window.location.href = link;
     } catch (error) {
-      console.error("Không thể cập nhật trạng thái thông báo.", error);
+      console.error("Không thể mở rộng thông báo.", error);
     }
   });
 
