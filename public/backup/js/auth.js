@@ -1,7 +1,5 @@
 import { resetLocalPassword } from "./passwordRecovery.js";
 import { apiClient, ApiError } from "./apiClient.js";
-import { findUserByEmail, normalizeEmail, resolveLoginUser } from "./authAccounts.js";
-import { clearCurrentUser, getCurrentUser, setCurrentUser } from "./userData.js";
 
 const tabs = document.querySelectorAll("[data-auth-tab]");
 const returnTarget = new URLSearchParams(window.location.search).get("return");
@@ -63,11 +61,30 @@ const setMessage = (id, text, success = false) => {
   message.classList.toggle("success", success);
 };
 
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const LOCAL_PASSWORD_RESET_EMAILS_KEY = "studysphere_local_password_reset_emails";
+const readStoredUser = () => {
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed storage and keep checking other keys.
+    }
+  }
+  return null;
+};
+
+const writeStoredUser = (user) => {
+  const payload = JSON.stringify(user || null);
+  CURRENT_USER_KEYS.forEach((key) => localStorage.setItem(key, payload));
+};
+
 const normalizeUser = (user) => ({
   ...user,
-  role: String(user.role || "").trim().toLowerCase() === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1
-    ? "admin"
-    : (String(user.role || "").trim().toLowerCase() || "user"),
+  role: user.role === "admin" || user.is_admin === true || user.isAdmin === true || Number(user.is_admin) === 1 ? "admin" : (user.role || "user"),
 });
 const toSessionUser = (user) => {
   const { password, ...safeUser } = user;
@@ -83,6 +100,16 @@ const getLocalUsers = () => {
 };
 
 const setLocalUsers = (users) => localStorage.setItem("studysphere_users", JSON.stringify(users));
+const hasLocalPasswordReset = (email) => {
+  const resetEmails = JSON.parse(localStorage.getItem(LOCAL_PASSWORD_RESET_EMAILS_KEY) || "[]");
+  return Array.isArray(resetEmails) && resetEmails.includes(email);
+};
+const rememberLocalPasswordReset = (email) => {
+  const resetEmails = JSON.parse(localStorage.getItem(LOCAL_PASSWORD_RESET_EMAILS_KEY) || "[]");
+  if (!Array.isArray(resetEmails)) throw new Error("Không thể đọc trạng thái đặt lại mật khẩu.");
+  if (!resetEmails.includes(email)) resetEmails.push(email);
+  localStorage.setItem(LOCAL_PASSWORD_RESET_EMAILS_KEY, JSON.stringify(resetEmails));
+};
 const readLocalMap = (key) => {
   try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
 };
@@ -106,48 +133,54 @@ else if (users[adminIndex].role !== "admin" || users[adminIndex].password !== de
 }
 
 const submitAuth = async (payload) => {
-  const email = normalizeEmail(payload.email);
-  if (payload.action === "login" && email === defaultAdmin.email) {
+  if (payload.action === "login" && payload.email !== defaultAdmin.email) {
+    const localUser = getLocalUsers().find((user) => user.email === payload.email);
+    const userStatuses = readLocalMap(userStatusKey);
+    if (localUser && userStatuses[localUser.id || localUser.email] === "locked") {
+      throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
+    }
+    if (hasLocalPasswordReset(payload.email)) {
+      if (!localUser || localUser.password !== payload.password) throw new Error("Email hoặc mật khẩu không đúng.");
+      return { success: true, user: toSessionUser(localUser) };
+    }
+  }
+
+  if (payload.action === "login" && payload.email === defaultAdmin.email) {
     if (payload.password !== defaultAdmin.password) throw new Error("Email hoặc mật khẩu không đúng.");
     return { success: true, user: toSessionUser(defaultAdmin) };
   }
 
   if (payload.action === "login") {
-    let remoteUsers = [];
     try {
-      remoteUsers = await apiClient.list("users");
-      if (!Array.isArray(remoteUsers)) throw new Error("JSON-server trả về danh sách tài khoản không hợp lệ.");
+      const remoteUsers = await apiClient.list("users", { email: payload.email });
+      const remoteUser = remoteUsers.find((user) => user.email?.trim().toLowerCase() === payload.email);
+      const localUser = getLocalUsers().find((user) => user.email?.trim().toLowerCase() === payload.email);
+      const user = remoteUser?.password === payload.password
+        ? remoteUser
+        : localUser?.password === payload.password ? localUser : null;
+      if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
+      const userStatuses = readLocalMap(userStatusKey);
+      if (user.status === "locked" || userStatuses[user.id || user.email] === "locked") {
+        throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
+      }
+      return { success: true, user: toSessionUser(user) };
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 0) throw error;
     }
-
-    const user = resolveLoginUser({
-      remoteUsers,
-      localUsers: getLocalUsers(),
-      email,
-      password: payload.password,
-    });
-    if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
-    const userStatuses = readLocalMap(userStatusKey);
-    if (user.status === "locked" || userStatuses[user.id || user.email] === "locked") {
-      throw new Error("Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.");
-    }
-    return { success: true, user: toSessionUser(user) };
   }
 
   const users = getLocalUsers();
   if (payload.action === "register") {
-    if (findUserByEmail(users, email)) throw new Error("Email này đã được đăng ký.");
+    if (users.some((user) => user.email === payload.email)) throw new Error("Email này đã được đăng ký.");
     try {
-      const remoteUsers = await apiClient.list("users");
-      if (!Array.isArray(remoteUsers)) throw new Error("JSON-server trả về danh sách tài khoản không hợp lệ.");
-      if (findUserByEmail(remoteUsers, email)) {
+      const remoteUsers = await apiClient.list("users", { email: payload.email });
+      if (remoteUsers.some((user) => user.email?.trim().toLowerCase() === payload.email)) {
         throw new Error("Email này đã được đăng ký.");
       }
       const user = await apiClient.create("users", {
         id: `user-${Date.now()}`,
         name: payload.name,
-        email,
+        email: payload.email,
         password: payload.password,
         role: "user",
         xp: 0,
@@ -159,7 +192,7 @@ const submitAuth = async (payload) => {
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 0) throw error;
     }
-    const user = { id: `local-${Date.now()}`, name: payload.name, email, role: "user", password: payload.password };
+    const user = { id: `local-${Date.now()}`, name: payload.name, email: payload.email, role: "user", password: payload.password };
     setLocalUsers([...users, user]);
     const userMetadata = readLocalMap(userMetadataKey);
     userMetadata[user.id] = { createdAt: new Date().toISOString() };
@@ -167,8 +200,8 @@ const submitAuth = async (payload) => {
     return { success: true, user: toSessionUser(user) };
   }
 
-  const user = findUserByEmail(users, email);
-  if (user?.password !== payload.password) throw new Error("Email hoặc mật khẩu không đúng.");
+  const user = users.find((item) => item.email === payload.email && item.password === payload.password);
+  if (!user) throw new Error("Email hoặc mật khẩu không đúng.");
   return { success: true, user: toSessionUser(user) };
 };
 
@@ -204,7 +237,7 @@ registerForm?.addEventListener("submit", async (event) => {
 
   try {
     const result = await submitAuth({ action: "register", name, email, password });
-    setCurrentUser(result.user);
+    writeStoredUser(result.user);
     sessionStorage.setItem(AUTH_NOTICE_KEY, "register");
     window.location.href = "/backup/index.html";
   } catch (error) {
@@ -229,7 +262,7 @@ loginForm?.addEventListener("submit", async (event) => {
   if (passwordMessage) return;
   try {
     const result = await submitAuth({ action: "login", email, password });
-    setCurrentUser(result.user);
+    writeStoredUser(result.user);
     sessionStorage.setItem(AUTH_NOTICE_KEY, "login");
     const returnPaths = {
       admin: "admin-dashboard.html#overview",
@@ -288,9 +321,11 @@ resetForm?.addEventListener("submit", (event) => {
     const users = getLocalUsers();
     const { updatedUsers } = resetLocalPassword(users, email, password);
     setLocalUsers(updatedUsers);
-    const currentUser = getCurrentUser();
+    rememberLocalPasswordReset(email);
+
+    const currentUser = readStoredUser();
     if (currentUser?.email?.trim().toLowerCase() === email) {
-      clearCurrentUser();
+      CURRENT_USER_KEYS.forEach((key) => localStorage.removeItem(key));
     }
 
     resetForm.reset();

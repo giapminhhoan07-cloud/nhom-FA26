@@ -1,6 +1,18 @@
-import { clearCurrentUser, getCurrentUser } from "./userData.js";
-
-const currentUser = getCurrentUser();
+const CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
+const readStoredUser = () => {
+  for (const key of CURRENT_USER_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === "null" || raw === "undefined") continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      // Ignore malformed session values.
+    }
+  }
+  return null;
+};
+const currentUser = readStoredUser();
 const isAdmin = currentUser && (currentUser.role === "admin" || currentUser.is_admin === true || currentUser.isAdmin === true || Number(currentUser.is_admin) === 1);
 
 const isHomeRoute = () => {
@@ -240,7 +252,7 @@ function renderAccount() {
     trigger.setAttribute("aria-expanded", String(open));
   });
   account.querySelector(".account-logout").addEventListener("click", () => {
-    clearCurrentUser();
+    CURRENT_USER_KEYS.forEach((key) => localStorage.removeItem(key));
     window.location.href = getAuthPath();
   });
   document.addEventListener("click", (event) => {

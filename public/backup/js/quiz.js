@@ -5,7 +5,7 @@ import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
 import { recordGamificationCompletion } from "./gamification.js";
 import { createNotifications } from "./notifications.js";
-import { getCurrentUser, getUserDataKey, readUserCollection, setCurrentUser, writeUserCollection } from "./userData.js";
+import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
@@ -239,7 +239,9 @@ async function submitQuiz() {
             }
           }
           const updatedUser = { ...currentUser, xp: award.state.xp, level: award.state.level, streak: award.state.streak };
-          setCurrentUser(updatedUser);
+          for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
+            localStorage.setItem(key, JSON.stringify(updatedUser));
+          }
           if (currentUser.id && !String(currentUser.id).startsWith("local-")) {
             await apiClient.update("users", currentUser.id, {
               xp: award.state.xp,
