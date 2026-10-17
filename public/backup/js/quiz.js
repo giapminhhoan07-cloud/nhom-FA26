@@ -4,6 +4,7 @@ import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
 import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
 import { recordGamificationCompletion } from "./gamification.js";
+import { createNotifications } from "./notifications.js";
 import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -223,6 +224,20 @@ async function submitQuiz() {
       try {
         const award = recordGamificationCompletion(currentUser, result);
         if (award.awarded) {
+          if (award.streakUpdated) {
+            try {
+              createNotifications([currentUser], {
+                type: "streak",
+                title: award.state.streak === 1 ? "Chuỗi học tập đã bắt đầu!" : "Bạn đã duy trì streak!",
+                message: award.state.streak === 1
+                  ? "Bạn đã hoàn thành bài học hôm nay. Hãy quay lại vào ngày mai để tiếp tục streak."
+                  : `Bạn đã học liên tiếp ${award.state.streak} ngày. Tiếp tục giữ nhịp nhé!`,
+                link: "/backup/pages/profile.html",
+              });
+            } catch (error) {
+              console.error("Không thể lưu thông báo streak.", error);
+            }
+          }
           const updatedUser = { ...currentUser, xp: award.state.xp, level: award.state.level, streak: award.state.streak };
           for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
             localStorage.setItem(key, JSON.stringify(updatedUser));
