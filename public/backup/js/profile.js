@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { BADGE_DEFINITIONS, getLevelFromXp } from "./gamification.js";
 import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
 
@@ -29,6 +30,7 @@ function renderLearningChart(history) {
 
   if (!attempts.length) {
     chart.innerHTML = '<div class="learning-chart-empty"><strong>Chưa có dữ liệu điểm</strong><span>Hoàn thành bài thi đầu tiên để bắt đầu theo dõi tiến bộ.</span></div>';
+    hideSkeleton(chart);
     return;
   }
 
@@ -60,6 +62,7 @@ function renderLearningChart(history) {
     return `<text class="learning-chart-axis" x="${point.x}" y="${height - 10}" text-anchor="middle">${label}</text>`;
   }).join("");
   chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Biểu đồ điểm số qua ${attempts.length} lần làm bài">${grid}<polyline class="learning-chart-line" points="${line}"></polyline>${markers}${labels}</svg>${attempts.length < 2 ? '<p class="learning-chart-empty">Cần thêm một kết quả để thấy xu hướng điểm số.</p>' : ""}`;
+  hideSkeleton(chart);
 }
 
 function renderLearningDashboard(history, gamification, earnedBadges) {
@@ -76,6 +79,7 @@ function renderLearningDashboard(history, gamification, earnedBadges) {
     ["Chuỗi ngày học", streak, streak ? "Ngày liên tiếp" : "Bắt đầu từ hôm nay"],
   ];
   stats.innerHTML = statItems.map(([label, value, note]) => `<article class="learning-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
+  hideSkeleton(stats);
 
   renderLearningChart(history);
   const badgeList = document.querySelector("#learning-badges");
@@ -86,6 +90,7 @@ function renderLearningDashboard(history, gamification, earnedBadges) {
       <span><strong>${escapeHtml(badge.name)}</strong><small>${escapeHtml(badge.description)}</small></span>
     </article>
   `).join("");
+  hideSkeleton(badgeList);
 
   const recentList = document.querySelector("#learning-recent-list");
   const recent = [...history].sort((first, second) => new Date(second.submittedAt || second.submitted_at || 0) - new Date(first.submittedAt || first.submitted_at || 0)).slice(0, 5);
@@ -95,6 +100,7 @@ function renderLearningDashboard(history, gamification, earnedBadges) {
     const date = Number.isNaN(submittedAt.getTime()) ? "Ngày chưa rõ" : submittedAt.toLocaleDateString("vi-VN");
     return `<a class="learning-recent-item" href="result.html?attempt=${encodeURIComponent(attemptId)}"><span><strong>${escapeHtml(attempt.examTitle || attempt.exam_title || "Bài làm")}</strong><small>${date}</small></span><span class="learning-recent-score">${Number(attempt.score || 0).toFixed(1)}</span></a>`;
   }).join("") : '<div class="learning-recent-empty"><strong>Chưa có bài thi gần đây</strong><span>Hoàn thành một đề để lưu kết quả tại đây.</span></div>';
+  hideSkeleton(recentList);
 }
 
 async function loadLearningDashboard(currentUser) {
@@ -124,7 +130,13 @@ async function loadLearningDashboard(currentUser) {
   renderLearningDashboard(history, readGamification(userId), readGamification(userId).badges || []);
 }
 
-if (user) loadLearningDashboard(user);
+if (user) {
+  showSkeleton(document.querySelector("#learning-stats"), "profile-stat", 4);
+  showSkeleton(document.querySelector("#learning-progress-chart"), "chart");
+  showSkeleton(document.querySelector("#learning-badges"), "badge", 4);
+  showSkeleton(document.querySelector("#learning-recent-list"), "recent", 3);
+  loadLearningDashboard(user);
+}
 if (!user) {
   window.location.replace("auth.html");
 } else {

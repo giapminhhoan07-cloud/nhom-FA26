@@ -2,6 +2,7 @@ import { exams } from "../data/exams.js";
 import { practiceTests, upcomingTests } from "../tests/data/practice-tests.js";
 import { practiceQuestionBank } from "./practiceScopes.js";
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -66,6 +67,7 @@ if (testId) {
 } else {
 let exam = exams.find((item) => String(item.id) === id);
 if (!exam && id) {
+	showSkeleton(detail, "detail");
 	try {
 		const records = await apiClient.list("exams", { id });
 		const record = records.find((item) => String(item.id) === id);
@@ -89,6 +91,7 @@ if (!exam && id) {
 if (!exam) {
 	document.title = "Không tìm thấy đề | StudySphere";
 	detail.innerHTML = '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
+	hideSkeleton(detail);
 } else {
 const relatedPracticeTest = practiceTests.find((test) => test.id === exam.relatedPracticeTestId);
 const hasQuestions = Array.isArray(exam.questions) && exam.questions.length > 0;
@@ -126,6 +129,7 @@ const actionMarkup = hasQuestions
   : `<div class="detail-note"><strong>${hasDocument ? "Có thể xem và tải đề PDF" : "Đề chưa có đủ dữ liệu để làm trực tuyến"}</strong><p>${hasDocument ? "Câu hỏi tương tác và đáp án chưa được nhập vào hệ thống; đề sẽ không được hiển thị như một bài thi trực tuyến hoàn chỉnh." : "Bộ câu hỏi đang được cập nhật. Bạn vẫn có thể chọn một đề có sẵn câu hỏi ở kho bài kiểm tra."}</p>${!hasDocument ? '<a href="../tests/index.html">Xem đề có thể làm ngay →</a>' : ""}${relatedPracticeTest ? `<a href="../tests/quiz.html?test=${encodeURIComponent(relatedPracticeTest.id)}">Làm bộ luyện tập mẫu liên quan →</a>` : ""}<button class="button button-quiet" type="button" id="favorite-detail">♡ Lưu đề</button></div>`;
 const noteMarkup = hasQuestions ? `<div class="detail-note"><strong>Trước khi bắt đầu</strong><p>Hãy chuẩn bị không gian yên tĩnh. Đồng hồ sẽ bắt đầu chạy ngay khi bạn vào bài làm.</p></div>` : "";
 detail.innerHTML = `<div class="detail-top"><span class="exam-subject">${exam.subjectName}</span><span class="detail-label">${exam.typeName}</span></div><h1>${exam.title}</h1><p class="detail-description">${exam.description || ""}</p>${detailStats}${actionMarkup}${documentPreview}${noteMarkup}`;
+hideSkeleton(detail);
 const favoriteButton = document.querySelector("#favorite-detail");
 if (favoriteButton) {
 	let favorites = readUserCollection(currentUser, "favorites", "studysphere_favorites").map(String);

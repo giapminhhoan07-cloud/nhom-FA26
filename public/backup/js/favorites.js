@@ -1,6 +1,7 @@
 import { exams } from "../data/exams.js";
 import { practiceTests } from "../tests/data/practice-tests.js";
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, readUserCollection } from "./userData.js";
 
 const currentUser = getCurrentUser();
@@ -8,6 +9,7 @@ const ids = new Set(readUserCollection(currentUser, "favorites", "studysphere_fa
 const list = document.querySelector("#favorite-list");
 const emptyState = document.querySelector("#favorite-empty");
 const apiStatus = document.querySelector("#favorite-api-status");
+showSkeleton(list, "practice-card", 3);
 const emptyLink = emptyState.querySelector("a");
 emptyState.querySelector("p").textContent = "Chọn biểu tượng trái tim trong bài kiểm tra để lưu lại.";
 emptyLink.href = "../tests/index.html";
@@ -33,6 +35,7 @@ try {
 	if (apiStatus) apiStatus.textContent = `${error.message} Một số đề đã lưu trên JSON-server chưa thể hiển thị.`;
 }
 const saved = [...savedExams, ...savedTests, ...savedApiExams];
+hideSkeleton(list);
 if (!saved.length) {
 	list.hidden = true;
 	emptyState.hidden = false;

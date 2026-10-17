@@ -3,6 +3,7 @@ import { practiceTests } from "../tests/data/practice-tests.js";
 import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
 import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { recordGamificationCompletion } from "./gamification.js";
 import { createNotifications } from "./notifications.js";
 import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
@@ -14,6 +15,7 @@ const scopePractice = params.get("scope") === "1";
 const standaloneTest = practiceTests.find((test) => test.id === testId);
 let selectedExam = exams.find((item) => String(item.id) === examId);
 if (!selectedExam && examId) {
+  showSkeleton(document.querySelector("#question-card"), "question");
   try {
     const records = await apiClient.list("exams", { id: examId });
     const record = records.find((item) => String(item.id) === examId);
@@ -282,6 +284,7 @@ document.addEventListener("studysphere:study-ai-ready", () => {
 }, { once: true });
 
 if (unavailableQuiz) {
+  hideSkeleton(card);
   const returnHref = scopePractice
     ? "scope.html"
     : standaloneTest
@@ -300,6 +303,7 @@ if (unavailableQuiz) {
   timer.hidden = true;
   dots.hidden = true;
 } else {
+  hideSkeleton(card);
   renderQuestion();
   renderDots();
   updateTimer();

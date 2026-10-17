@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 import { getStudyRecommendations } from "./studyRecommendations.js";
 
@@ -31,6 +32,7 @@ function formatDate(value) {
 }
 
 function renderHistory(items) {
+	hideSkeleton(list);
 	const query = search.value.trim().toLowerCase();
 	const filtered = items.filter((item) => {
 		const passed = Number(item.score) >= 5;
@@ -83,6 +85,7 @@ function loadAttemptDetails() {
 }
 
 function renderRecommendations() {
+	hideSkeleton(recommendationList);
 	const analysis = getStudyRecommendations(loadAttemptDetails());
 	if (analysis.status === "insufficient") {
 		recommendationStatus.textContent = !allHistory.length
@@ -112,6 +115,8 @@ function renderRecommendations() {
 }
 
 async function loadHistory() {
+	showSkeleton(list, "history-row", 3);
+	if (currentUser) showSkeleton(recommendationList, "recommendation", 2);
 	allHistory = currentUser
 		? readUserCollection(currentUser, "history", "studysphere_history")
 		: readLocalData("studysphere_guest_history", []);

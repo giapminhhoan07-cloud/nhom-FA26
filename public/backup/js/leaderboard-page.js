@@ -1,6 +1,7 @@
 import { apiClient } from "./apiClient.js";
 import { getCurrentUser } from "./userData.js";
 import { buildLeaderboard } from "./leaderboard.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 
 const status = document.querySelector("#leaderboard-status");
 const entries = document.querySelector("#leaderboard-list");
@@ -81,6 +82,8 @@ periodButtons.forEach((button) => {
 });
 
 async function loadLeaderboard() {
+  showSkeleton(podium, "podium", 3);
+  showSkeleton(entries, "leaderboard-row", 4);
   try {
     const [remoteUsers, remoteAttempts] = await Promise.all([
       apiClient.list("users"),
@@ -88,9 +91,13 @@ async function loadLeaderboard() {
     ]);
     users = Array.isArray(remoteUsers) ? remoteUsers : [];
     attempts = Array.isArray(remoteAttempts) ? remoteAttempts : [];
+    hideSkeleton(podium);
+    hideSkeleton(entries);
     status.textContent = "XP được cộng khi hoàn thành bài luyện tập. Tuần này tính trong 7 ngày gần nhất.";
     renderLeaderboard();
   } catch (error) {
+    hideSkeleton(podium);
+    hideSkeleton(entries);
     status.textContent = `${error.message} Bảng xếp hạng cần kết nối dữ liệu dùng chung và không thể tải khi ngoại tuyến.`;
     count.textContent = "Chưa tải được";
     podium.innerHTML = "";
