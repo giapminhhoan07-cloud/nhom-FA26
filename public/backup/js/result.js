@@ -1,5 +1,6 @@
 import { isQuestionAnswered, isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, getUserDataKey, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 
 const attemptId = new URLSearchParams(window.location.search).get("attempt");
@@ -50,6 +51,7 @@ let stored = normalizeAttemptData(fallbackStored);
 if (stored?.result?.userId && currentUserId && String(stored.result.userId) !== currentUserId) stored = null;
 
 if (!stored && attemptId && currentUserId) {
+  showSkeleton(card, "result");
   try {
     const attempts = await apiClient.list("attempts", { attemptId, userId: currentUserId });
     const remoteAttempt = attempts.find((item) => String(item.attemptId || item.id) === attemptId && String(item.userId) === currentUserId);
@@ -61,6 +63,7 @@ if (!stored && attemptId && currentUserId) {
   }
 }
 
+hideSkeleton(card);
 if (!stored) {
   card.innerHTML = '<h1>Không tìm thấy kết quả</h1><p class="detail-description">Kết quả có thể đã bị xóa khỏi trình duyệt hoặc chưa được lưu lên máy chủ.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
 }
