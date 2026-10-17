@@ -7,7 +7,7 @@ import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { recordGamificationCompletion } from "./gamification.js";
 import { createNotifications, createStudyRecommendationNotifications } from "./notifications.js";
 import { getStudyRecommendations } from "./studyRecommendations.js";
-import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
+import { getCurrentUser, getUserDataKey, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
@@ -70,6 +70,9 @@ let currentIndex = 0;
 let answers = Array(questions.length).fill(null);
 let remainingSeconds = (Number(exam.durationMinutes) || 45) * 60;
 let submitted = false;
+let submitting = false;
+let submitFailed = false;
+let pendingResult = null;
 const progressStorageKey = `studysphere_quiz_progress_${encodeURIComponent(currentUserId || "guest")}_${scopePractice ? "scope" : standaloneTest ? "test" : "exam"}_${exam.id}`;
 
 function restoreProgress() {
@@ -114,6 +117,8 @@ const card = document.querySelector("#question-card");
 const dots = document.querySelector("#question-dots");
 const progressLabel = document.querySelector("#progress-label");
 const progressValue = document.querySelector("#progress-value");
+const submitButton = document.querySelector("#submit-button");
+const submitStatus = document.querySelector("#submit-status");
 title.textContent = exam.title;
 const selectQuizLink = document.querySelector(".quiz-select-link");
 if (scopePractice && selectQuizLink) selectQuizLink.href = "scope.html";
@@ -177,54 +182,71 @@ function renderQuestion() {
 }
 function renderDots() { dots.innerHTML = questions.map((_, index) => `<button class="dot ${index === currentIndex ? "current" : ""} ${answers[index] !== null && answers[index] !== "" ? "answered" : ""}" type="button" data-index="${index}">${index + 1}</button>`).join(""); }
 async function submitQuiz() {
-  if (submitted) return;
-  submitted = true;
-  clearProgress();
+  if (submitted || submitting) return;
+  submitting = true;
+  submitFailed = false;
+  submitButton.disabled = true;
+  submitButton.textContent = "Đang lưu bài...";
+  submitStatus.hidden = true;
 
-  const correctCount = answers.reduce((total, answer, index) => total + (isQuestionAnswerCorrect(answer, questions[index]) ? 1 : 0), 0);
-  const result = {
-    attemptId: `attempt-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
-    userId: currentUserId || null,
-    examId: exam.id,
-    examTitle: scopePractice ? scopeTitle : exam.title,
-    quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
-    subjectId: scopeDetails?.subjectId || standaloneTest?.subjectId || selectedExam?.subjectId || questionPool.find((question) => question.subjectId)?.subjectId || "",
-    subjectName: scopeDetails?.subjectName || standaloneTest?.subjectName || selectedExam?.subjectName || questionPool.find((question) => question.subjectName || question.subject)?.subjectName || questionPool.find((question) => question.subject)?.subject || "",
-    grade: Number(scopeDetails?.grade || standaloneTest?.grade || selectedExam?.grade || questionPool.find((question) => question.grade)?.grade) || Number(exam.title.match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null,
-    topics: [...new Set([
-      ...(scopeDetails?.topics || []),
-      ...questionPool.flatMap((question) => [
-        ...(Array.isArray(question.topics) ? question.topics : []),
-        ...(typeof question.topic === "string" ? [question.topic] : []),
-      ]),
-    ])],
-    submittedAt: new Date().toISOString(),
-    score: Number(((correctCount / questions.length) * 10).toFixed(2)),
-    totalQuestions: questions.length,
-    correctCount,
-    wrongCount: answers.filter((answer, index) => answer !== null && answer !== "" && !isQuestionAnswerCorrect(answer, questions[index])).length,
-    unansweredCount: answers.filter((answer) => answer === null || answer === "").length,
-    answers,
-    ...(scopeDetails ? {
-      subjectId: scopeDetails.subjectId,
-      subjectName: scopeDetails.subjectName,
-      grade: scopeDetails.grade,
-      requestedCount: scopeDetails.requestedCount,
-    } : {}),
-  };
+  try {
+    if (!pendingResult) {
+      const correctCount = answers.reduce((total, answer, index) => total + (isQuestionAnswerCorrect(answer, questions[index]) ? 1 : 0), 0);
+      pendingResult = {
+        attemptId: `attempt-${globalThis.crypto?.randomUUID?.() || Date.now()}`,
+        userId: currentUserId || null,
+        examId: exam.id,
+        examTitle: scopePractice ? scopeTitle : exam.title,
+        quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
+        subjectId: scopeDetails?.subjectId || standaloneTest?.subjectId || selectedExam?.subjectId || questionPool.find((question) => question.subjectId)?.subjectId || "",
+        subjectName: scopeDetails?.subjectName || standaloneTest?.subjectName || selectedExam?.subjectName || questionPool.find((question) => question.subjectName || question.subject)?.subjectName || questionPool.find((question) => question.subject)?.subject || "",
+        grade: Number(scopeDetails?.grade || standaloneTest?.grade || selectedExam?.grade || questionPool.find((question) => question.grade)?.grade) || Number(exam.title.match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null,
+        topics: [...new Set([
+          ...(scopeDetails?.topics || []),
+          ...questionPool.flatMap((question) => [
+            ...(Array.isArray(question.topics) ? question.topics : []),
+            ...(typeof question.topic === "string" ? [question.topic] : []),
+          ]),
+        ])],
+        submittedAt: new Date().toISOString(),
+        score: Number(((correctCount / questions.length) * 10).toFixed(2)),
+        totalQuestions: questions.length,
+        correctCount,
+        wrongCount: answers.filter((answer, index) => answer !== null && answer !== "" && !isQuestionAnswerCorrect(answer, questions[index])).length,
+        unansweredCount: answers.filter((answer) => answer === null || answer === "").length,
+        answers: [...answers],
+        ...(scopeDetails ? {
+          subjectId: scopeDetails.subjectId,
+          subjectName: scopeDetails.subjectName,
+          grade: scopeDetails.grade,
+          topics: scopeDetails.topics || [],
+          requestedCount: scopeDetails.requestedCount,
+        } : {}),
+      };
+    }
 
-  const saveLocalResult = async () => {
-    const historyKey = currentUser ? "studysphere_history" : "studysphere_guest_history";
-    const history = currentUser
-      ? readUserCollection(currentUser, "history", historyKey)
-      : JSON.parse(localStorage.getItem(historyKey) || "[]");
-    history.unshift(result);
-    if (currentUser) writeUserCollection(currentUser, "history", history);
-    else localStorage.setItem(historyKey, JSON.stringify(history));
+    const result = pendingResult;
     const resultKey = currentUser
       ? getUserDataKey(currentUser, `result_${result.attemptId}`)
       : `studysphere_guest_result_${result.attemptId}`;
     localStorage.setItem(resultKey, JSON.stringify({ result, questions }));
+    submitted = true;
+    clearProgress();
+
+    const historyKey = currentUser ? "studysphere_history" : "studysphere_guest_history";
+    try {
+      const history = currentUser
+        ? readUserCollection(currentUser, "history", historyKey)
+        : JSON.parse(localStorage.getItem(historyKey) || "[]");
+      const deduplicatedHistory = Array.isArray(history)
+        ? history.filter((item) => String(item.attemptId || item.id) !== result.attemptId)
+        : [];
+      deduplicatedHistory.unshift(result);
+      if (currentUser) writeUserCollection(currentUser, "history", deduplicatedHistory);
+      else localStorage.setItem(historyKey, JSON.stringify(deduplicatedHistory));
+    } catch (error) {
+      console.error("Không thể cập nhật lịch sử làm bài.", error);
+    }
 
     if (currentUser) {
       const previousHistory = readUserCollection(currentUser, "history", "studysphere_history");
@@ -290,11 +312,17 @@ async function submitQuiz() {
 
     const resultPage = standaloneTest || scopePractice ? "../pages/result.html" : "result.html";
     window.location.href = `${resultPage}?attempt=${encodeURIComponent(result.attemptId)}`;
-  };
-
-  await saveLocalResult();
+  } catch (error) {
+    console.error("Không thể lưu kết quả bài thi.", error);
+    submitting = false;
+    submitFailed = true;
+    submitButton.disabled = false;
+    submitButton.textContent = "Thử nộp lại";
+    submitStatus.textContent = "Chưa lưu được kết quả trên thiết bị. Bài làm vẫn được giữ; hãy kiểm tra dung lượng trình duyệt rồi thử lại.";
+    submitStatus.hidden = false;
+  }
 }
-function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) { submitQuiz(); return; } remainingSeconds -= 1; saveProgress(); }
+function updateTimer() { const minutes = Math.floor(remainingSeconds / 60); const seconds = remainingSeconds % 60; timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`; timer.classList.toggle("warning", remainingSeconds <= 300 && remainingSeconds > 60); timer.classList.toggle("danger", remainingSeconds <= 60); if (remainingSeconds <= 0) { if (!submitFailed) submitQuiz(); return; } remainingSeconds -= 1; saveProgress(); }
 
 document.querySelector("#previous-button").addEventListener("click", () => { if (currentIndex > 0) { currentIndex -= 1; saveProgress(); renderQuestion(); renderDots(); } });
 document.querySelector("#next-button").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex += 1; saveProgress(); renderQuestion(); renderDots(); } else { document.querySelector("#submit-button").focus(); } });
