@@ -5,7 +5,8 @@ import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
 import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { recordGamificationCompletion } from "./gamification.js";
-import { createNotifications } from "./notifications.js";
+import { createNotifications, createStudyRecommendationNotifications } from "./notifications.js";
+import { getStudyRecommendations } from "./studyRecommendations.js";
 import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -226,6 +227,18 @@ async function submitQuiz() {
     localStorage.setItem(resultKey, JSON.stringify({ result, questions }));
 
     if (currentUser) {
+      const previousHistory = readUserCollection(currentUser, "history", "studysphere_history");
+      const attemptDetails = previousHistory.map((entry) => {
+        if (String(entry.attemptId || entry.id || "") === result.attemptId) return null;
+        if (Array.isArray(entry.questions)) return entry;
+        const attemptId = String(entry.attemptId || entry.id || "");
+        return attemptId
+          ? readUserData(currentUser, `result_${attemptId}`, null, { legacyKey: `studysphere_result_${attemptId}` })
+          : null;
+      }).filter((entry) => entry && Array.isArray(entry.questions));
+      const recommendations = getStudyRecommendations([...attemptDetails, { result, questions }]).recommendations;
+      createStudyRecommendationNotifications(currentUser, recommendations);
+
       try {
         await apiClient.create("attempts", { id: result.attemptId, attemptId: result.attemptId, ...result, questions });
       } catch {
