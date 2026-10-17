@@ -43,20 +43,45 @@ export function createNotifications(recipients, details) {
 
   const notifications = readNotifications();
   const createdAt = new Date().toISOString();
-  const added = Array.from(uniqueRecipients.values(), (recipient) => ({
-    id: createNotificationId(),
-    recipientEmail: recipient.email,
-    recipientUserId: recipient.id,
-    type: details.type,
-    title: details.title,
-    message: details.message,
-    link: details.link || "",
-    createdAt,
-    read: false,
-  }));
+  const added = [];
+  for (const recipient of uniqueRecipients.values()) {
+    const user = { id: recipient.id, email: recipient.email };
+    if (details.dedupeKey && notifications.some((notification) =>
+      notification.dedupeKey === details.dedupeKey && matchesRecipient(notification, user),
+    )) continue;
 
-  localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([...added, ...notifications]));
+    added.push({
+      id: createNotificationId(),
+      recipientEmail: recipient.email,
+      recipientUserId: recipient.id,
+      type: details.type,
+      title: details.title,
+      message: details.message,
+      link: details.link || "",
+      ...(details.dedupeKey ? { dedupeKey: details.dedupeKey } : {}),
+      createdAt,
+      read: false,
+    });
+  }
+
+  if (added.length) localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([...added, ...notifications]));
   return added.length;
+}
+
+export function createStudyRecommendationNotifications(user, recommendations) {
+  if (!user) return 0;
+
+  return (recommendations || [])
+    .filter((recommendation) => recommendation.isWeakness && recommendation.notificationKey)
+    .reduce((created, recommendation) => created + createNotifications([user], {
+      type: "study-recommendation",
+      title: `Gợi ý ôn tập: ${recommendation.subjectName} lớp ${recommendation.grade}`,
+      message: recommendation.examTitle
+        ? `Bạn cần củng cố ${recommendation.topic || "kiến thức tổng hợp"}. Làm đề ${recommendation.examTitle} (${recommendation.examQuestionCount} câu đúng chủ đề).`
+        : recommendation.reason,
+      link: recommendation.examHref || recommendation.href,
+      dedupeKey: recommendation.notificationKey,
+    }), 0);
 }
 
 export async function createRemoteNotifications(recipients, details) {
@@ -175,6 +200,7 @@ export function renderNotificationBell(user) {
   const panel = menu.querySelector(".notification-panel");
   const count = menu.querySelector(".notification-count");
   const list = menu.querySelector(".notification-list");
+  let expandedNotificationId = "";
 
   const refreshNotifications = async () => {
     try {
@@ -193,13 +219,20 @@ export function renderNotificationBell(user) {
     trigger.setAttribute("aria-label", unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo");
 
     list.innerHTML = notifications.length
-      ? notifications.map((notification) => `
-        <button class="notification-item${notification.read ? "" : " is-unread"}" type="button" data-notification-id="${escapeHtml(notification.id)}" data-notification-link="${escapeHtml(notification.link)}">
-          <span class="notification-item-title">${escapeHtml(notification.title)}</span>
-          <span class="notification-item-message">${escapeHtml(notification.message)}</span>
-          <span class="notification-item-date">${escapeHtml(formatDate(notification.createdAt))}</span>
-        </button>
-      `).join("")
+      ? notifications.map((notification) => {
+        const isExpanded = notification.id === expandedNotificationId;
+        const safeLink = getSafeNotificationLink(notification.link);
+        const actionLabel = notification.type === "study-recommendation" ? "Làm đề ngay" : "Xem chi tiết";
+        return `
+        <article class="notification-item${notification.read ? "" : " is-unread"}${isExpanded ? " is-expanded" : ""}">
+          <button class="notification-item-toggle" type="button" data-notification-id="${escapeHtml(notification.id)}" aria-expanded="${isExpanded}">
+            <span class="notification-item-title">${escapeHtml(notification.title)}</span>
+            <span class="notification-item-message">${escapeHtml(notification.message)}</span>
+            <span class="notification-item-date">${escapeHtml(formatDate(notification.createdAt))}</span>
+          </button>
+          ${isExpanded && safeLink ? `<a class="notification-item-action" href="${escapeHtml(safeLink)}">${actionLabel} <span aria-hidden="true">→</span></a>` : ""}
+        </article>
+      `; }).join("")
       : '<p class="notification-empty">Bạn chưa có thông báo nào.</p>';
   };
 
@@ -224,20 +257,21 @@ export function renderNotificationBell(user) {
   });
 
   list.addEventListener("click", async (event) => {
-    const item = event.target.closest(".notification-item");
-    if (!item) return;
+    const toggle = event.target.closest(".notification-item-toggle");
+    if (!toggle) return;
 
     try {
-      const notification = getNotificationsForUser(user).find((entry) => entry.id === item.dataset.notificationId);
+      const notification = getNotificationsForUser(user).find((entry) => entry.id === toggle.dataset.notificationId);
       if (notification?.remote && !notification.read) {
         await apiClient.update("notifications", notification.id, { read: true });
       }
-      markNotificationRead(item.dataset.notificationId, user);
+      if (notification && !notification.read) markNotificationRead(toggle.dataset.notificationId, user);
+      expandedNotificationId = expandedNotificationId === toggle.dataset.notificationId
+        ? ""
+        : toggle.dataset.notificationId;
       renderList();
-      const link = getSafeNotificationLink(item.dataset.notificationLink);
-      if (link) window.location.href = link;
     } catch (error) {
-      console.error("Không thể cập nhật trạng thái thông báo.", error);
+      console.error("Không thể mở rộng thông báo.", error);
     }
   });
 

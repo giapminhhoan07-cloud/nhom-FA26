@@ -1,6 +1,8 @@
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 import { getStudyRecommendations } from "./studyRecommendations.js";
+import { createStudyRecommendationNotifications } from "./notifications.js";
 
 const list = document.querySelector("#history-list");
 const count = document.querySelector("#history-count");
@@ -31,6 +33,7 @@ function formatDate(value) {
 }
 
 function renderHistory(items) {
+	hideSkeleton(list);
 	const query = search.value.trim().toLowerCase();
 	const filtered = items.filter((item) => {
 		const passed = Number(item.score) >= 5;
@@ -83,7 +86,11 @@ function loadAttemptDetails() {
 }
 
 function renderRecommendations() {
+	hideSkeleton(recommendationList);
 	const analysis = getStudyRecommendations(loadAttemptDetails());
+	if (currentUser && analysis.status === "ready") {
+		createStudyRecommendationNotifications(currentUser, analysis.recommendations);
+	}
 	if (analysis.status === "insufficient") {
 		recommendationStatus.textContent = !allHistory.length
 			? "Chưa có đủ dữ liệu lịch sử để xác định phần cần ôn. Hãy làm thêm một vài bài kiểm tra để hệ thống có dữ liệu về môn học, chủ đề và câu trả lời của bạn."
@@ -106,12 +113,17 @@ function renderRecommendations() {
 			<h3>${escapeHtml(item.title)}</h3>
 			<p class="study-recommendation-reason">${escapeHtml(item.reason)}</p>
 			<p class="study-recommendation-meta">${item.questionCount} câu có sẵn</p>
-			<a class="button button-primary" href="${escapeHtml(item.href)}">Bắt đầu ôn tập <span aria-hidden="true">→</span></a>
+			<div class="study-recommendation-actions">
+				<a class="button button-primary" href="${escapeHtml(item.href)}">Ôn theo chủ đề <span aria-hidden="true">→</span></a>
+				${item.examHref ? `<a class="study-recommendation-exam" href="${escapeHtml(item.examHref)}">Làm đề: ${escapeHtml(item.examTitle)} · ${item.examQuestionCount} câu đúng chủ đề</a>` : ""}
+			</div>
 		</article>
 	`).join("");
 }
 
 async function loadHistory() {
+	showSkeleton(list, "history-row", 3);
+	if (currentUser) showSkeleton(recommendationList, "recommendation", 2);
 	allHistory = currentUser
 		? readUserCollection(currentUser, "history", "studysphere_history")
 		: readLocalData("studysphere_guest_history", []);

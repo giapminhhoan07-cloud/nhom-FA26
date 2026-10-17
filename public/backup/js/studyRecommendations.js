@@ -1,6 +1,6 @@
 import { isQuestionAnswered, isQuestionAnswerCorrect } from "./questionAnswers.js";
+import { practiceTests, testSubjects } from "../tests/data/practice-tests.js";
 import { getScopeQuestions, practiceQuestionBank } from "./practiceScopes.js";
-import { testSubjects } from "../tests/data/practice-tests.js";
 
 const normalizeText = (value) => String(value ?? "")
   .normalize("NFD")
@@ -49,8 +49,37 @@ function getAttemptData(entry) {
   return { result: result || {}, questions, answers };
 }
 
+function getAttemptedExamIds(attemptDetails) {
+  return new Set((attemptDetails || []).map((entry) => {
+    const result = entry?.result && typeof entry.result === "object" ? entry.result : entry;
+    return String(result?.examId || "");
+  }).filter(Boolean));
+}
+
+function findRecommendedTest(group, attemptedExamIds, recommendedTestIds) {
+  return practiceTests
+    .filter((test) => test.subjectId === group.subjectId && Number(test.grade) === group.grade)
+    .map((test) => ({
+      test,
+      matchingQuestionCount: practiceQuestionBank.filter((question) =>
+        question.sourceTestId === test.id
+        && question.subjectId === group.subjectId
+        && question.grade === group.grade
+        && question.topics.includes(group.topic),
+      ).length,
+    }))
+    .filter(({ test, matchingQuestionCount }) => matchingQuestionCount > 0 && !recommendedTestIds.has(test.id))
+    .sort((first, second) =>
+      Number(attemptedExamIds.has(first.test.id)) - Number(attemptedExamIds.has(second.test.id))
+      || second.matchingQuestionCount - first.matchingQuestionCount
+      || first.test.title.localeCompare(second.test.title, "vi"),
+    )[0] || null;
+}
+
 export function getStudyRecommendations(attemptDetails) {
   const groups = new Map();
+  const attemptedExamIds = getAttemptedExamIds(attemptDetails);
+  const recommendedTestIds = new Set();
   let analyzedAttempts = 0;
   let analyzedQuestions = 0;
 
@@ -67,6 +96,7 @@ export function getStudyRecommendations(attemptDetails) {
 
       const isAnswered = isQuestionAnswered(answer, question);
       const isCorrect = isAnswered && isQuestionAnswerCorrect(answer, question);
+      const submittedAt = String(result.submittedAt || result.submitted_at || "");
       const topics = getQuestionTopics(question, subjectId, grade);
       if (!topics.length) return;
       analyzedQuestions += 1;
@@ -85,6 +115,8 @@ export function getStudyRecommendations(attemptDetails) {
             missedCount: 0,
             attemptIds: new Set(),
             latestSubmittedAt: "",
+            latestErrorSubmittedAt: "",
+            latestErrorAttemptId: "",
           };
           groups.set(key, group);
         }
@@ -92,9 +124,13 @@ export function getStudyRecommendations(attemptDetails) {
         if (!isCorrect) {
           group.errorCount += 1;
           if (!isAnswered) group.missedCount += 1;
-          group.attemptIds.add(String(result.attemptId || result.id || attemptIndex));
+          const attemptId = String(result.attemptId || result.id || result.submittedAt || result.submitted_at || attemptIndex);
+          group.attemptIds.add(attemptId);
+          if (submittedAt >= group.latestErrorSubmittedAt) {
+            group.latestErrorSubmittedAt = submittedAt;
+            group.latestErrorAttemptId = attemptId;
+          }
         }
-        const submittedAt = String(result.submittedAt || result.submitted_at || "");
         if (submittedAt > group.latestSubmittedAt) group.latestSubmittedAt = submittedAt;
       }
     });
@@ -157,7 +193,15 @@ export function getStudyRecommendations(attemptDetails) {
       reason,
       questionCount: scopeQuestions.length,
       href: `../tests/scope.html?${params}`,
+      notificationKey: `study-recommendation:${encodeURIComponent(scopeKey)}:${encodeURIComponent(group.latestErrorAttemptId)}`,
     });
+    const recommendedTest = findRecommendedTest(group, attemptedExamIds, recommendedTestIds);
+    if (recommendedTest) {
+      recommendations[recommendations.length - 1].examTitle = recommendedTest.test.title;
+      recommendations[recommendations.length - 1].examQuestionCount = recommendedTest.matchingQuestionCount;
+      recommendations[recommendations.length - 1].examHref = `../tests/quiz.html?test=${encodeURIComponent(recommendedTest.test.id)}`;
+      recommendedTestIds.add(recommendedTest.test.id);
+    }
     seenScopes.add(scopeKey);
   }
 

@@ -3,9 +3,11 @@ import { practiceTests } from "../tests/data/practice-tests.js";
 import { createQuestionOrder, isValidQuestionOrder } from "./questionOrder.js";
 import { isQuestionAnswerCorrect } from "./questionAnswers.js";
 import { apiClient } from "./apiClient.js";
+import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { recordGamificationCompletion } from "./gamification.js";
-import { createNotifications } from "./notifications.js";
-import { getCurrentUser, getUserDataKey, readUserCollection, writeUserCollection } from "./userData.js";
+import { createNotifications, createStudyRecommendationNotifications } from "./notifications.js";
+import { getStudyRecommendations } from "./studyRecommendations.js";
+import { getCurrentUser, getUserDataKey, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 
 const params = new URLSearchParams(window.location.search);
 const examId = params.get("id");
@@ -14,6 +16,7 @@ const scopePractice = params.get("scope") === "1";
 const standaloneTest = practiceTests.find((test) => test.id === testId);
 let selectedExam = exams.find((item) => String(item.id) === examId);
 if (!selectedExam && examId) {
+  showSkeleton(document.querySelector("#question-card"), "question");
   try {
     const records = await apiClient.list("exams", { id: examId });
     const record = records.find((item) => String(item.id) === examId);
@@ -195,6 +198,16 @@ async function submitQuiz() {
         examId: exam.id,
         examTitle: scopePractice ? scopeTitle : exam.title,
         quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
+        subjectId: scopeDetails?.subjectId || standaloneTest?.subjectId || selectedExam?.subjectId || questionPool.find((question) => question.subjectId)?.subjectId || "",
+        subjectName: scopeDetails?.subjectName || standaloneTest?.subjectName || selectedExam?.subjectName || questionPool.find((question) => question.subjectName || question.subject)?.subjectName || questionPool.find((question) => question.subject)?.subject || "",
+        grade: Number(scopeDetails?.grade || standaloneTest?.grade || selectedExam?.grade || questionPool.find((question) => question.grade)?.grade) || Number(exam.title.match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null,
+        topics: [...new Set([
+          ...(scopeDetails?.topics || []),
+          ...questionPool.flatMap((question) => [
+            ...(Array.isArray(question.topics) ? question.topics : []),
+            ...(typeof question.topic === "string" ? [question.topic] : []),
+          ]),
+        ])],
         submittedAt: new Date().toISOString(),
         score: Number(((correctCount / questions.length) * 10).toFixed(2)),
         totalQuestions: questions.length,
@@ -236,6 +249,18 @@ async function submitQuiz() {
     }
 
     if (currentUser) {
+      const previousHistory = readUserCollection(currentUser, "history", "studysphere_history");
+      const attemptDetails = previousHistory.map((entry) => {
+        if (String(entry.attemptId || entry.id || "") === result.attemptId) return null;
+        if (Array.isArray(entry.questions)) return entry;
+        const attemptId = String(entry.attemptId || entry.id || "");
+        return attemptId
+          ? readUserData(currentUser, `result_${attemptId}`, null, { legacyKey: `studysphere_result_${attemptId}` })
+          : null;
+      }).filter((entry) => entry && Array.isArray(entry.questions));
+      const recommendations = getStudyRecommendations([...attemptDetails, { result, questions }]).recommendations;
+      createStudyRecommendationNotifications(currentUser, recommendations);
+
       try {
         await apiClient.create("attempts", { id: result.attemptId, attemptId: result.attemptId, ...result, questions });
       } catch {
@@ -309,6 +334,7 @@ document.addEventListener("studysphere:study-ai-ready", () => {
 }, { once: true });
 
 if (unavailableQuiz) {
+  hideSkeleton(card);
   const returnHref = scopePractice
     ? "scope.html"
     : standaloneTest
@@ -327,6 +353,7 @@ if (unavailableQuiz) {
   timer.hidden = true;
   dots.hidden = true;
 } else {
+  hideSkeleton(card);
   renderQuestion();
   renderDots();
   updateTimer();

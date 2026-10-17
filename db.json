@@ -6,6 +6,18 @@
       "xp": 0,
       "level": 1,
       "streak": 0
+    },
+    {
+      "id": "user-1792215936897",
+      "name": "P H 6 5 3 3 3 Phương Ngọc",
+      "email": "p.ngoc24.24.2006@gmail.com",
+      "password": "123123",
+      "role": "user",
+      "xp": 100,
+      "level": 2,
+      "streak": 1,
+      "createdAt": "2026-10-17T05:45:36.897Z",
+      "lastStudyDate": "2026-10-17"
     }
   ],
   "exams": [
@@ -381,6 +393,373 @@
           "explanation": "AB = √((4 - 1)^2 + (6 - 2)^2 + (3 - 3)^2) = √25 = 5."
         }
       ]
+    },
+    {
+      "id": "attempt-7d2cf73f-7b4c-4ec7-8a05-6ef0025a7ff0",
+      "attemptId": "attempt-7d2cf73f-7b4c-4ec7-8a05-6ef0025a7ff0",
+      "userId": "user-1792215936897",
+      "examId": "dia-li-12-trac-nghiem-20-cau",
+      "examTitle": "Bài kiểm tra Địa lí lớp 12",
+      "quizKind": "practice-test",
+      "subjectId": "dia-li",
+      "subjectName": "Địa lí",
+      "grade": 12,
+      "topics": [],
+      "submittedAt": "2026-10-17T06:25:51.676Z",
+      "score": 4,
+      "totalQuestions": 25,
+      "correctCount": 10,
+      "wrongCount": 7,
+      "unansweredCount": 8,
+      "answers": [
+        1,
+        3,
+        0,
+        0,
+        2,
+        3,
+        1,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "questions": [
+        {
+          "id": "dia12-q01",
+          "type": "multiple_choice",
+          "difficultyName": "Nhận biết",
+          "content": "Việt Nam nằm ở khu vực nào của châu Á?",
+          "options": [
+            "Đông Á",
+            "Đông Nam Á",
+            "Nam Á",
+            "Tây Á"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Việt Nam nằm ở rìa phía đông bán đảo Đông Dương, thuộc khu vực Đông Nam Á."
+        },
+        {
+          "id": "dia12-q02",
+          "type": "multiple_choice",
+          "difficultyName": "Nhận biết",
+          "content": "Vùng biển nằm ở phía đông và phía nam nước ta là",
+          "options": [
+            "Biển Đỏ",
+            "Biển Đen",
+            "Biển Đông",
+            "Biển Nhật Bản"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Biển Đông tiếp giáp với phần đất liền nước ta ở phía đông và phía nam."
+        },
+        {
+          "id": "dia12-q03",
+          "type": "multiple_choice",
+          "difficultyName": "Nhận biết",
+          "content": "Đồng bằng có diện tích lớn nhất nước ta là",
+          "options": [
+            "Đồng bằng sông Hồng",
+            "Đồng bằng sông Cửu Long",
+            "Đồng bằng Thanh - Nghệ - Tĩnh",
+            "Đồng bằng duyên hải Nam Trung Bộ"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Đồng bằng sông Cửu Long là đồng bằng lớn nhất Việt Nam."
+        },
+        {
+          "id": "dia12-q04",
+          "type": "multiple_choice",
+          "difficultyName": "Nhận biết",
+          "content": "Cây lương thực được trồng phổ biến nhất ở Việt Nam là",
+          "options": [
+            "Lúa",
+            "Lúa mì",
+            "Đại mạch",
+            "Yến mạch"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Lúa là cây lương thực chính và được trồng rộng khắp các vùng đồng bằng."
+        },
+        {
+          "id": "dia12-q05",
+          "type": "multiple_choice",
+          "difficultyName": "Nhận biết",
+          "content": "Vùng chuyên canh cà phê lớn nhất nước ta là",
+          "options": [
+            "Trung du và miền núi Bắc Bộ",
+            "Đồng bằng sông Hồng",
+            "Tây Nguyên",
+            "Đồng bằng sông Cửu Long"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Tây Nguyên có đất badan và khí hậu phù hợp, là vùng trồng cà phê lớn nhất cả nước."
+        },
+        {
+          "id": "dia12-q06",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Đặc điểm nổi bật của khí hậu Nam Bộ là",
+          "options": [
+            "Có mùa đông lạnh kéo dài",
+            "Phân hóa thành mùa mưa và mùa khô rõ rệt",
+            "Mưa quanh năm, không có mùa khô",
+            "Có khí hậu ôn đới"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Nam Bộ có khí hậu cận xích đạo với hai mùa mưa và khô phân hóa rõ."
+        },
+        {
+          "id": "dia12-q07",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Địa hình chủ yếu của vùng Tây Nguyên là",
+          "options": [
+            "Đồng bằng châu thổ",
+            "Các cao nguyên xếp tầng",
+            "Đồi thấp ven biển",
+            "Núi đá vôi sát biển"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Tây Nguyên gồm các cao nguyên badan có độ cao khác nhau, xếp tầng từ bắc xuống nam."
+        },
+        {
+          "id": "dia12-q08",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Trung tâm kinh tế lớn nhất của vùng Đông Nam Bộ là",
+          "options": [
+            "Biên Hòa",
+            "Vũng Tàu",
+            "Thủ Dầu Một",
+            "Thành phố Hồ Chí Minh"
+          ],
+          "correctAnswer": 3,
+          "explanation": "Thành phố Hồ Chí Minh là trung tâm kinh tế, công nghiệp và dịch vụ lớn nhất vùng Đông Nam Bộ."
+        },
+        {
+          "id": "dia12-q09",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Nguyên nhân chính làm cho Đồng bằng sông Cửu Long có thế mạnh trồng lúa là",
+          "options": [
+            "Đất phù sa rộng, địa hình thấp và bằng phẳng",
+            "Nhiều núi cao và đất feralit",
+            "Mùa đông lạnh kéo dài",
+            "Ít sông ngòi và hồ chứa"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Địa hình bằng phẳng cùng diện tích đất phù sa rộng tạo điều kiện thuận lợi cho sản xuất lúa."
+        },
+        {
+          "id": "dia12-q10",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Tuyến giao thông đường bộ quan trọng chạy dọc đất nước là",
+          "options": [
+            "Quốc lộ 1",
+            "Quốc lộ 6",
+            "Quốc lộ 14",
+            "Quốc lộ 19"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Quốc lộ 1 chạy dọc chiều dài đất nước, kết nối nhiều trung tâm và vùng kinh tế."
+        },
+        {
+          "id": "dia12-q11",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Đồng bằng sông Hồng có mật độ dân số cao chủ yếu do",
+          "options": [
+            "Diện tích rộng nhất nước ta",
+            "Lịch sử khai thác lâu đời và hoạt động kinh tế phát triển",
+            "Khí hậu khô hạn quanh năm",
+            "Tỉ lệ dân thành thị thấp nhất"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Đây là vùng có lịch sử định cư lâu đời, đất đai được khai thác sớm và kinh tế phát triển."
+        },
+        {
+          "id": "dia12-q12",
+          "type": "multiple_choice",
+          "difficultyName": "Thông hiểu",
+          "content": "Thế mạnh nổi bật để phát triển thủy điện ở Trung du và miền núi Bắc Bộ là",
+          "options": [
+            "Mạng lưới sông dốc, trữ năng thủy điện lớn",
+            "Địa hình đồng bằng rộng",
+            "Ít sông suối",
+            "Nhiều bãi triều ven biển"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Địa hình cao, dốc và các sông có trữ năng lớn thuận lợi xây dựng nhà máy thủy điện."
+        },
+        {
+          "id": "dia12-q13",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng",
+          "content": "Một vùng có diện tích 50 nghìn km² và dân số 10 triệu người. Mật độ dân số là",
+          "options": [
+            "50 người/km²",
+            "100 người/km²",
+            "200 người/km²",
+            "500 người/km²"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Mật độ dân số = 10.000.000 / 50.000 = 200 người/km²."
+        },
+        {
+          "id": "dia12-q14",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng",
+          "content": "Nếu sản lượng lúa tăng từ 20 lên 24 triệu tấn, mức tăng là",
+          "options": [
+            "10%",
+            "20%",
+            "24%",
+            "40%"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Mức tăng = (24 - 20) / 20 × 100% = 20%."
+        },
+        {
+          "id": "dia12-q15",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng",
+          "content": "Một tỉnh ven biển Nam Trung Bộ cần ưu tiên ngành nào để khai thác lợi thế biển?",
+          "options": [
+            "Đánh bắt, nuôi trồng thủy sản và du lịch biển",
+            "Trồng cây ôn đới trên núi cao",
+            "Khai thác than đá quy mô lớn",
+            "Trồng lúa nước trên diện tích rộng"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Vị trí ven biển tạo lợi thế rõ về thủy sản, cảng biển và du lịch biển."
+        },
+        {
+          "id": "dia12-q16",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng",
+          "content": "Biện pháp phù hợp để hạn chế xâm nhập mặn ở Đồng bằng sông Cửu Long là",
+          "options": [
+            "Xây dựng công trình thủy lợi và sử dụng nước tiết kiệm",
+            "Mở rộng khai thác nước ngầm không kiểm soát",
+            "Chặt rừng ngập mặn ven biển",
+            "Tăng diện tích trồng cây cần nhiều nước vào mùa khô"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Công trình kiểm soát mặn, trữ nước và sử dụng nước hợp lí giúp giảm tác động trong mùa khô."
+        },
+        {
+          "id": "dia12-q17",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng cao",
+          "content": "Một vùng có xuất khẩu 36 tỉ USD và nhập khẩu 30 tỉ USD. Cán cân thương mại của vùng là",
+          "options": [
+            "Nhập siêu 6 tỉ USD",
+            "Xuất siêu 6 tỉ USD",
+            "Cân bằng",
+            "Xuất siêu 66 tỉ USD"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Cán cân thương mại = xuất khẩu - nhập khẩu = 36 - 30 = 6 tỉ USD, tức xuất siêu."
+        },
+        {
+          "id": "dia12-q18",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng cao",
+          "content": "Sản lượng thủy sản tăng từ 2,0 lên 2,6 triệu tấn trong 5 năm. Tốc độ tăng bình quân năm gần nhất với giá trị nào?",
+          "options": [
+            "3,5%",
+            "5,4%",
+            "6,0%",
+            "12,0%"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Tốc độ tăng bình quân năm xấp xỉ [(2,6 / 2,0)^(1/5) - 1] × 100%, khoảng 5,4%."
+        },
+        {
+          "id": "dia12-q19",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng cao",
+          "content": "Một vùng có dân số 8 triệu người, trong đó dân thành thị chiếm 35%. Số dân nông thôn là",
+          "options": [
+            "2,8 triệu người",
+            "4,0 triệu người",
+            "5,2 triệu người",
+            "6,5 triệu người"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Dân nông thôn chiếm 65%, tương ứng 8 × 0,65 = 5,2 triệu người."
+        },
+        {
+          "id": "dia12-q20",
+          "type": "multiple_choice",
+          "difficultyName": "Vận dụng cao",
+          "content": "Một vùng có diện tích 40 nghìn km², dân số 6 triệu người và sản lượng lương thực 9 triệu tấn. Bình quân lương thực đầu người là",
+          "options": [
+            "750 kg/người",
+            "1.000 kg/người",
+            "1.500 kg/người",
+            "2.250 kg/người"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Bình quân = 9 triệu tấn / 6 triệu người = 1,5 tấn, tức 1.500 kg/người."
+        },
+        {
+          "id": "dia12-q21",
+          "type": "short_answer",
+          "difficultyName": "Nhận biết",
+          "content": "Gió mùa mùa đông ở miền Bắc nước ta chủ yếu thổi theo hướng nào?",
+          "answer": "Đông Bắc",
+          "explanation": "Gió mùa mùa đông ở miền Bắc thường có hướng đông bắc."
+        },
+        {
+          "id": "dia12-q22",
+          "type": "short_answer",
+          "difficultyName": "Nhận biết",
+          "content": "Đảo có diện tích lớn nhất Việt Nam tên là gì?",
+          "answer": "Phú Quốc",
+          "explanation": "Phú Quốc thuộc tỉnh Kiên Giang và là đảo có diện tích lớn nhất Việt Nam."
+        },
+        {
+          "id": "dia12-q23",
+          "type": "short_answer",
+          "difficultyName": "Thông hiểu",
+          "content": "Yếu tố địa hình nào chủ yếu làm thiên nhiên nước ta phân hóa theo độ cao?",
+          "answer": "Độ cao địa hình",
+          "explanation": "Độ cao địa hình làm nhiệt độ giảm và các yếu tố khí hậu, sinh vật thay đổi theo đai cao."
+        },
+        {
+          "id": "dia12-q24",
+          "type": "short_answer",
+          "difficultyName": "Vận dụng",
+          "content": "Một tỉnh có diện tích 6.000 km² và dân số 1,2 triệu người. Mật độ dân số là bao nhiêu người/km²?",
+          "answer": "200",
+          "explanation": "Mật độ dân số = 1.200.000 / 6.000 = 200 người/km²."
+        },
+        {
+          "id": "dia12-q25",
+          "type": "short_answer",
+          "difficultyName": "Vận dụng",
+          "content": "Nêu một biện pháp phù hợp để giảm tác động của hạn hán ở Đồng bằng sông Cửu Long.",
+          "answer": "Tăng trữ nước ngọt và sử dụng nước tiết kiệm",
+          "explanation": "Trữ nước ngọt, sử dụng nước tiết kiệm và chuyển đổi sản xuất phù hợp giúp giảm tác động của hạn hán."
+        }
+      ]
     }
   ],
   "achievements": [],
@@ -393,6 +772,18 @@
     }
   ],
   "studySessions": [],
-  "feedback": [],
+  "feedback": [
+    {
+      "id": "feedback-3b7e4812-0a43-4a28-84e6-80ac36012e8b",
+      "source": "contact",
+      "userId": "local-1791473570164",
+      "userName": "văn minh",
+      "email": "van@gmail.com",
+      "type": "Lỗi website",
+      "comment": "CÓ BIẾT LÀM WEBSITE KHÔNG? ĐỒ NGU",
+      "submittedAt": "2026-10-17T05:40:06.575Z",
+      "status": "new"
+    }
+  ],
   "notifications": []
 }

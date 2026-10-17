@@ -41,10 +41,57 @@ test("recommends a matching subject and topic when saved answers show a weakness
   assert.match(analysis.recommendations[0].reason, /3 câu sai hoặc bỏ trống/);
   assert.match(analysis.recommendations[0].href, /subject=toan/);
   assert.match(analysis.recommendations[0].href, /grade=12/);
+  assert.ok(analysis.recommendations[0].examHref);
+  assert.ok(analysis.recommendations[0].examTitle);
+  assert.ok(analysis.recommendations[0].examQuestionCount > 0);
+  assert.match(analysis.recommendations[0].examHref, /^..\/tests\/quiz\.html\?test=/);
   if (topic !== "Ôn tập tổng hợp") {
     assert.match(analysis.recommendations[0].href, /topic=/);
     assert.equal(analysis.recommendations[0].topic, topic);
   }
+});
+
+test("analyzes saved question metadata when older results lack subject and grade fields", () => {
+  const { questions } = getThreeQuestionTopic();
+  const wrongAnswers = questions.map((question) => (question.correctAnswer + 1) % question.options.length);
+  const analysis = getStudyRecommendations([{
+    result: {
+      attemptId: "legacy-attempt",
+      answers: wrongAnswers,
+    },
+    questions,
+  }]);
+
+  assert.equal(analysis.status, "ready");
+  assert.equal(analysis.analyzedQuestions, 3);
+  assert.ok(analysis.recommendations[0].isWeakness);
+  assert.ok(analysis.recommendations[0].examHref);
+});
+
+test("recommends a different available test when the learner already attempted the best match", () => {
+  const { topic, questions } = getThreeQuestionTopic();
+  const answers = questions.map((question) => (question.correctAnswer + 1) % question.options.length);
+  const firstRecommendation = getStudyRecommendations([createAttempt(questions, answers)]).recommendations[0];
+  const attemptedTestId = new URLSearchParams(firstRecommendation.examHref.split("?")[1]).get("test");
+  const analysis = getStudyRecommendations([
+    createAttempt(questions, answers, "attempt-first"),
+    {
+      result: {
+        attemptId: "attempted-test",
+        examId: attemptedTestId,
+        subjectId: "toan",
+        grade: 12,
+        answers,
+      },
+      questions,
+    },
+  ]);
+
+  assert.ok(analysis.recommendations.length > 0, `Expected recommendations for ${topic}.`);
+  assert.notEqual(
+    new URLSearchParams(analysis.recommendations[0].examHref.split("?")[1]).get("test"),
+    attemptedTestId,
+  );
 });
 
 test("does not claim personalized analysis before enough detailed outcomes exist", () => {

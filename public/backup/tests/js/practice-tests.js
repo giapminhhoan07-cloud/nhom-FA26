@@ -7,6 +7,7 @@ import {
   upcomingTests,
 } from "../data/practice-tests.js";
 import { apiClient } from "../../js/apiClient.js";
+import { hideSkeleton, showSkeleton } from "../../js/skeleton.js";
 import { filterPracticeTests } from "../../js/practiceTestFilters.js";
 import { getCurrentUser, readUserCollection, writeUserCollection } from "../../js/userData.js";
 import {
@@ -363,6 +364,7 @@ function render() {
   count.textContent = `${filteredTests.length} đề kiểm tra`;
   scope.textContent = `${selectedGrade} · ${selectedSubject}`;
   list.innerHTML = filteredTests.map(renderCard).join("");
+  hideSkeleton(list);
   emptyState.hidden = filteredTests.length > 0;
   list.hidden = filteredTests.length === 0;
 }
@@ -441,6 +443,10 @@ list?.addEventListener("click", (event) => {
   render();
 });
 
-if (list) render();
+if (list && apiStatus) {
+  showSkeleton(list, "practice-card", 6);
+} else if (list) {
+  render();
+}
 if (scopePanel) renderScopeSelection();
 if (list) loadApiCatalog();
