@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   createNotifications,
+  createStudyRecommendationNotifications,
   getNotificationsForUser,
   markAllNotificationsRead,
   markNotificationRead,
@@ -41,6 +42,32 @@ test("creates notifications for each unique recipient and returns newest first",
     assert.equal(firstStudentNotifications[0].read, false);
     assert.equal(getNotificationsForUser({ email: "other@example.com" }).length, 1);
     assert.equal(getNotificationsForUser({ email: "unrelated@example.com" }).length, 0);
+  });
+});
+
+test("sends each study recommendation to the bell only once", () => {
+  withLocalStorage(() => {
+    const user = { id: "student-1", email: "student@example.com" };
+    const recommendations = [{
+      isWeakness: true,
+      notificationKey: "study-recommendation:toan-12-dai-so:attempt-1",
+      subjectName: "Toán",
+      grade: 12,
+      topic: "Đại số",
+      examTitle: "Ôn tập Toán lớp 12",
+      examQuestionCount: 5,
+      examHref: "../tests/quiz.html?test=toan-review",
+      href: "../tests/scope.html?subject=toan&grade=12&topic=%C4%90%E1%BA%A1i+s%E1%BB%91",
+    }];
+
+    assert.equal(createStudyRecommendationNotifications(user, recommendations), 1);
+    assert.equal(createStudyRecommendationNotifications(user, recommendations), 0);
+
+    const notifications = getNotificationsForUser(user);
+    assert.equal(notifications.length, 1);
+    assert.equal(notifications[0].type, "study-recommendation");
+    assert.equal(notifications[0].link, recommendations[0].examHref);
+    assert.match(notifications[0].message, /Ôn tập Toán lớp 12/);
   });
 });
 

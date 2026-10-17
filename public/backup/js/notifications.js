@@ -43,20 +43,45 @@ export function createNotifications(recipients, details) {
 
   const notifications = readNotifications();
   const createdAt = new Date().toISOString();
-  const added = Array.from(uniqueRecipients.values(), (recipient) => ({
-    id: createNotificationId(),
-    recipientEmail: recipient.email,
-    recipientUserId: recipient.id,
-    type: details.type,
-    title: details.title,
-    message: details.message,
-    link: details.link || "",
-    createdAt,
-    read: false,
-  }));
+  const added = [];
+  for (const recipient of uniqueRecipients.values()) {
+    const user = { id: recipient.id, email: recipient.email };
+    if (details.dedupeKey && notifications.some((notification) =>
+      notification.dedupeKey === details.dedupeKey && matchesRecipient(notification, user),
+    )) continue;
 
-  localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([...added, ...notifications]));
+    added.push({
+      id: createNotificationId(),
+      recipientEmail: recipient.email,
+      recipientUserId: recipient.id,
+      type: details.type,
+      title: details.title,
+      message: details.message,
+      link: details.link || "",
+      ...(details.dedupeKey ? { dedupeKey: details.dedupeKey } : {}),
+      createdAt,
+      read: false,
+    });
+  }
+
+  if (added.length) localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([...added, ...notifications]));
   return added.length;
+}
+
+export function createStudyRecommendationNotifications(user, recommendations) {
+  if (!user) return 0;
+
+  return (recommendations || [])
+    .filter((recommendation) => recommendation.isWeakness && recommendation.notificationKey)
+    .reduce((created, recommendation) => created + createNotifications([user], {
+      type: "study-recommendation",
+      title: `Gợi ý ôn tập: ${recommendation.subjectName} lớp ${recommendation.grade}`,
+      message: recommendation.examTitle
+        ? `Bạn cần củng cố ${recommendation.topic || "kiến thức tổng hợp"}. Làm đề ${recommendation.examTitle} (${recommendation.examQuestionCount} câu đúng chủ đề).`
+        : recommendation.reason,
+      link: recommendation.examHref || recommendation.href,
+      dedupeKey: recommendation.notificationKey,
+    }), 0);
 }
 
 export async function createRemoteNotifications(recipients, details) {

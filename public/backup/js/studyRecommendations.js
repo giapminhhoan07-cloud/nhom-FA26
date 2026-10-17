@@ -96,6 +96,7 @@ export function getStudyRecommendations(attemptDetails) {
 
       const isAnswered = isQuestionAnswered(answer, question);
       const isCorrect = isAnswered && isQuestionAnswerCorrect(answer, question);
+      const submittedAt = String(result.submittedAt || result.submitted_at || "");
       const topics = getQuestionTopics(question, subjectId, grade);
       if (!topics.length) return;
       analyzedQuestions += 1;
@@ -114,6 +115,8 @@ export function getStudyRecommendations(attemptDetails) {
             missedCount: 0,
             attemptIds: new Set(),
             latestSubmittedAt: "",
+            latestErrorSubmittedAt: "",
+            latestErrorAttemptId: "",
           };
           groups.set(key, group);
         }
@@ -121,9 +124,13 @@ export function getStudyRecommendations(attemptDetails) {
         if (!isCorrect) {
           group.errorCount += 1;
           if (!isAnswered) group.missedCount += 1;
-          group.attemptIds.add(String(result.attemptId || result.id || attemptIndex));
+          const attemptId = String(result.attemptId || result.id || result.submittedAt || result.submitted_at || attemptIndex);
+          group.attemptIds.add(attemptId);
+          if (submittedAt >= group.latestErrorSubmittedAt) {
+            group.latestErrorSubmittedAt = submittedAt;
+            group.latestErrorAttemptId = attemptId;
+          }
         }
-        const submittedAt = String(result.submittedAt || result.submitted_at || "");
         if (submittedAt > group.latestSubmittedAt) group.latestSubmittedAt = submittedAt;
       }
     });
@@ -186,6 +193,7 @@ export function getStudyRecommendations(attemptDetails) {
       reason,
       questionCount: scopeQuestions.length,
       href: `../tests/scope.html?${params}`,
+      notificationKey: `study-recommendation:${encodeURIComponent(scopeKey)}:${encodeURIComponent(group.latestErrorAttemptId)}`,
     });
     const recommendedTest = findRecommendedTest(group, attemptedExamIds, recommendedTestIds);
     if (recommendedTest) {

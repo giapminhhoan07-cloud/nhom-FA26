@@ -2,6 +2,7 @@ import { apiClient } from "./apiClient.js";
 import { hideSkeleton, showSkeleton } from "./skeleton.js";
 import { getCurrentUser, readUserCollection, readUserData, writeUserCollection } from "./userData.js";
 import { getStudyRecommendations } from "./studyRecommendations.js";
+import { createStudyRecommendationNotifications } from "./notifications.js";
 
 const list = document.querySelector("#history-list");
 const count = document.querySelector("#history-count");
@@ -87,6 +88,9 @@ function loadAttemptDetails() {
 function renderRecommendations() {
 	hideSkeleton(recommendationList);
 	const analysis = getStudyRecommendations(loadAttemptDetails());
+	if (currentUser && analysis.status === "ready") {
+		createStudyRecommendationNotifications(currentUser, analysis.recommendations);
+	}
 	if (analysis.status === "insufficient") {
 		recommendationStatus.textContent = !allHistory.length
 			? "Chưa có đủ dữ liệu lịch sử để xác định phần cần ôn. Hãy làm thêm một vài bài kiểm tra để hệ thống có dữ liệu về môn học, chủ đề và câu trả lời của bạn."
