@@ -49,6 +49,7 @@ export function createGamificationUpdate(current = {}, attempt, now = new Date()
   const today = getLocalDateKey(now);
   const yesterday = getLocalDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
   const previousStudyDate = current.lastStudyDate;
+  const streakUpdated = previousStudyDate !== today;
   const streak = previousStudyDate === today
     ? Math.max(1, Number(current.streak) || 0)
     : previousStudyDate === yesterday ? Math.max(1, Number(current.streak) || 0) + 1 : 1;
@@ -71,7 +72,7 @@ export function createGamificationUpdate(current = {}, attempt, now = new Date()
     badges: [...badgeIds],
   };
 
-  return { awarded: true, reason: "awarded", state, newBadges };
+  return { awarded: true, reason: "awarded", state, newBadges, streakUpdated };
 }
 
 export function recordGamificationCompletion(user, attempt, storage = globalThis.localStorage, now = new Date()) {

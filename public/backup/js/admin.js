@@ -1,5 +1,5 @@
 import { exams as seedExams } from "../data/exams.js";
-import { createNotifications } from "./notifications.js";
+import { createNotifications, createRemoteNotifications } from "./notifications.js";
 import { apiClient, ApiError } from "./apiClient.js";
 
 const currentUser = (() => {
@@ -347,6 +347,7 @@ Thao tác này chỉ xóa bản ghi đề thi; không xóa file PDF đã lưu.`)
           && user.isAdmin !== true
           && Number(user.is_admin) !== 1
         ));
+        const notificationWarnings = [];
         try {
           createNotifications(recipients, {
             type: "new-exam",
@@ -355,7 +356,31 @@ Thao tác này chỉ xóa bản ghi đề thi; không xóa file PDF đã lưu.`)
             link: `/backup/pages/exam-detail.html?id=${encodeURIComponent(exam.id)}`,
           });
         } catch (error) {
-          notificationWarning = ` Đề đã được lưu nhưng không thể gửi thông báo: ${error.message}`;
+          notificationWarnings.push(`không thể gửi thông báo trên thiết bị: ${error.message}`);
+        }
+        if (savedSource === "json-server") {
+          try {
+            const remoteUsers = await apiClient.list("users");
+            if (!Array.isArray(remoteUsers)) throw new Error("JSON-server trả về danh sách người dùng không hợp lệ.");
+            const remoteRecipients = remoteUsers.filter((user) => (
+              user
+              && user.role !== "admin"
+              && user.is_admin !== true
+              && user.isAdmin !== true
+              && Number(user.is_admin) !== 1
+            ));
+            await createRemoteNotifications(remoteRecipients, {
+              type: "new-exam",
+              title: "Đề thi mới vừa được đăng",
+              message: `${exam.title} · ${exam.subjectName}`,
+              link: `/backup/pages/exam-detail.html?id=${encodeURIComponent(exam.id)}`,
+            });
+          } catch (error) {
+            notificationWarnings.push(`không thể gửi thông báo cho tài khoản JSON-server: ${error.message}`);
+          }
+        }
+        if (notificationWarnings.length) {
+          notificationWarning = ` Đề đã được lưu nhưng ${notificationWarnings.join("; ")}.`;
         }
         successMessage = `Đã tạo đề thi "${exam.title}".`;
       }

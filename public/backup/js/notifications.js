@@ -1,3 +1,5 @@
+import { apiClient, getApiBaseUrl } from "./apiClient.js";
+
 export const NOTIFICATIONS_KEY = "studysphere_notifications";
 
 const readNotifications = () => {
@@ -16,8 +18,8 @@ const getUserIdentity = (user) => ({
 
 const matchesRecipient = (notification, user) => {
   const identity = getUserIdentity(user);
-  if (notification.recipientUserId && identity.id) return notification.recipientUserId === identity.id;
-  return Boolean(identity.email && notification.recipientEmail === identity.email);
+  if (notification.recipientUserId && identity.id) return String(notification.recipientUserId) === identity.id;
+  return Boolean(identity.email && String(notification.recipientEmail || "").toLowerCase() === identity.email);
 };
 
 const createNotificationId = () => globalThis.crypto?.randomUUID?.()
@@ -55,6 +57,48 @@ export function createNotifications(recipients, details) {
 
   localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([...added, ...notifications]));
   return added.length;
+}
+
+export async function createRemoteNotifications(recipients, details) {
+  const uniqueRecipients = new Map();
+  recipients.forEach((recipient) => {
+    const identity = getUserIdentity(recipient);
+    const key = identity.id ? `id:${identity.id}` : `email:${identity.email}`;
+    if (identity.id || identity.email) uniqueRecipients.set(key, identity);
+  });
+
+  const createdAt = new Date().toISOString();
+  const notifications = Array.from(uniqueRecipients.values(), (recipient) => ({
+    id: createNotificationId(),
+    recipientEmail: recipient.email,
+    recipientUserId: recipient.id,
+    type: details.type,
+    title: details.title,
+    message: details.message,
+    link: details.link || "",
+    createdAt,
+    read: false,
+  }));
+
+  await Promise.all(notifications.map((notification) => apiClient.create("notifications", notification)));
+  return notifications.length;
+}
+
+async function syncRemoteNotifications(user) {
+  const identity = getUserIdentity(user);
+  if (!identity.id || identity.id.startsWith("local-") || !getApiBaseUrl()) return;
+
+  const remoteNotifications = await apiClient.list("notifications", { recipientUserId: identity.id });
+  if (!Array.isArray(remoteNotifications)) throw new Error("JSON-server trả về danh sách thông báo không hợp lệ.");
+
+  const notifications = readNotifications();
+  const remoteIds = new Set(remoteNotifications.map((notification) => String(notification.id)));
+  const localNotifications = notifications.filter((notification) => !notification.remote || !remoteIds.has(String(notification.id)));
+  const mergedNotifications = [
+    ...remoteNotifications.map((notification) => ({ ...notification, remote: true })),
+    ...localNotifications,
+  ];
+  localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(mergedNotifications));
 }
 
 export function markNotificationRead(notificationId, user) {
@@ -132,6 +176,15 @@ export function renderNotificationBell(user) {
   const count = menu.querySelector(".notification-count");
   const list = menu.querySelector(".notification-list");
 
+  const refreshNotifications = async () => {
+    try {
+      await syncRemoteNotifications(user);
+    } catch (error) {
+      console.error("Không thể đồng bộ thông báo từ JSON-server.", error);
+    }
+    renderList();
+  };
+
   const renderList = () => {
     const notifications = getNotificationsForUser(user);
     const unreadCount = notifications.filter((notification) => !notification.read).length;
@@ -154,11 +207,15 @@ export function renderNotificationBell(user) {
   trigger.addEventListener("click", () => {
     panel.hidden = !panel.hidden;
     trigger.setAttribute("aria-expanded", String(!panel.hidden));
-    if (!panel.hidden) renderList();
+    if (!panel.hidden) refreshNotifications();
   });
 
-  menu.querySelector(".notification-mark-all").addEventListener("click", () => {
+  menu.querySelector(".notification-mark-all").addEventListener("click", async () => {
     try {
+      const remoteNotifications = getNotificationsForUser(user).filter((notification) => notification.remote && !notification.read);
+      await Promise.all(remoteNotifications.map((notification) => (
+        apiClient.update("notifications", notification.id, { read: true })
+      )));
       markAllNotificationsRead(user);
       renderList();
     } catch (error) {
@@ -166,11 +223,15 @@ export function renderNotificationBell(user) {
     }
   });
 
-  list.addEventListener("click", (event) => {
+  list.addEventListener("click", async (event) => {
     const item = event.target.closest(".notification-item");
     if (!item) return;
 
     try {
+      const notification = getNotificationsForUser(user).find((entry) => entry.id === item.dataset.notificationId);
+      if (notification?.remote && !notification.read) {
+        await apiClient.update("notifications", notification.id, { read: true });
+      }
       markNotificationRead(item.dataset.notificationId, user);
       renderList();
       const link = getSafeNotificationLink(item.dataset.notificationLink);
@@ -190,5 +251,6 @@ export function renderNotificationBell(user) {
     if (event.key === NOTIFICATIONS_KEY) renderList();
   });
 
-  window.addEventListener("focus", renderList);
+  refreshNotifications();
+  window.addEventListener("focus", refreshNotifications);
 }
