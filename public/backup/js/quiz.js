@@ -187,6 +187,16 @@ async function submitQuiz() {
     examId: exam.id,
     examTitle: scopePractice ? scopeTitle : exam.title,
     quizKind: scopePractice ? "scope-practice" : standaloneTest ? "practice-test" : "exam",
+    subjectId: scopeDetails?.subjectId || standaloneTest?.subjectId || selectedExam?.subjectId || questionPool.find((question) => question.subjectId)?.subjectId || "",
+    subjectName: scopeDetails?.subjectName || standaloneTest?.subjectName || selectedExam?.subjectName || questionPool.find((question) => question.subjectName || question.subject)?.subjectName || questionPool.find((question) => question.subject)?.subject || "",
+    grade: Number(scopeDetails?.grade || standaloneTest?.grade || selectedExam?.grade || questionPool.find((question) => question.grade)?.grade) || Number(exam.title.match(/\b(?:lớp\s*)?(10|11|12)\b/i)?.[1]) || null,
+    topics: [...new Set([
+      ...(scopeDetails?.topics || []),
+      ...questionPool.flatMap((question) => [
+        ...(Array.isArray(question.topics) ? question.topics : []),
+        ...(typeof question.topic === "string" ? [question.topic] : []),
+      ]),
+    ])],
     submittedAt: new Date().toISOString(),
     score: Number(((correctCount / questions.length) * 10).toFixed(2)),
     totalQuestions: questions.length,
@@ -198,7 +208,6 @@ async function submitQuiz() {
       subjectId: scopeDetails.subjectId,
       subjectName: scopeDetails.subjectName,
       grade: scopeDetails.grade,
-      topics: scopeDetails.topics || [],
       requestedCount: scopeDetails.requestedCount,
     } : {}),
   };

@@ -109,7 +109,10 @@ function renderRecommendations() {
 			<h3>${escapeHtml(item.title)}</h3>
 			<p class="study-recommendation-reason">${escapeHtml(item.reason)}</p>
 			<p class="study-recommendation-meta">${item.questionCount} câu có sẵn</p>
-			<a class="button button-primary" href="${escapeHtml(item.href)}">Bắt đầu ôn tập <span aria-hidden="true">→</span></a>
+			<div class="study-recommendation-actions">
+				<a class="button button-primary" href="${escapeHtml(item.href)}">Ôn theo chủ đề <span aria-hidden="true">→</span></a>
+				${item.examHref ? `<a class="study-recommendation-exam" href="${escapeHtml(item.examHref)}">Làm đề: ${escapeHtml(item.examTitle)} · ${item.examQuestionCount} câu đúng chủ đề</a>` : ""}
+			</div>
 		</article>
 	`).join("");
 }
