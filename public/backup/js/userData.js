@@ -1,3 +1,6 @@
+export const CURRENT_USER_KEY = "studysphere_current_user";
+const LEGACY_CURRENT_USER_KEYS = ["studysphere_session", "studysphere_user_session"];
+
 export function getUserDataKey(user, name) {
   const userId = user?.id || user?.email;
   return userId ? `studysphere_user_${encodeURIComponent(String(userId))}_${name}` : "";
@@ -52,13 +55,34 @@ export function writeUserCollection(user, name, values, storage = globalThis.loc
 
 export function getCurrentUser(storage = globalThis.localStorage) {
   if (!storage) return null;
-  for (const key of ["studysphere_current_user", "studysphere_session", "studysphere_user_session"]) {
+  for (const key of [CURRENT_USER_KEY, ...LEGACY_CURRENT_USER_KEYS]) {
     try {
       const user = JSON.parse(storage.getItem(key) || "null");
-      if (user && typeof user === "object") return user;
+      if (user && typeof user === "object") {
+        if (key !== CURRENT_USER_KEY) setCurrentUser(user, storage);
+        return user;
+      }
     } catch {
       // Continue checking legacy session keys.
     }
   }
   return null;
+}
+
+export function setCurrentUser(user, storage = globalThis.localStorage) {
+  if (!storage) return false;
+  if (!user || typeof user !== "object") {
+    clearCurrentUser(storage);
+    return true;
+  }
+
+  storage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  LEGACY_CURRENT_USER_KEYS.forEach((key) => storage.removeItem(key));
+  return true;
+}
+
+export function clearCurrentUser(storage = globalThis.localStorage) {
+  if (!storage) return false;
+  [CURRENT_USER_KEY, ...LEGACY_CURRENT_USER_KEYS].forEach((key) => storage.removeItem(key));
+  return true;
 }

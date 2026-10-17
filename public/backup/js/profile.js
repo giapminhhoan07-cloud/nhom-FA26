@@ -1,9 +1,8 @@
 import { apiClient } from "./apiClient.js";
 import { BADGE_DEFINITIONS, getLevelFromXp } from "./gamification.js";
-import { getCurrentUser, readUserCollection, writeUserCollection } from "./userData.js";
+import { getCurrentUser, readUserCollection, setCurrentUser, writeUserCollection } from "./userData.js";
 
 const profileForm = document.querySelector("#profile-form");
-const PROFILE_CURRENT_USER_KEYS = ["studysphere_current_user", "studysphere_session", "studysphere_user_session"];
 const user = getCurrentUser();
 
 function escapeHtml(value) {
@@ -162,7 +161,7 @@ if (!user) {
     const updatedProfile = { name: nextName, goal: data.get("goal"), bio: data.get("bio").trim(), reminder: data.get("reminder") === "on" };
     localStorage.setItem(profileKey, JSON.stringify(updatedProfile));
     const nextUser = { ...user, name: nextName };
-    PROFILE_CURRENT_USER_KEYS.forEach((key) => localStorage.setItem(key, JSON.stringify(nextUser)));
+    setCurrentUser(nextUser);
     let apiSynced = true;
     if (user.id && !String(user.id).startsWith("local-")) {
       try {
