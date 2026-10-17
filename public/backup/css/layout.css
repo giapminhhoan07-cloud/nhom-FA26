@@ -36,12 +36,20 @@
 .notification-heading strong { font-size: 0.86rem; }
 .notification-mark-all { padding: 4px 0; border: 0; color: var(--teal-dark); background: transparent; cursor: pointer; font-size: 0.68rem; font-weight: 700; }
 .notification-list { max-height: min(420px, 65vh); overflow-y: auto; }
-.notification-item { display: grid; width: 100%; gap: 5px; padding: 13px 16px; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); background: white; cursor: pointer; text-align: left; }
+.notification-item { display: grid; gap: 0; border-bottom: 1px solid var(--line); background: white; transition: background 0.18s ease, box-shadow 0.18s ease; }
 .notification-item:hover { background: #f6faf9; }
 .notification-item.is-unread { background: #f0f8f6; }
+.notification-item.is-expanded { position: relative; z-index: 1; background: white; box-shadow: inset 3px 0 var(--teal); }
+.notification-item-toggle { display: grid; width: 100%; gap: 5px; padding: 13px 16px; border: 0; color: var(--ink); background: transparent; cursor: pointer; text-align: left; }
+.notification-item-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: -3px; }
 .notification-item-title { font-size: 0.75rem; font-weight: 800; }
 .notification-item-message { color: var(--ink-soft); font-size: 0.72rem; line-height: 1.45; overflow-wrap: anywhere; }
 .notification-item-date { color: var(--ink-soft); font-size: 0.62rem; }
+.notification-item:not(.is-expanded) .notification-item-message { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.notification-item.is-expanded .notification-item-toggle { padding-bottom: 8px; }
+.notification-item.is-expanded .notification-item-message { font-size: 0.78rem; line-height: 1.6; }
+.notification-item-action { display: inline-flex; align-items: center; justify-self: start; gap: 6px; margin: 0 16px 13px; padding: 7px 10px; border-radius: 6px; color: white; background: var(--teal); font-size: 0.68rem; font-weight: 800; text-decoration: none; transition: background 0.18s ease; }
+.notification-item-action:hover { color: white; background: var(--teal-dark); }
 .notification-empty { margin: 0; padding: 22px 16px; color: var(--ink-soft); font-size: 0.75rem; text-align: center; }
 .account-trigger { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border: 1px solid var(--line); border-radius: 24px; color: var(--ink); background: white; cursor: pointer; font-size: 0.78rem; font-weight: 700; }
 .account-avatar { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; color: white; background: var(--teal); font-size: 0.72rem; }
