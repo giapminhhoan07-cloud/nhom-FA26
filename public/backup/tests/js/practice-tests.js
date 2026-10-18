@@ -20,6 +20,9 @@ import {
 
 const list = document.querySelector("#practice-test-list");
 const emptyState = document.querySelector("#practice-test-empty");
+const emptyTitle = document.querySelector("#practice-test-empty-title");
+const emptyMessage = emptyState.querySelector("p");
+const emptyClearButton = document.querySelector("#empty-clear-test-filters");
 const count = document.querySelector("#practice-test-count");
 const scope = document.querySelector("#practice-test-scope");
 const subjectFilter = document.querySelector("#subject-filter");
@@ -422,6 +425,14 @@ function render() {
   hideSkeleton(list);
   emptyState.hidden = filteredTests.length > 0;
   list.hidden = filteredTests.length === 0;
+  if (!filteredTests.length) {
+    const hasCatalog = allTests.length > 0;
+    emptyTitle.textContent = hasCatalog ? "Không tìm thấy kết quả" : "Chưa có đề thi";
+    emptyMessage.textContent = hasCatalog
+      ? "Thử đổi từ khóa hoặc bộ lọc để tìm đề phù hợp."
+      : "Kho đề hiện chưa có dữ liệu. Hãy quay lại sau hoặc chọn ôn theo phạm vi.";
+    emptyClearButton.hidden = !hasCatalog;
+  }
 }
 
 function escapeHtml(value) {

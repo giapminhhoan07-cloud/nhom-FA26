@@ -117,6 +117,9 @@ const card = document.querySelector("#question-card");
 const dots = document.querySelector("#question-dots");
 const progressLabel = document.querySelector("#progress-label");
 const progressValue = document.querySelector("#progress-value");
+const progressTrack = document.querySelector("#progress-track");
+const loadingStatus = document.querySelector("#quiz-loading-status");
+const quizLayout = document.querySelector("#quiz-layout");
 const submitButton = document.querySelector("#submit-button");
 const submitStatus = document.querySelector("#submit-status");
 title.textContent = exam.title;
@@ -161,6 +164,8 @@ function renderQuestion() {
   publishStudyAiContext(question);
   progressLabel.textContent = `Câu ${currentIndex + 1} / ${questions.length}`;
   progressValue.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+  progressTrack?.setAttribute("aria-valuemax", String(questions.length));
+  progressTrack?.setAttribute("aria-valuenow", String(currentIndex + 1));
   const answerMarkup = question.type === "short_answer"
     ? `<label class="short-answer-field">Nhập câu trả lời<input type="text" name="answer" value="${answers[currentIndex] || ""}" placeholder="Nhập đáp án ngắn"></label>`
     : question.options.map((option, index) => `<label class="answer-option ${answers[currentIndex] === index ? "selected" : ""}"><input type="radio" name="answer" value="${index}" ${answers[currentIndex] === index ? "checked" : ""}> <span>${String.fromCharCode(65 + index)}. ${option}</span></label>`).join("");
@@ -180,7 +185,7 @@ function renderQuestion() {
   document.querySelector("#previous-button").disabled = currentIndex === 0;
   document.querySelector("#next-button").textContent = currentIndex === questions.length - 1 ? "Xem lại bài →" : "Câu tiếp theo →";
 }
-function renderDots() { dots.innerHTML = questions.map((_, index) => `<button class="dot ${index === currentIndex ? "current" : ""} ${answers[index] !== null && answers[index] !== "" ? "answered" : ""}" type="button" data-index="${index}">${index + 1}</button>`).join(""); }
+function renderDots() { dots.innerHTML = questions.map((_, index) => `<button class="dot ${index === currentIndex ? "current" : ""} ${answers[index] !== null && answers[index] !== "" ? "answered" : ""}" type="button" data-index="${index}" aria-label="Câu ${index + 1}${answers[index] !== null && answers[index] !== "" ? ", đã trả lời" : ", chưa trả lời"}" aria-current="${index === currentIndex ? "step" : "false"}">${index + 1}</button>`).join(""); }
 async function submitQuiz() {
   if (submitted || submitting) return;
   submitting = true;
@@ -335,25 +340,36 @@ document.addEventListener("studysphere:study-ai-ready", () => {
 
 if (unavailableQuiz) {
   hideSkeleton(card);
+  if (loadingStatus) loadingStatus.hidden = true;
+  if (quizLayout) {
+    quizLayout.hidden = false;
+    quizLayout.setAttribute("aria-busy", "false");
+  }
   const returnHref = scopePractice
     ? "scope.html"
     : standaloneTest
       ? "../pages/exam-detail.html?test=" + encodeURIComponent(standaloneTest.id)
-      : selectedExam
-        ? `exam-detail.html?id=${encodeURIComponent(selectedExam.id)}`
-        : "../tests/index.html";
-  const unavailableTitle = scopePractice ? "Không tìm thấy lượt luyện tập" : "Đề thi chưa sẵn sàng";
+      : "../tests/index.html";
+  const unavailableTitle = scopePractice ? "Không tìm thấy lượt luyện tập" : "Chưa có dữ liệu câu hỏi";
   const unavailableMessage = scopePractice
-    ? "Phiên chọn phạm vi không còn hợp lệ. Hãy chọn lại môn, lớp và chủ đề."
-    : "Đề này chưa có bộ câu hỏi tương tác hoàn chỉnh nên chưa thể bắt đầu bài làm.";
+    ? "Phiên luyện tập đã hết hạn hoặc không còn dữ liệu. Hãy chọn lại môn, lớp và chủ đề để bắt đầu lượt mới."
+    : "Đề này chưa có câu hỏi tương tác. Hãy chọn một đề khác có sẵn câu hỏi để bắt đầu làm bài.";
   document.title = `${unavailableTitle} | StudySphere`;
   title.textContent = unavailableTitle;
-  card.innerHTML = `<h1>${unavailableTitle}</h1><p>${unavailableMessage}</p><a class="button button-primary" href="${returnHref}">${scopePractice ? "Quay lại chọn phạm vi" : "Quay lại chi tiết đề"}</a>`;
+  card.classList.add("quiz-unavailable");
+  card.setAttribute("role", "status");
+  card.innerHTML = `<h1>${unavailableTitle}</h1><p>${unavailableMessage}</p><a class="button button-primary" href="${returnHref}">${scopePractice ? "Chọn lại phạm vi" : "Chọn đề khác"}</a>`;
   document.querySelectorAll("#previous-button, #next-button, #submit-button").forEach((button) => { button.disabled = true; });
+  quizLayout?.classList.add("is-unavailable");
+  document.querySelector(".question-nav").hidden = true;
   timer.hidden = true;
-  dots.hidden = true;
 } else {
   hideSkeleton(card);
+  if (loadingStatus) loadingStatus.hidden = true;
+  if (quizLayout) {
+    quizLayout.hidden = false;
+    quizLayout.setAttribute("aria-busy", "false");
+  }
   renderQuestion();
   renderDots();
   updateTimer();
