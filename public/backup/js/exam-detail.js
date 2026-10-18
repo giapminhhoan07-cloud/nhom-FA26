@@ -17,7 +17,7 @@ function renderPracticeTestDetail() {
 		 || upcomingTests.find((item) => item.id === testId);
 	const requestedReturn = params.get("return") || "";
 	const normalizedReturn = requestedReturn.replace(/^\.\//, "../");
-	const returnHref = /^\.\.\/tests\/index\.html(?:\?.*)?$/.test(normalizedReturn) ? normalizedReturn : "../tests/index.html";
+	const returnHref = /^(?:\.\.\/tests\/index\.html|\.\.\/pages\/exam-library\.html|exam-library\.html)(?:\?.*)?$/.test(normalizedReturn) ? normalizedReturn : "../tests/index.html";
 	backLink.href = returnHref;
 
 	if (!test) {
@@ -65,7 +65,21 @@ function renderPracticeTestDetail() {
 if (testId) {
 	renderPracticeTestDetail();
 } else {
+if (params.get("return") === "exam-library.html") {
+	backLink.href = "exam-library.html";
+	backLink.textContent = "← Quay lại kho đề thi";
+}
 let exam = exams.find((item) => String(item.id) === id);
+let localCatalogError = "";
+if (!exam && id) {
+	try {
+		const localExams = JSON.parse(localStorage.getItem("studysphere_custom_exams") || "[]");
+		if (!Array.isArray(localExams)) throw new Error("Đề đã lưu trên thiết bị không đúng định dạng.");
+		exam = localExams.find((item) => String(item.id) === id);
+	} catch (error) {
+		localCatalogError = error.message;
+	}
+}
 if (!exam && id) {
 	showSkeleton(detail, "detail");
 	try {
@@ -81,6 +95,7 @@ if (!exam && id) {
 				typeName: record.typeName || record.type || "Đề thi",
 				difficultyName: record.difficultyName || ({ easy: "Cơ bản", medium: "Trung bình", hard: "Khó" })[record.difficulty] || "Đang cập nhật",
 				durationMinutes: Number(record.durationMinutes ?? record.duration) || null,
+				documentUrl: record.documentUrl || record.document_url || "",
 				questions: Array.isArray(record.questions) ? record.questions : [],
 			};
 		}
@@ -90,7 +105,10 @@ if (!exam && id) {
 }
 if (!exam) {
 	document.title = "Không tìm thấy đề | StudySphere";
-	detail.innerHTML = '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="../tests/index.html">Về bài kiểm tra</a>';
+	detail.innerHTML = localCatalogError
+		? '<h1>Không thể tải kho đề</h1><p class="detail-description" id="local-catalog-error"></p><a class="button button-primary" href="exam-library.html">Về kho đề thi</a>'
+		: '<h1>Không tìm thấy đề thi</h1><p class="detail-description">Đề này chưa được thêm vào dữ liệu của trang.</p><a class="button button-primary" href="exam-library.html">Về kho đề thi</a>';
+	if (localCatalogError) detail.querySelector("#local-catalog-error").textContent = localCatalogError;
 	hideSkeleton(detail);
 } else {
 const relatedPracticeTest = practiceTests.find((test) => test.id === exam.relatedPracticeTestId);

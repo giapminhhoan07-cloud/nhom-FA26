@@ -55,6 +55,7 @@ document.querySelector("#app").innerHTML = `
             <p class="hero-description">Tìm đúng đề, luyện tập tập trung và nhìn thấy tiến bộ của bạn qua từng lần làm bài.</p>
             <div class="hero-actions">
               <a class="button button-primary" href="/backup/tests/">Làm bài kiểm tra <span aria-hidden="true">→</span></a>
+              <a class="text-link" href="/backup/pages/exam-library.html">Xem kho đề thi <span aria-hidden="true">↗</span></a>
             </div>
             <div class="hero-proof">
               <div class="avatar-stack" aria-hidden="true"><span>AN</span><span>MK</span><span>TH</span><span>+</span></div>
