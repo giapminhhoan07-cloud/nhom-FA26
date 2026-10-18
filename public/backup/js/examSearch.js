@@ -41,9 +41,12 @@ function getSearchableFields(exam) {
     exam.title,
     exam.subjectName,
     exam.subjectId,
+    exam.grade ? `lớp ${exam.grade}` : "",
     exam.typeName,
+    exam.examTypeName,
     exam.difficultyName,
     exam.description,
+    ...(Array.isArray(exam.topics) ? exam.topics : []),
     ...(Array.isArray(exam.topics) ? exam.topics : []),
   ].map(normalizeExamSearchText).filter(Boolean);
 }

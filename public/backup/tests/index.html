@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Lọc và chọn đề kiểm tra theo lớp học, môn học và mức độ.">
+  <meta name="description" content="Tìm và lọc đề kiểm tra theo lớp, môn, chủ đề, độ khó và trạng thái làm bài.">
   <title>Luyện đề thi | StudySphere</title>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -54,6 +54,10 @@
             <label for="subject-filter">Môn học</label>
             <select id="subject-filter"><option value="all">Tất cả môn học</option></select>
           </div>
+          <div class="filter-control">
+            <label for="topic-filter">Chủ đề</label>
+            <select id="topic-filter"><option value="all">Tất cả chủ đề</option></select>
+          </div>
           <label class="filter-control search-control" for="test-search">
             <span>Tìm kiếm</span>
             <input id="test-search" type="search" placeholder="Tìm đề kiểm tra..." autocomplete="off">
@@ -63,8 +67,16 @@
             <select id="type-filter"><option value="all">Tất cả loại đề</option></select>
           </div>
           <div class="filter-control">
-            <label for="difficulty-filter">Mức độ</label>
-            <select id="difficulty-filter"><option value="all">Tất cả mức độ</option></select>
+            <label for="difficulty-filter">Độ khó</label>
+            <select id="difficulty-filter"><option value="all">Tất cả độ khó</option></select>
+          </div>
+          <div class="filter-control">
+            <label for="completion-filter">Trạng thái</label>
+            <select id="completion-filter">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="not-done">Chưa làm</option>
+              <option value="done">Đã làm</option>
+            </select>
           </div>
           <div class="filter-control">
             <label for="duration-filter">Thời gian</label>
@@ -80,7 +92,7 @@
         <div class="practice-test-grid" id="practice-test-list" aria-live="polite"></div>
         <div class="empty-state practice-test-empty" id="practice-test-empty" hidden>
           <strong>Không tìm thấy đề kiểm tra</strong>
-          <p>Thử thay đổi lớp học, môn học hoặc bộ lọc để tìm đề phù hợp.</p>
+          <p>Thử thay đổi lớp, môn, chủ đề, độ khó hoặc trạng thái để tìm đề phù hợp.</p>
           <button class="button button-primary" id="empty-clear-test-filters" type="button">Xóa bộ lọc</button>
         </div>
       </div>

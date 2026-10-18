@@ -12,6 +12,7 @@ test("finds exams with unaccented text and common subject aliases", () => {
   assert.equal(searchExams(exams, "vat ly")[0].subjectId, "vat-ly");
   assert.equal(searchExams(exams, "physics")[0].subjectId, "vat-ly");
   assert.equal(searchExams(exams, "van hoc")[0].subjectId, "ngu-van");
+  assert.equal(searchExams([{ title: "Bộ luyện tập", topics: ["Hình học không gian"] }], "hinh hoc khong gian").length, 1);
 });
 
 test("ranks title matches before matches found only in descriptions", () => {

@@ -69,10 +69,14 @@
 .practice-test-card-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .test-favorite-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: white; cursor: pointer; font: inherit; font-size: 21px; line-height: 1; }
 .test-favorite-button:hover, .test-favorite-button.is-saved { border-color: var(--teal); color: var(--teal-dark); background: #e3effa; }
+.test-status.is-completed { color: #216b50; background: #e5f5ed; }
+.test-status.is-not-completed { color: #7b5b20; background: #fff4d8; }
+.test-status.is-upcoming { color: var(--ink-soft); background: #f2f5f8; }
 .practice-test-card h2 { margin: 12px 0 8px; font-family: var(--font-heading); font-size: 18px; font-weight: 600; line-height: 1.35; }
 .practice-test-card p { margin: 0; color: var(--ink-soft); font-size: 14px; }
 .practice-test-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; padding-top: 18px; }
 .practice-test-meta-item { padding: 5px 8px; border-radius: 4px; color: var(--ink-soft); background: #f2f5f8; font-size: 12px; }
+.practice-test-meta-item strong { margin-right: 3px; color: var(--ink); font-weight: 700; }
 .practice-test-start { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; margin-top: 16px; padding: 0 14px; border: 0; border-radius: 5px; color: white; background: var(--teal); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; }
 .practice-test-start:not(.is-disabled):hover { color: white; background: var(--teal-dark); }
 .practice-test-start span:last-child { font-size: 1.1rem; transition: transform 0.2s ease; }
