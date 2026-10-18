@@ -21,7 +21,7 @@ import {
 const list = document.querySelector("#practice-test-list");
 const emptyState = document.querySelector("#practice-test-empty");
 const emptyTitle = document.querySelector("#practice-test-empty-title");
-const emptyMessage = emptyState.querySelector("p");
+const emptyMessage = emptyState?.querySelector("p");
 const emptyClearButton = document.querySelector("#empty-clear-test-filters");
 const count = document.querySelector("#practice-test-count");
 const scope = document.querySelector("#practice-test-scope");
