@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kho đề thi PDF được đăng tải trên StudySphere.">
+  <title>Kho đề thi PDF | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+  <script type="module" src="../js/exam-library.js"></script>
+  <script defer src="../js/session.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ">
+        <span class="brand-mark">S</span>
+        <span>Study<span>Sphere</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Mở menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+        <a href="../index.html">Trang chủ</a>
+        <a class="active" href="exam-library.html">Kho đề thi</a>
+        <a href="history.html">Lịch sử</a>
+        <a href="favorites.html">Đề đã lưu</a>
+      </nav>
+      <a class="header-action" href="auth.html">Đăng nhập <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main>
+    <section class="page-intro">
+      <div class="container">
+        <p class="eyebrow">Tài liệu PDF</p>
+        <h1>Kho đề thi</h1>
+        <p>Tổng hợp đề PDF do quản trị viên tải lên. Chọn đề để xem trực tiếp hoặc mở trang chi tiết.</p>
+      </div>
+    </section>
+    <section class="section exam-library">
+      <div class="container">
+        <div class="exam-library-toolbar">
+          <label class="exam-library-field" for="exam-library-search">
+            <span>Tìm đề thi</span>
+            <input id="exam-library-search" type="search" placeholder="Nhập tên đề hoặc môn học..." autocomplete="off">
+          </label>
+          <label class="exam-library-field" for="exam-library-subject">
+            <span>Môn học</span>
+            <select id="exam-library-subject"><option value="all">Tất cả môn học</option></select>
+          </label>
+        </div>
+        <p class="exam-library-status" id="exam-library-status" role="status" aria-live="polite"></p>
+        <div class="library-toolbar">
+          <strong id="exam-library-count" aria-live="polite">Đang tải kho đề...</strong>
+        </div>
+        <div class="exam-library-grid" id="exam-library-list" aria-live="polite"></div>
+        <div class="empty-state" id="exam-library-empty" hidden>
+          <strong id="exam-library-empty-title">Chưa có đề PDF</strong>
+          <p id="exam-library-empty-message">Đề PDF được quản trị viên tải lên sẽ xuất hiện tại đây.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <a class="brand footer-brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
+        <p>Một cách học rõ ràng hơn,<br>mỗi ngày một bước tiến.</p>
+      </div>
+      <div class="footer-links"><span>© 2026 StudySphere</span></div>
+    </div>
+  </footer>
+</body>
+</html>
