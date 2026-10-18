@@ -73,7 +73,7 @@
 .test-status.is-not-completed { color: #7b5b20; background: #fff4d8; }
 .test-status.is-upcoming { color: var(--ink-soft); background: #f2f5f8; }
 .practice-test-card h2 { margin: 12px 0 8px; font-family: var(--font-heading); font-size: 18px; font-weight: 600; line-height: 1.35; }
-.practice-test-card p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.practice-test-card p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--ink-soft); font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .practice-test-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; padding-top: 18px; }
 .practice-test-meta-item { padding: 5px 8px; border-radius: 4px; color: var(--ink-soft); background: #f2f5f8; font-size: 12px; }
 .practice-test-meta-item strong { margin-right: 3px; color: var(--ink); font-weight: 700; }

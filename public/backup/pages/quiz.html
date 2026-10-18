@@ -1,6 +1,58 @@
 <!doctype html>
 <html lang="vi">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Làm bài | StudySphere</title><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/layout.css"><link rel="stylesheet" href="../css/components.css"><link rel="stylesheet" href="../css/pages.css"><link rel="stylesheet" href="../css/quiz.css"><script>const params = new URLSearchParams(location.search); if (!params.has("id") && !params.has("test") && params.get("scope") !== "1") location.replace("../tests/");</script><script defer src="../js/session.js"></script><script type="module" src="../js/quiz.js"></script></head>
-<body class="quiz-body"><header class="quiz-header"><div class="container quiz-header-inner"><a class="brand" href="../index.html"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a><div class="quiz-title" id="quiz-title">Đang tải đề...</div><div class="timer" id="timer" aria-live="polite">45:00</div></div></header>
-<main class="quiz-main"><div class="container quiz-layout"><section><div class="quiz-progress"><span id="progress-label">Câu 1 / 5</span><div><span id="progress-value"></span></div></div><div id="question-card" class="question-card"></div><div class="quiz-actions"><button class="button button-quiet" id="previous-button" type="button">← Câu trước</button><button class="button button-primary" id="next-button" type="button">Câu tiếp theo →</button></div></section><aside class="question-nav"><strong>Danh sách câu</strong><div id="question-dots"></div><p id="submit-status" class="submit-status" role="status" aria-live="polite" hidden></p><button class="submit-button" id="submit-button" type="button">Nộp bài</button></aside></div></main>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Làm bài kiểm tra trực tuyến và theo dõi tiến độ học tập.">
+  <title>Làm bài | StudySphere</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+  <link rel="stylesheet" href="../css/quiz.css">
+  <link rel="stylesheet" href="../css/quiz-ui.css">
+  <script>const params = new URLSearchParams(location.search); if (!params.has("id") && !params.has("test") && params.get("scope") !== "1") location.replace("../tests/");</script>
+  <script defer src="../js/session.js"></script>
+  <script type="module" src="../js/quiz.js"></script>
+</head>
+<body class="quiz-body">
+  <header class="quiz-header">
+    <div class="container quiz-header-inner">
+      <a class="brand" href="../index.html" aria-label="StudySphere - Trang chủ"><span class="brand-mark">S</span><span>Study<span>Sphere</span></span></a>
+      <div class="quiz-title" id="quiz-title">Đang tải đề...</div>
+      <div class="timer" id="timer" aria-live="polite">45:00</div>
+    </div>
+  </header>
+  <main class="quiz-main">
+    <div class="container">
+      <p class="quiz-loading-status" id="quiz-loading-status" role="status" aria-live="polite">Đang tải câu hỏi...</p>
+      <div class="quiz-layout" id="quiz-layout" aria-busy="true" hidden>
+        <section class="quiz-content" aria-label="Bài làm">
+          <div class="quiz-progress">
+            <span id="progress-label">Câu 1 / 5</span>
+            <div
+              id="progress-track"
+              role="progressbar"
+              aria-label="Tiến độ bài làm"
+              aria-valuemin="0"
+              aria-valuemax="5"
+              aria-valuenow="1"
+            ><span id="progress-value"></span></div>
+          </div>
+          <div id="question-card" class="question-card" role="region" aria-label="Nội dung câu hỏi" aria-live="polite"></div>
+          <div class="quiz-actions">
+            <button class="button button-quiet" id="previous-button" type="button">← Câu trước</button>
+            <button class="button button-primary" id="next-button" type="button">Câu tiếp theo →</button>
+          </div>
+        </section>
+        <aside class="question-nav" aria-label="Điều hướng bài làm">
+          <strong>Danh sách câu</strong>
+          <div id="question-dots" class="question-dots"></div>
+          <p id="submit-status" class="submit-status" role="status" aria-live="polite" hidden></p>
+          <button class="submit-button" id="submit-button" type="button">Nộp bài</button>
+        </aside>
+      </div>
+    </div>
+  </main>
+</body>
 </body></html>
