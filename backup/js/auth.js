@@ -145,3 +145,107 @@ loginForm?.addEventListener("submit", async (event) => {
     setMessage("login-message", error.message);
   }
 });
+
+// ─── Google OAuth (Google Identity Services) ──────────────────────────────────
+// Thay GOOGLE_CLIENT_ID bằng Client ID thật từ Google Cloud Console.
+// Hướng dẫn: https://console.cloud.google.com/apis/credentials
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+/**
+ * Giải mã JWT credential trả về từ Google GIS.
+ * Không cần verify chữ ký ở client-side; chỉ đọc payload.
+ * @param {string} token - JWT string.
+ * @returns {{ sub: string, name: string, email: string, picture: string }}
+ */
+function parseGoogleJwt(token) {
+  try {
+    const base64Payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64Payload));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Xử lý credential Google GIS sau khi người dùng chọn tài khoản.
+ * Được gọi bởi cả nút "Đăng nhập bằng Google" lẫn "Đăng ký bằng Google".
+ * @param {google.accounts.id.CredentialResponse} response
+ */
+function handleGoogleCredential(response) {
+  const payload = parseGoogleJwt(response.credential);
+  if (!payload || !payload.email) {
+    setMessage("login-message", "Không thể đọc thông tin từ Google. Vui lòng thử lại.");
+    return;
+  }
+
+  const existingUsers = getLocalUsers();
+  let user = existingUsers.find((u) => u.email === payload.email);
+
+  if (!user) {
+    // Người dùng mới — tạo tài khoản tự động với role "user"
+    user = {
+      id: `google-${payload.sub}`,
+      name: payload.name || payload.email.split("@")[0],
+      email: payload.email,
+      role: "user",
+      // Không lưu password cho tài khoản Google
+      googleId: payload.sub,
+      avatar: payload.picture || null,
+    };
+    setLocalUsers([...existingUsers, user]);
+  }
+
+  const normalizedUser = normalizeUser(user);
+  writeStoredUser(normalizedUser);
+
+  // Sử dụng lại logic redirect của login form (returnTarget đã được khai báo ở đầu file)
+  const returnPaths = {
+    admin: "admin.html",
+    "admin-dashboard": "admin-dashboard.html",
+    "admin-users": "admin-users.html",
+    "admin-feedback": "admin-feedback.html",
+    home: "/backup/index.html",
+  };
+  window.location.href =
+    returnPaths[returnTarget] ||
+    (normalizedUser.role === "admin" ? "admin-dashboard.html" : "/backup/index.html");
+}
+
+/**
+ * Khởi tạo Google Identity Services và gắn sự kiện cho các nút Google.
+ * Được gọi sau khi GIS SDK tải xong (hoặc ngay lập tức nếu đã tải).
+ */
+function initGoogleOAuth() {
+  if (typeof google === "undefined" || !google.accounts?.id) {
+    // GIS chưa tải xong — thử lại sau 500ms
+    setTimeout(initGoogleOAuth, 500);
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    // Tắt auto_select để tránh tự động đăng nhập khi user chưa chủ động nhấn
+    auto_select: false,
+  });
+
+  // Gắn sự kiện cho nút "Đăng nhập bằng Google" (login panel)
+  const googleLoginBtn = document.querySelector("#google-login-btn");
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener("click", () => {
+      google.accounts.id.prompt();
+    });
+  }
+
+  // Gắn sự kiện cho nút "Đăng ký bằng Google" (register panel)
+  const googleRegisterBtn = document.querySelector("#google-register-btn");
+  if (googleRegisterBtn) {
+    googleRegisterBtn.addEventListener("click", () => {
+      google.accounts.id.prompt();
+    });
+  }
+}
+
+// Khởi tạo khi DOM sẵn sàng (script đã có defer nên DOM luôn sẵn sàng)
+initGoogleOAuth();
+// ─── End Google OAuth ──────────────────────────────────────────────────────────
